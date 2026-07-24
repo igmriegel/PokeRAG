@@ -58,11 +58,11 @@ Grounded field-for-field in [`docker-compose.yml`](../../docker-compose.yml).
 
 | Service | Image / Build | Ports | Volumes | depends_on | Healthcheck |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **qdrant** | `qdrant/qdrant:v1.7.4` | `6333`, `6334` | `qdrant_storage:/qdrant/storage` | — | `curl -f http://localhost:6333/healthz` (10s/5s×5) |
+| **qdrant** | `qdrant/qdrant:v1.14.1` | `6333`, `6334` | `qdrant_storage:/qdrant/storage` | — | Bash TCP probe on `127.0.0.1:6333` (10s/5s×5) |
 | **postgres** | `postgres:16-alpine` | `5432` | `postgres_data:/var/lib/postgresql/data` | — | `pg_isready -U $POSTGRES_USER -d $POSTGRES_DB` (5s/5s×5) |
 | **ingestion** | build `docker/Dockerfile.ingestion` | — | `./data:/app/data`, `./config:/app/config` | qdrant (healthy), postgres (healthy) | — (batch job, `profiles: [ingestion]`) |
-| **api** | build `docker/Dockerfile.app` | `8000` | `./data:/app/data`, `./config:/app/config` | qdrant (healthy), postgres (healthy) | `curl -f http://localhost:8000/health` (10s/5s×5) |
-| **ui** | build `docker/Dockerfile.app` | `8501` | `./data:/app/data`, `./config:/app/config` | api (healthy) | `curl -f http://localhost:8501/_stcore/health` (10s/5s×5) |
+| **api** | build `docker/Dockerfile.app` | `8000` | `./data:/app/data`, `./config:/app/config` | qdrant (healthy), postgres (healthy) | Python HTTP probe on `/health` (10s/5s×5) |
+| **ui** | build `docker/Dockerfile.app` | `8501` | `./data:/app/data`, `./config:/app/config` | api (healthy) | Python HTTP probe on `/_stcore/health` (10s/5s×5) |
 | **prometheus** | `prom/prometheus:v2.48.1` | `9090` | `./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml`, `prometheus_data:/prometheus` | api (healthy) | — |
 | **grafana** | `grafana/grafana:10.2.3` | `3000` | `./docker/grafana/provisioning:/etc/grafana/provisioning`, `./docker/grafana/dashboards:/etc/grafana/dashboards`, `grafana_data:/var/lib/grafana` | prometheus | — |
 
@@ -169,7 +169,7 @@ A public reachable URL earns the bonus. Three grounded options:
 1. Push repo to GitHub.
 2. Create separate **Web Services** from `docker/Dockerfile.app` for the API (`8000`) and UI (`8501`).
 3. Add **Managed PostgreSQL** (Render add-on) → set `POSTGRES_*` env vars.
-4. Run **Qdrant** as a Render Private Service (from `qdrant/qdrant:v1.7.4`) with a persistent
+4. Run **Qdrant** as a Render Private Service (from `qdrant/qdrant:v1.14.1`) with a persistent
    disk mounted at `/qdrant/storage`; set `QDRANT_HOST` to its internal address.
 5. Set `OPENAI_API_KEY` and other env vars in the Render dashboard (secrets).
 6. Run ingestion as a one-off Render Job before first traffic.

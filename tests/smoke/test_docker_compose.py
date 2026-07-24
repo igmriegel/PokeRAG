@@ -84,6 +84,14 @@ def test_postgres_uses_version_16() -> None:
 
 
 @pytest.mark.smoke
+def test_qdrant_server_matches_client_minor_version() -> None:
+    with open(COMPOSE_FILE) as fh:
+        config = yaml.safe_load(fh)
+
+    assert config["services"]["qdrant"]["image"].startswith("qdrant/qdrant:v1.14.")
+
+
+@pytest.mark.smoke
 def test_internal_services_are_not_publicly_published() -> None:
     """Internal data-plane services should expose ports only inside the compose network."""
     with open(COMPOSE_FILE) as fh:
@@ -93,3 +101,26 @@ def test_internal_services_are_not_publicly_published() -> None:
         service_cfg = config["services"][service_name]
         assert "ports" not in service_cfg, f"{service_name} must not publish host ports by default"
         assert "expose" in service_cfg, f"{service_name} must expose its port internally"
+
+
+@pytest.mark.smoke
+def test_qdrant_healthcheck_uses_available_runtime_tooling() -> None:
+    """The minimal Qdrant image has bash but does not ship curl or wget."""
+    with open(COMPOSE_FILE) as fh:
+        config = yaml.safe_load(fh)
+
+    healthcheck = config["services"]["qdrant"]["healthcheck"]["test"]
+    assert healthcheck[:3] == ["CMD", "bash", "-c"]
+    assert "/dev/tcp/127.0.0.1/6333" in healthcheck[3]
+
+
+@pytest.mark.smoke
+def test_app_healthchecks_use_python_runtime() -> None:
+    """The rootless application image includes Python but not curl or wget."""
+    with open(COMPOSE_FILE) as fh:
+        config = yaml.safe_load(fh)
+
+    for service_name in ("api", "ui"):
+        healthcheck = config["services"][service_name]["healthcheck"]["test"]
+        assert healthcheck[:3] == ["CMD", "python", "-c"]
+        assert "urllib.request.urlopen" in healthcheck[3]

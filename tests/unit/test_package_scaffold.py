@@ -59,3 +59,14 @@ def test_profile_locks_are_pinned() -> None:
             if not line or line.startswith("#"):
                 continue
             assert "==" in line, f"Unpinned dependency found in {path.name}: {line}"
+
+
+@pytest.mark.unit
+def test_runtime_lock_includes_observability_dependencies() -> None:
+    """Runtime containers import OpenTelemetry during application startup."""
+    dependencies = {
+        line.split("==", maxsplit=1)[0]
+        for line in RUNTIME_REQUIREMENTS_PATH.read_text().splitlines()
+        if line and not line.startswith("#")
+    }
+    assert {"opentelemetry-api", "opentelemetry-sdk"}.issubset(dependencies)

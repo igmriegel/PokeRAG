@@ -24,6 +24,8 @@ def test_dockerfiles_are_multistage_and_rootless() -> None:
         content = dockerfile.read_text(encoding="utf-8")
         assert "AS builder" in content
         assert "COPY --from=builder" in content
+        assert "pip install --no-deps ." in content
+        assert "pip install -e ." not in content
         assert "USER 10001:10001" in content
         assert "python:3.11-slim" in content
 

@@ -24,7 +24,7 @@ COPY pyproject.toml .
 COPY src/ src/
 COPY config/ config/
 COPY scripts/ scripts/
-RUN pip install -e .
+RUN pip install --no-deps .
 
 FROM python:3.11-slim AS runtime
 
