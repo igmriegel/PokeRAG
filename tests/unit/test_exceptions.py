@@ -16,7 +16,6 @@ from pokemon_tcg_rag.domain.exceptions import (
     VectorStoreError,
 )
 
-
 # ─────────────────────────────────────────────
 # TEST-012  Exception hierarchy
 # ─────────────────────────────────────────────
