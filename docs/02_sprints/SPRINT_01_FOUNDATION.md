@@ -82,16 +82,16 @@ Out of scope: any ingestion, retrieval, LLM, UI, or evaluation logic.
 
 ## Checklist
 
-- [ ] `src/pokemon_tcg_rag/` importable; all layer packages have `__init__.py`.
-- [ ] `Settings` loads from `.env`; `get_settings()` cached; `postgres_uri` property correct.
-- [ ] All 9 `DocumentSource` values match the official sources in [PROJECT.md](../00_project/PROJECT.md) §3.
-- [ ] All 7 `RuleType` values present; `DocumentMetadata` carries the 9 metadata fields.
-- [ ] `pyproject.toml` defines `[tool.ruff]`, `[tool.mypy]` (strict), `[tool.pytest]` with coverage addopts.
-- [ ] `requirements.txt` / `pyproject.toml`: every runtime dependency has a version specifier.
-- [ ] `Dockerfile` builds; `docker-compose.yml` skeleton lists streamlit, api, qdrant, postgres, prometheus, grafana, ingestion services.
-- [ ] `.env.example` documents every setting with a safe default.
-- [ ] CI runs ruff, mypy, pytest with coverage and fails on threshold breach.
-- [ ] [CodingStandards.md](../01_architecture/CodingStandards.md) published and linked from README.
+- [x] `src/pokemon_tcg_rag/` importable; all layer packages have `__init__.py`.
+- [x] `Settings` loads from `.env`; `get_settings()` cached; `postgres_uri` property correct.
+- [x] All 9 `DocumentSource` values match the official sources in [PROJECT.md](../00_project/PROJECT.md) §3.
+- [x] All 7 `RuleType` values present; `DocumentMetadata` carries the 9 metadata fields.
+- [x] `pyproject.toml` defines `[tool.ruff]`, `[tool.mypy]` (strict), `[tool.pytest]` with coverage addopts.
+- [x] `requirements.txt` / `pyproject.toml`: every runtime dependency has a version specifier.
+- [x] `Dockerfile` builds; `docker-compose.yml` skeleton lists streamlit, api, qdrant, postgres, prometheus, grafana, ingestion services.
+- [x] `.env.example` documents every setting with a safe default.
+- [x] CI runs ruff, mypy, pytest with coverage and fails on threshold breach.
+- [x] [CodingStandards.md](../01_architecture/CodingStandards.md) published and linked from README.
 
 ## Acceptance Criteria (measurable)
 
