@@ -36,7 +36,7 @@ executable by an AI Code Agent, and traceable to a requirement
 | TASK-003 | Domain models & enums (`domain/models.py`) | REQ-004, REQ-012 | TASK-001 | Done |
 | TASK-004 | Domain exceptions (`domain/exceptions.py`) | REQ-017 | TASK-001 | Done |
 | TASK-005 | Structured JSON logging (`monitoring/logger.py`) | REQ-015 | TASK-002 | Done |
-| TASK-006 | Docker Compose & service Dockerfiles skeleton | REQ-016 | TASK-001, TASK-002 | Pending |
+| TASK-006 | Docker Compose & service Dockerfiles skeleton | REQ-016 | TASK-001, TASK-002 | Done |
 
 ## Sprint 2 — Ingestion: Scraping & PDF Parsing (`SPRINT_02_INGESTION`)
 
