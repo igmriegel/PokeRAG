@@ -74,7 +74,7 @@ executable by an AI Code Agent, and traceable to a requirement
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | TASK-023 | Retrieval pipeline orchestrator (`retrieval/pipeline.py`) | REQ-008, REQ-009, REQ-010 | TASK-019, TASK-020, TASK-022 | Done |
-| TASK-024 | Prompt templates & Judge persona (`llm/prompts.py`) | REQ-011, REQ-012 | TASK-003 | Pending |
+| TASK-024 | Prompt templates & Judge persona (`llm/prompts.py`) | REQ-011, REQ-012 | TASK-003 | Done |
 | TASK-025 | RAG chain — retrieve→prompt→answer (`llm/rag_chain.py`) | REQ-011, REQ-012 | TASK-021, TASK-023, TASK-024 | Pending |
 | TASK-026 | Relational DB & feedback ORM (`storage/relational_db.py`) | REQ-014 | TASK-002, TASK-003 | Pending |
 | TASK-027 | Feedback store service (`monitoring/feedback_store.py`) | REQ-014 | TASK-026 | Pending |

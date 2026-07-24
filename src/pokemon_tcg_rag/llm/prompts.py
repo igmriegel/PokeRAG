@@ -1,51 +1,78 @@
 """
-Prompt Engineering System Templates.
+Prompt templates for the certified judge persona.
 """
+
+from __future__ import annotations
+
+from collections.abc import Sequence
 
 from pokemon_tcg_rag.domain.models import RetrievedChunk
 
 
 class PromptTemplateManager:
-    """Manages system prompts, context formatting, and citation instructions."""
+    """Build grounded prompts for the Pokemon TCG judge persona."""
 
-    SYSTEM_PROMPT = """Você é um Juiz Certificado Oficial do Pokémon Trading Card Game (TCG).
-Sua missão é responder à pergunta do usuário utilizando EXCLUSIVAMENTE a documentação oficial e rulings fornecidas no contexto abaixo.
+    SYSTEM_PROMPT_A = """Você é um Juiz Certificado Oficial do Pokémon Trading Card Game (TCG).
+Responda apenas usando o contexto fornecido.
+Não invente regras, não suponha intenções e não use conhecimento externo.
+Sempre cite as fontes numeradas presentes no contexto.
+Se o contexto não for suficiente, responda exatamente: "I don't know."
 
-REGRAS OBRIGATÓRIAS:
-1. Responda apenas com base nas informações explicitamente presentes nos trechos fornecidos.
-2. NUNCA invente ou assuma regras que não estejam comprovadas pelos documentos.
-3. Se o contexto fornecido for insuficiente para responder com certeza, declare expressamente: "Não há evidência suficiente na documentação oficial para responder a esta pergunta."
-4. TODA afirmação sobre regras, mecânicas, banimentos ou erratas DEVE conter uma citação clara no formato: [Fonte: <Nome do Documento / Rulings>, Página: <Págs/Link>].
-5. Mantenha um tom profissional, imparcial e preciso, idêntico ao de um juiz principal de torneio oficial.
-
-CONTEXTO RECUPERADO:
+Contexto:
 {context}
 
-PERGUNTA DO USUÁRIO:
+Pergunta:
 {query}
-
-RESPOSTA DO JUIZ:
 """
 
-    def format_context(self, chunks: list[RetrievedChunk]) -> str:
-        """Format list of retrieved chunks into structured context text."""
-        formatted_blocks = []
-        for idx, item in enumerate(chunks, start=1):
-            meta = item.chunk.metadata
-            source_info = f"{meta.document_title} ({meta.source.value})"
-            if meta.page_number:
-                source_info += f" - Pág. {meta.page_number}"
-            if meta.card_name:
-                source_info += f" - Carta: {meta.card_name}"
-            
-            formatted_blocks.append(
-                f"--- DOCUMENTO [{idx}] ---\n"
-                f"Fonte: {source_info}\n"
-                f"Conteúdo:\n{item.chunk.text}\n"
-            )
-        return "\n".join(formatted_blocks)
+    SYSTEM_PROMPT_B = """Você é um árbitro experiente de Pokémon TCG.
+Seu trabalho é responder com precisão, baseando-se somente nas evidências fornecidas.
+Toda afirmação relevante deve ser sustentada por uma citação do contexto.
+Se faltar evidência, diga "I don't know."
 
-    def build_prompt(self, query: str, chunks: list[RetrievedChunk]) -> str:
-        """Construct complete prompt with formatted context."""
-        context_str = self.format_context(chunks)
-        return self.SYSTEM_PROMPT.format(context=context_str, query=query)
+Contexto:
+{context}
+
+Pergunta:
+{query}
+"""
+
+    def __init__(self, variant: str = "A", max_context_chars: int = 6000) -> None:
+        self.variant = variant.upper()
+        self.max_context_chars = max_context_chars
+
+    def format_context(self, chunks: Sequence[RetrievedChunk]) -> str:
+        """Number chunks and include citation-friendly source metadata."""
+        blocks: list[str] = []
+        for index, item in enumerate(chunks, start=1):
+            meta = item.chunk.metadata
+            source_line = f"[{index}] {meta.document_title}"
+            details: list[str] = []
+            if meta.source_url:
+                details.append(meta.source_url)
+            if meta.page_number is not None:
+                details.append(f"p. {meta.page_number}")
+            if meta.card_name:
+                details.append(f"carta: {meta.card_name}")
+            if meta.publication_date:
+                details.append(f"data: {meta.publication_date}")
+            if details:
+                source_line += " — " + " | ".join(details)
+            blocks.append(f"{source_line}\n{item.chunk.text.strip()}")
+
+        context = "\n\n".join(blocks)
+        return self._truncate_context(context)
+
+    def build_prompt(self, query: str, chunks: Sequence[RetrievedChunk]) -> str:
+        """Build the final prompt using the selected judge variant."""
+        context = self.format_context(chunks)
+        template = self._template_for_variant()
+        return template.format(context=context, query=query.strip())
+
+    def _template_for_variant(self) -> str:
+        return self.SYSTEM_PROMPT_B if self.variant == "B" else self.SYSTEM_PROMPT_A
+
+    def _truncate_context(self, context: str) -> str:
+        if len(context) <= self.max_context_chars:
+            return context
+        return context[: self.max_context_chars].rstrip() + "..."
