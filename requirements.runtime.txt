@@ -1,0 +1,28 @@
+# Runtime dependency lock for API / UI / ingestion images.
+# Generated from the pinned project dependency set used in production services.
+pydantic==2.13.4
+pydantic-settings==2.14.2
+qdrant-client==1.14.3
+rank-bm25==0.2.2
+sentence-transformers==3.3.1
+torch==2.5.1
+transformers==4.47.1
+openai==1.65.0
+pymupdf==1.25.3
+pymupdf4llm==0.0.22
+beautifulsoup4==4.12.3
+requests==2.32.3
+httpx==0.28.1
+pandas==2.2.3
+pyarrow==18.1.0
+fastapi==0.115.7
+uvicorn==0.34.0
+streamlit==1.41.1
+psycopg2-binary==2.9.10
+sqlalchemy==2.0.36
+alembic==1.14.0
+prometheus-client==0.21.1
+python-dotenv==1.2.2
+pyyaml==6.0.2
+structlog==26.1.0
+tenacity==9.0.0

@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.runtime.txt .
+RUN pip install --no-cache-dir -r requirements.runtime.txt
 
 COPY pyproject.toml .
 COPY src/ src/

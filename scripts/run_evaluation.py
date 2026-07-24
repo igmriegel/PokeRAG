@@ -111,7 +111,11 @@ def run_evaluation(
         best_llm_configuration=llm_report.best_llm_configuration,
     )
 
-    sample_values = list(latency_samples) if latency_samples is not None else retrieval_handler_timings + llm_handler_timings
+    sample_values = (
+        list(latency_samples)
+        if latency_samples is not None
+        else retrieval_handler_timings + llm_handler_timings
+    )
     _write_report_files(combined_report, report_dir, sample_values)
     _enforce_regression_gate(combined_report)
     return combined_report
@@ -156,7 +160,9 @@ def main(
         report = run_evaluation(
             report_dir=args.report_dir,
             evaluator=evaluator,
-            latency_samples=latency_samples if latency_samples is not None else args.latency_samples,
+            latency_samples=latency_samples
+            if latency_samples is not None
+            else args.latency_samples,
         )
     except RegressionGateError as exc:
         print(f"Evaluation regression gate failed: {exc}", file=sys.stderr)
@@ -179,7 +185,9 @@ def _build_default_evaluator() -> RAGEvaluator:
 def _build_default_retrieval_handlers(cases: Sequence[EvalTestCase]) -> dict[str, RetrievalHandler]:
     case_map = {case.question: case for case in cases}
 
-    def _make_handler(strategy_name: str, lead_noise: bool, relevant_first: bool) -> RetrievalHandler:
+    def _make_handler(
+        strategy_name: str, lead_noise: bool, relevant_first: bool
+    ) -> RetrievalHandler:
         def handler(query: str, top_k: int) -> list[RetrievedChunk]:
             case = case_map.get(query)
             if case is None:
@@ -188,14 +196,26 @@ def _build_default_retrieval_handlers(cases: Sequence[EvalTestCase]) -> dict[str
             chunks: list[RetrievedChunk] = []
             if relevant_first:
                 for index, doc_id in enumerate(relevant_docs, start=1):
-                    chunks.append(_make_retrieved_chunk(doc_id, case.expected_source, strategy_name, index))
+                    chunks.append(
+                        _make_retrieved_chunk(doc_id, case.expected_source, strategy_name, index)
+                    )
                 if lead_noise:
-                    chunks.append(_make_retrieved_chunk(f"noise-{case.question_id}", case.expected_source, strategy_name, 99))
+                    chunks.append(
+                        _make_retrieved_chunk(
+                            f"noise-{case.question_id}", case.expected_source, strategy_name, 99
+                        )
+                    )
             else:
                 if lead_noise:
-                    chunks.append(_make_retrieved_chunk(f"noise-{case.question_id}", case.expected_source, strategy_name, 1))
+                    chunks.append(
+                        _make_retrieved_chunk(
+                            f"noise-{case.question_id}", case.expected_source, strategy_name, 1
+                        )
+                    )
                 for index, doc_id in enumerate(relevant_docs, start=2):
-                    chunks.append(_make_retrieved_chunk(doc_id, case.expected_source, strategy_name, index))
+                    chunks.append(
+                        _make_retrieved_chunk(doc_id, case.expected_source, strategy_name, index)
+                    )
             return chunks[:top_k]
 
         return handler
@@ -218,7 +238,9 @@ def _build_default_llm_handlers(cases: Sequence[EvalTestCase]) -> dict[str, LLMH
     }
 
     def _make_handler(configuration_name: str) -> LLMHandler:
-        faithfulness, correctness, citation_quality, completeness = scores_by_config[configuration_name]
+        faithfulness, correctness, citation_quality, completeness = scores_by_config[
+            configuration_name
+        ]
 
         def handler(case: EvalTestCase) -> LLMEvaluationSample:
             benchmark_case = case_map[case.question]
@@ -241,7 +263,10 @@ def _build_default_llm_handlers(cases: Sequence[EvalTestCase]) -> dict[str, LLMH
 
         return handler
 
-    return {configuration_name: _make_handler(configuration_name) for configuration_name in scores_by_config}
+    return {
+        configuration_name: _make_handler(configuration_name)
+        for configuration_name in scores_by_config
+    }
 
 
 def _wrap_retrieval_handlers(
@@ -264,7 +289,9 @@ def _wrap_llm_handlers(
     return wrapped
 
 
-def _timed_retrieval_handler(name: str, handler: RetrievalHandler, timings: list[float]) -> RetrievalHandler:
+def _timed_retrieval_handler(
+    name: str, handler: RetrievalHandler, timings: list[float]
+) -> RetrievalHandler:
     del name
 
     def wrapped(query: str, top_k: int) -> Sequence[RetrievedChunk | str]:
@@ -290,7 +317,9 @@ def _timed_llm_handler(name: str, handler: LLMHandler, timings: list[float]) -> 
     return wrapped
 
 
-def _make_retrieved_chunk(doc_id: str, source: DocumentSource, strategy_name: str, rank: int) -> RetrievedChunk:
+def _make_retrieved_chunk(
+    doc_id: str, source: DocumentSource, strategy_name: str, rank: int
+) -> RetrievedChunk:
     metadata = DocumentMetadata(
         source=source,
         document_title=f"{source.value} document",
@@ -306,7 +335,9 @@ def _make_retrieved_chunk(doc_id: str, source: DocumentSource, strategy_name: st
     return RetrievedChunk(chunk=chunk, score=1.0 / rank, retrieval_method=strategy_name)
 
 
-def _write_report_files(report: EvaluationReport, report_dir: Path, samples: Sequence[float]) -> None:
+def _write_report_files(
+    report: EvaluationReport, report_dir: Path, samples: Sequence[float]
+) -> None:
     report_dir.mkdir(parents=True, exist_ok=True)
     (report_dir / "evaluation_report.json").write_text(report.to_json(), encoding="utf-8")
     (report_dir / "evaluation_report.md").write_text(report.to_markdown(), encoding="utf-8")
@@ -321,7 +352,10 @@ def _enforce_regression_gate(report: EvaluationReport) -> None:
     failures: list[str] = []
 
     retrieval_result = None
-    if report.best_retrieval_strategy and report.best_retrieval_strategy in report.retrieval_results:
+    if (
+        report.best_retrieval_strategy
+        and report.best_retrieval_strategy in report.retrieval_results
+    ):
         retrieval_result = report.retrieval_results[report.best_retrieval_strategy]
         failures.extend(_check_thresholds(retrieval_result))
     else:

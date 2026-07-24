@@ -10,6 +10,9 @@ from pathlib import Path
 import pytest
 
 REQUIREMENTS_PATH = Path(__file__).parents[2] / "requirements.txt"
+RUNTIME_REQUIREMENTS_PATH = Path(__file__).parents[2] / "requirements.runtime.txt"
+DEV_REQUIREMENTS_PATH = Path(__file__).parents[2] / "requirements.dev.txt"
+EVAL_REQUIREMENTS_PATH = Path(__file__).parents[2] / "requirements.eval.txt"
 
 
 @pytest.mark.unit
@@ -44,3 +47,15 @@ def test_requirements_are_pinned() -> None:
         f"Found {len(unpinned)} unpinned dependency/dependencies in requirements.txt:\n"
         + "\n".join(f"  {u}" for u in unpinned)
     )
+
+
+@pytest.mark.unit
+def test_profile_locks_are_pinned() -> None:
+    """Runtime, dev and evaluation locks must stay exact-pinned."""
+    for path in (RUNTIME_REQUIREMENTS_PATH, DEV_REQUIREMENTS_PATH, EVAL_REQUIREMENTS_PATH):
+        assert path.exists(), f"{path.name} not found at {path}"
+        for raw_line in path.read_text().splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            assert "==" in line, f"Unpinned dependency found in {path.name}: {line}"
