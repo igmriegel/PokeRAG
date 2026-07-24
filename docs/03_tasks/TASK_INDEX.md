@@ -111,11 +111,11 @@ executable by an AI Code Agent, and traceable to a requirement
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-041 | Reproducible and vulnerability-managed dependency graph | REQ-021 | TASK-001 | Pending |
-| TASK-042 | Activate CI and baseline security jobs | REQ-030 | TASK-041 | Pending |
-| TASK-043 | Isolate infrastructure services and remove default credentials | REQ-028 | TASK-039 | Pending |
-| TASK-044 | Eliminate user-controlled Streamlit SSRF | REQ-024 | TASK-030 | Pending |
-| TASK-045 | Scope configuration and secrets per service | REQ-028 | TASK-043 | Pending |
+| TASK-041 | Reproducible and vulnerability-managed dependency graph | REQ-021 | TASK-001 | Done |
+| TASK-042 | Activate CI and baseline security jobs | REQ-030 | TASK-041 | Done |
+| TASK-043 | Isolate infrastructure services and remove default credentials | REQ-028 | TASK-039 | Done |
+| TASK-044 | Eliminate user-controlled Streamlit SSRF | REQ-024 | TASK-030 | Done |
+| TASK-045 | Scope configuration and secrets per service | REQ-028 | TASK-043 | Done |
 
 ## Sprint 10 — API, LLM & Data Security (`SPRINT_10_API_LLM_SECURITY`)
 
