@@ -66,9 +66,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.runtime.txt
           pip install pip-audit
+          pip install cyclonedx-bom
 
       - name: Run pip-audit
         run: pip-audit -r requirements.runtime.txt
+
+      - name: Generate CycloneDX SBOM
+        run: cyclonedx-py environment --output-format json --output-file sbom.json
+
+      - name: Upload SBOM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-json
+          path: sbom.json
 
   unit-and-integration-tests:
     name: Test Suite & Coverage Verification
