@@ -7,7 +7,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Awaitable, Callable
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
@@ -129,9 +129,13 @@ def health_check() -> HealthResponse:
 def ready_check() -> HealthResponse:
     """Expose a readiness probe that reflects dependency availability."""
     rag_ready, feedback_ready = dependency_status()
-    status = "healthy" if rag_ready and feedback_ready else "degraded"
+    if not rag_ready or not feedback_ready:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Dependencies not ready",
+        )
     return HealthResponse(
-        status=status,
+        status="healthy",
         version="0.1.0",
         rag_chain_ready=rag_ready,
         feedback_store_ready=feedback_ready,

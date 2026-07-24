@@ -170,6 +170,10 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
 
     manifest = load_corpus_manifest(active_settings.DATA_CHUNKS_DIR)
     chunks: list[Chunk] = load_chunks(active_settings.DATA_CHUNKS_DIR)
+    if active_settings.ENVIRONMENT == "production" and manifest is None:
+        raise ConfigurationError("Corpus manifest is required in production runtime startup")
+    if active_settings.ENVIRONMENT == "production" and not chunks:
+        raise ConfigurationError("Corpus chunks are required in production runtime startup")
     bm25_retriever = BM25Retriever(chunks)
     vector_db: VectorDatabase | OfflineVectorDatabase = VectorDatabase()
     dense_retriever: DenseRetriever | OfflineDenseRetriever = DenseRetriever(vector_db)

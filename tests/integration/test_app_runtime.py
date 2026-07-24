@@ -8,6 +8,7 @@ import asyncio
 from types import SimpleNamespace
 
 import pytest
+from fastapi import HTTPException
 
 from pokemon_tcg_rag.api import main as api_main
 from pokemon_tcg_rag.api import runtime as api_runtime
@@ -184,3 +185,11 @@ def test_offline_answer_client_uses_context() -> None:
 
     assert answer != "I don't know."
     assert "Rare Candy" in answer
+
+
+def test_ready_check_fails_closed_without_dependencies() -> None:
+    """Readiness must return 503 when the runtime graph is not attached."""
+    set_dependencies(None, None)
+    with pytest.raises(HTTPException) as exc_info:
+        api_main.ready_check()
+    assert exc_info.value.status_code == 503
