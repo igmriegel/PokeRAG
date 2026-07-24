@@ -36,3 +36,21 @@ def test_record_feedback_by_rating() -> None:
 
     assert collector.feedback_counter.labels(rating="positive")._value.get() == 1.0
     assert collector.feedback_counter.labels(rating="negative")._value.get() == 1.0
+
+
+def test_record_provider_usage_tracks_tokens_and_cost() -> None:
+    registry = CollectorRegistry()
+    collector = MetricsCollector(registry=registry)
+
+    collector.record_provider_usage(
+        model="gpt-4o-mini",
+        stage="answer",
+        prompt_tokens=10,
+        completion_tokens=15,
+        cost_usd=0.024,
+    )
+
+    assert (
+        collector.provider_tokens.labels(model="gpt-4o-mini", stage="answer")._value.get() == 25.0
+    )
+    assert collector.provider_cost.labels(model="gpt-4o-mini", stage="answer")._value.get() == 0.024

@@ -26,7 +26,12 @@ COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yml"
 
 
 class FakeRAGChain:
-    def query(self, question: str, top_k: int | None = None) -> AnswerResponse:
+    def query(
+        self,
+        question: str,
+        top_k: int | None = None,
+        metadata_filters: dict[str, str] | None = None,
+    ) -> AnswerResponse:
         metadata = DocumentMetadata(
             source=DocumentSource.RULEBOOK_PDF,
             document_title="Official Rulebook",

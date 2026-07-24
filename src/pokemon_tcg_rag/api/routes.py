@@ -29,6 +29,7 @@ from pokemon_tcg_rag.llm.rag_chain import RAGChain
 from pokemon_tcg_rag.monitoring.feedback_store import FeedbackStore
 from pokemon_tcg_rag.monitoring.logger import get_logger
 from pokemon_tcg_rag.monitoring.metrics_collector import DEFAULT_METRICS_COLLECTOR
+from pokemon_tcg_rag.monitoring.tracing import traced_span
 
 router = APIRouter()
 LOGGER = get_logger(__name__)
@@ -86,8 +87,21 @@ def query_rag(payload: QueryRequest, principal: Principal | None = None) -> Quer
 
     try:
         effective_principal = principal or _resolve_principal()
-        with DEFAULT_REQUEST_GUARD.admit(effective_principal, None, "query"):
-            response: AnswerResponse = _rag_chain.query(payload.question, top_k=payload.top_k)
+        with (
+            traced_span(
+                "api.query",
+                attributes={
+                    "query.length": len(payload.question.strip()),
+                    "query.top_k": payload.top_k,
+                },
+            ),
+            DEFAULT_REQUEST_GUARD.admit(effective_principal, None, "query"),
+        ):
+            response: AnswerResponse = _rag_chain.query(
+                payload.question,
+                top_k=payload.top_k,
+                metadata_filters=payload.metadata_filters,
+            )
             query_id = response.query_id or f"qr_{uuid.uuid4().hex[:12]}"
             response = response.model_copy(update={"query_id": query_id})
             _query_sessions[query_id] = QuerySession(
@@ -163,7 +177,16 @@ def submit_feedback(payload: FeedbackRequest, principal: Principal | None = None
         )
 
     try:
-        with DEFAULT_REQUEST_GUARD.admit(effective_principal, None, "feedback"):
+        with (
+            traced_span(
+                "api.feedback",
+                attributes={
+                    "feedback.rating": payload.rating,
+                    "feedback.comment_length": len(payload.comment or ""),
+                },
+            ),
+            DEFAULT_REQUEST_GUARD.admit(effective_principal, None, "feedback"),
+        ):
             _feedback_store.submit_feedback(
                 query_id=payload.query_id,
                 query=payload.query,

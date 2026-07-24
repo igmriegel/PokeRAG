@@ -79,6 +79,7 @@ class Settings(BaseSettings):
     RETRIEVAL_HYBRID_RRF_K: int = 60
     RERANKER_MODEL: str = "BAAI/bge-reranker-large"
     RETRIEVAL_FINAL_TOP_K: int = 5
+    CORPUS_VERSION: str = "2026-07-24"
 
     # Storage Paths
     DATA_RAW_DIR: str = "data/raw_data"
@@ -92,6 +93,12 @@ class Settings(BaseSettings):
 
     # Prometheus Monitoring
     PROMETHEUS_METRICS_PORT: int = 9090
+
+    # Observability & Performance
+    TRACING_SAMPLE_RATIO: float = 0.1
+    RETRIEVAL_CACHE_MAX_ITEMS: int = 256
+    RETRIEVAL_CACHE_TTL_SECONDS: int = 3600
+    RETRIEVAL_MMR_LAMBDA: float = 0.5
 
     @property
     def postgres_uri(self) -> str:

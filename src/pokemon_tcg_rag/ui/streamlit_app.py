@@ -73,6 +73,45 @@ def render_answer(response: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def build_history_entry(question: str, summary: dict[str, Any]) -> dict[str, Any]:
+    """Build a bounded, session-only history entry."""
+    citations = [
+        citation.get("document_title", "Unknown")
+        for citation in summary.get("citations", [])
+        if isinstance(citation, dict)
+    ]
+    return {
+        "question": question.strip(),
+        "answer": summary.get("answer", ""),
+        "query_id": summary.get("query_id"),
+        "model_name": summary.get("metrics", {}).get("model_name", "unknown"),
+        "citations": citations,
+    }
+
+
+def _is_safe_citation_url(value: str | None) -> bool:
+    if not value:
+        return False
+    parsed = urlparse(value.strip())
+    if parsed.scheme not in {"http", "https"}:
+        return False
+    if parsed.username or parsed.password:
+        return False
+    return bool(parsed.netloc)
+
+
+def _render_citation_reference(citation: dict[str, Any]) -> None:
+    title = citation.get("document_title", "Unknown")
+    source = citation.get("source", "unknown")
+    rule_type = citation.get("rule_type", "unknown")
+    page_num = citation.get("page_number")
+    page_suffix = f" | Pág: {page_num}" if page_num else ""
+    source_url = citation.get("source_url")
+    st.markdown(f"- **{title}** ({source}) | Tipo: `{rule_type}`{page_suffix}")
+    if _is_safe_citation_url(source_url):
+        st.link_button("Abrir fonte oficial", source_url)
+
+
 def fetch_answer(
     api_url: str, question: str, top_k: int, post: Callable[..., Any] = requests.post
 ) -> dict[str, Any]:
@@ -116,6 +155,8 @@ def main() -> None:
 
     st.session_state.setdefault("last_response", None)
     st.session_state.setdefault("last_summary", None)
+    st.session_state.setdefault("history", [])
+    st.session_state.setdefault("last_error", None)
 
     api_url = get_backend_api_url()
     with st.sidebar:
@@ -132,6 +173,15 @@ def main() -> None:
         st.markdown("- Banned Card List (HTML)")
         st.markdown("- Mega Rules & Promo Legality (HTML)")
         st.markdown("- Pokegym Compendium Rulings (Web)")
+        history: list[dict[str, Any]] = st.session_state.get("history", [])
+        if history:
+            st.divider()
+            st.markdown("### 🕘 Histórico da sessão")
+            for item in history[:5]:
+                st.markdown(
+                    f"**{item['question']}**  \n"
+                    f"Modelo: `{item['model_name']}` | Citations: {len(item['citations'])}"
+                )
 
     user_query = st.text_area(
         "Digite sua dúvida sobre regras, interações ou banimentos no Pokémon TCG:",
@@ -150,13 +200,25 @@ def main() -> None:
                 summary = render_answer(response)
                 st.session_state["last_response"] = response
                 st.session_state["last_summary"] = summary
+                st.session_state["last_error"] = None
+                history = cast(list[dict[str, Any]], st.session_state.get("history", []))
+                history.insert(0, build_history_entry(user_query, summary))
+                st.session_state["history"] = history[:10]
             except Exception as exc:  # pragma: no cover - UI boundary
+                st.session_state["last_error"] = str(exc)
                 st.error(f"Falha ao conectar com o serviço backend: {exc}")
+                st.info(
+                    "Verifique se a API está rodando em `make run-api`, se o backend está "
+                    "conectado ao Qdrant/Postgres e se o token de autenticação foi configurado."
+                )
 
     last_summary: dict[str, Any] | None = st.session_state.get("last_summary")
     if last_summary:
         st.markdown("### 💬 Resposta do Juiz Oficial")
-        st.success(last_summary["answer"])
+        if last_summary["answer"] == "I don't know.":
+            st.warning(last_summary["answer"])
+        else:
+            st.success(last_summary["answer"])
 
         col1, col2, col3 = st.columns(3)
         col1.metric("Tempo de Resposta", f"{last_summary['metrics']['latency_seconds']:.2f}s")
@@ -170,12 +232,7 @@ def main() -> None:
 
         st.markdown("### 📖 Fontes Citadas")
         for citation in last_summary["citations"]:
-            page_num = citation.get("page_number")
-            page_suffix = f" | Pág: {page_num}" if page_num else ""
-            st.markdown(
-                f"- **{citation['document_title']}** ({citation['source']}) | "
-                f"Tipo: `{citation['rule_type']}` {page_suffix}"
-            )
+            _render_citation_reference(citation)
 
         with st.expander("🔍 Ver Trechos de Texto Utilizados (Chunks)"):
             for idx, chunk in enumerate(last_summary["chunks"], start=1):
@@ -187,6 +244,7 @@ def main() -> None:
 
         st.divider()
         st.markdown("### 👍 Avalie esta resposta")
+        comment = st.text_area("Comentário opcional", max_chars=1000, key="feedback_comment")
         fb_col1, fb_col2 = st.columns(2)
         with fb_col1:
             if st.button("👍 Resposta Precisa"):
@@ -198,6 +256,7 @@ def main() -> None:
                     rating=1,
                     model_name=last_summary["metrics"]["model_name"],
                     latency_seconds=last_summary["metrics"]["latency_seconds"],
+                    comment=comment or None,
                 )
                 st.success("Obrigado pelo seu feedback positivo!")
         with fb_col2:
@@ -210,8 +269,12 @@ def main() -> None:
                     rating=-1,
                     model_name=last_summary["metrics"]["model_name"],
                     latency_seconds=last_summary["metrics"]["latency_seconds"],
+                    comment=comment or None,
                 )
                 st.error("Obrigado pelo seu feedback. Registramos a falha para revisão.")
+
+    elif st.session_state.get("last_error"):
+        st.warning("Nenhuma resposta pode ser exibida porque a última tentativa falhou.")
 
 
 if __name__ == "__main__":

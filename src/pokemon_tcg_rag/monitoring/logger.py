@@ -13,6 +13,16 @@ from typing import Any
 import structlog
 
 from pokemon_tcg_rag.config.settings import get_settings
+from pokemon_tcg_rag.monitoring.tracing import current_trace_context
+
+
+def _inject_trace_context(_: Any, __: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+    context = current_trace_context()
+    if context.trace_id:
+        event_dict.setdefault("trace_id", context.trace_id)
+    if context.span_id:
+        event_dict.setdefault("span_id", context.span_id)
+    return event_dict
 
 
 def setup_logging() -> None:
@@ -37,6 +47,7 @@ def setup_logging() -> None:
             structlog.processors.add_log_level,
             structlog.processors.StackInfoRenderer(),
             structlog.dev.set_exc_info,
+            _inject_trace_context,
             structlog.processors.TimeStamper(fmt="iso"),
             structlog.processors.JSONRenderer(),
         ],

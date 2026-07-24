@@ -61,6 +61,24 @@
         { "expr": "histogram_quantile(0.95, sum(rate(pokemon_rag_query_latency_seconds_bucket[5m])) by (le))", "legendFormat": "P95" },
         { "expr": "histogram_quantile(0.99, sum(rate(pokemon_rag_query_latency_seconds_bucket[5m])) by (le))", "legendFormat": "P99" }
       ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 7,
+      "title": "Provider Tokens by Model and Stage",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(pokemon_rag_provider_tokens_total[5m])", "legendFormat": "{{model}} / {{stage}}" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "id": 8,
+      "title": "Provider Cost by Model and Stage",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(pokemon_rag_provider_cost_usd_total[5m])", "legendFormat": "{{model}} / {{stage}}" }
+      ]
     }
   ],
   "refresh": "5s",

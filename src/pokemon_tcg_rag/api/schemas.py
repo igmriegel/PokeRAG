@@ -21,6 +21,7 @@ class QueryRequest(BaseModel):
         examples=["Posso usar Rare Candy no primeiro turno?"],
     )
     top_k: int = Field(default=5, ge=1, le=10)
+    metadata_filters: dict[str, str] | None = Field(default=None)
 
     @field_validator("question")
     @classmethod
@@ -28,6 +29,22 @@ class QueryRequest(BaseModel):
         if not value.strip():
             raise ValueError("question must not be empty")
         return value.strip()
+
+    @field_validator("metadata_filters")
+    @classmethod
+    def metadata_filters_must_be_allowlisted(
+        cls, value: dict[str, str] | None
+    ) -> dict[str, str] | None:
+        if value is None:
+            return None
+        allowed_keys = {"source", "rule_type", "document_title", "card_name", "page_number"}
+        cleaned: dict[str, str] = {}
+        for key, item in value.items():
+            cleaned_key = key.strip()
+            cleaned_value = str(item).strip()
+            if cleaned_key in allowed_keys and cleaned_value:
+                cleaned[cleaned_key] = cleaned_value
+        return cleaned or None
 
 
 class CitationSchema(BaseModel):

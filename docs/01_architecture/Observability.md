@@ -85,13 +85,13 @@ Defined in `monitoring/metrics_collector.py` and updated via the `MetricsCollect
 | `pokemon_rag_queries_total` | Counter | `model`, `status` | — | total RAG queries processed | `record_query()` |
 | `pokemon_rag_query_latency_seconds` | Histogram | — | `0.1, 0.5, 1.0, 2.0, 5.0, 10.0` | end-to-end query latency | `record_query()` |
 | `pokemon_rag_retrieved_docs_count` | Histogram | — | `1, 3, 5, 10, 20` | # context docs retrieved per query | `record_query()` |
-| `pokemon_rag_user_feedback_total` | Counter | `rating_type` (`positive`/`negative`) | — | user feedback events by sentiment | `record_feedback()` |
+| `pokemon_rag_feedback_total` | Counter | `rating` (`positive`/`negative`) | — | user feedback events by sentiment | `record_feedback()` |
 
 Helper API:
 - `MetricsCollector.record_query(model, latency, num_docs, status="success")` →
   increments `queries_total{model,status}`, observes latency + retrieved-docs histograms.
 - `MetricsCollector.record_feedback(rating)` → maps `rating > 0` to `positive` else
-  `negative`, increments `user_feedback_total{rating_type}`.
+  `negative`, increments `feedback_total{rating}`.
 
 Histograms auto-expose `_bucket`, `_sum`, `_count` series used by the PromQL below.
 
@@ -111,7 +111,7 @@ Postgres-backed additions.
 | 1 | Queries processed per day / status | timeseries | Prometheus | `rate(pokemon_rag_queries_total[5m])` by `{{status}}` |
 | 2 | Mean query latency (s) | timeseries | Prometheus | `rate(pokemon_rag_query_latency_seconds_sum[5m]) / rate(pokemon_rag_query_latency_seconds_count[5m])` |
 | 3 | Retrieved-docs distribution | histogram | Prometheus | `pokemon_rag_retrieved_docs_count_bucket` |
-| 4 | User feedback (positive vs negative) | piechart | Prometheus | `pokemon_rag_user_feedback_total` by `{{rating_type}}` |
+| 4 | User feedback (positive vs negative) | piechart | Prometheus | `pokemon_rag_feedback_total` by `{{rating}}` |
 | 5 | Distribution by LLM model | piechart | Prometheus | `sum(pokemon_rag_queries_total) by (model)` |
 | 6 | Latency P95 & P99 | timeseries | Prometheus | `histogram_quantile(0.95\|0.99, sum(rate(pokemon_rag_query_latency_seconds_bucket[5m])) by (le))` |
 | 7 | Source distribution (used sources) | barchart / piechart | Postgres (SQL) | see §4.1 |
@@ -185,7 +185,7 @@ sequenceDiagram
     API->>FS: submit_feedback(...)
     FS->>DB: save_feedback(FeedbackRecord)
     FS->>MC: record_feedback(rating)
-    MC-->>Prometheus: pokemon_rag_user_feedback_total{rating_type}++
+    MC-->>Prometheus: pokemon_rag_feedback_total{rating}++
 ```
 
 100% of 👍/👎 events must reach Postgres ([SC-018](../00_project/SUCCESS_CRITERIA.md)); the

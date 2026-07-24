@@ -40,7 +40,7 @@
       "title": "Feedback de Usuários (Positivos vs Negativos)",
       "type": "piechart",
       "targets": [
-        { "expr": "pokemon_rag_user_feedback_total", "legendFormat": "{{rating_type}}" }
+        { "expr": "pokemon_rag_feedback_total", "legendFormat": "{{rating}}" }
       ]
     },
     {

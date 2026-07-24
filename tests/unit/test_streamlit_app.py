@@ -10,6 +10,7 @@ import pytest
 
 from pokemon_tcg_rag.ui.streamlit_app import (
     build_feedback_payload,
+    build_history_entry,
     fetch_answer,
     get_backend_api_url,
     render_answer,
@@ -61,6 +62,27 @@ def test_sources_and_metrics_displayed() -> None:
     assert summary["metrics"]["model_name"] == "gpt-4o-mini"
     assert summary["metrics"]["latency_seconds"] == 1.0
     assert summary["chunks"][0]["retrieval_method"] == "dense"
+
+
+def test_history_entry_is_bounded_and_sanitized() -> None:
+    """TEST-172: UI history entries should be session-bound and concise."""
+    summary = render_answer(
+        {
+            "query_id": "qid-2",
+            "answer": "Yes.",
+            "citations": [{"document_title": "Official Rulebook"}],
+            "retrieved_chunks": [],
+            "latency_seconds": 1.0,
+            "model_name": "gpt-4o-mini",
+        }
+    )
+
+    entry = build_history_entry("  question  ", summary)
+
+    assert entry["question"] == "question"
+    assert entry["answer"] == "Yes."
+    assert entry["model_name"] == "gpt-4o-mini"
+    assert entry["citations"] == ["Official Rulebook"]
 
 
 def test_backend_api_url_comes_from_configuration(monkeypatch: pytest.MonkeyPatch) -> None:

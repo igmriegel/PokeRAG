@@ -14,6 +14,8 @@ RETRIEVED_DOCS_NAME = "pokemon_rag_retrieved_docs_count"
 FEEDBACK_COUNTER_NAME = "pokemon_rag_feedback_total"
 SOURCE_COUNTER_NAME = "pokemon_rag_query_sources_total"
 GUARDRAIL_REJECTION_COUNTER_NAME = "pokemon_rag_guardrail_rejections_total"
+PROVIDER_TOKEN_COUNTER_NAME = "pokemon_rag_provider_tokens_total"
+PROVIDER_COST_COUNTER_NAME = "pokemon_rag_provider_cost_usd_total"
 
 
 class MetricsCollector:
@@ -57,6 +59,18 @@ class MetricsCollector:
             labelnames=("reason",),
             registry=self.registry,
         )
+        self.provider_tokens = Counter(
+            PROVIDER_TOKEN_COUNTER_NAME,
+            "LLM provider tokens observed by model and stage",
+            labelnames=("model", "stage"),
+            registry=self.registry,
+        )
+        self.provider_cost = Counter(
+            PROVIDER_COST_COUNTER_NAME,
+            "Estimated LLM provider cost in USD by model and stage",
+            labelnames=("model", "stage"),
+            registry=self.registry,
+        )
 
     def record_query(
         self,
@@ -84,6 +98,20 @@ class MetricsCollector:
     def record_guardrail_rejection(self, reason: str) -> None:
         """Record a rejected request without logging sensitive payload details."""
         self.guardrail_rejections.labels(reason=reason).inc()
+
+    def record_provider_usage(
+        self,
+        *,
+        model: str,
+        stage: str,
+        prompt_tokens: int,
+        completion_tokens: int,
+        cost_usd: float,
+    ) -> None:
+        """Record model token and cost usage with bounded labels."""
+        total_tokens = max(0, prompt_tokens) + max(0, completion_tokens)
+        self.provider_tokens.labels(model=model, stage=stage).inc(total_tokens)
+        self.provider_cost.labels(model=model, stage=stage).inc(max(0.0, cost_usd))
 
 
 DEFAULT_METRICS_COLLECTOR = MetricsCollector(registry=REGISTRY)

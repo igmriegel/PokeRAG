@@ -20,6 +20,7 @@ from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import PokemonRAGError
 from pokemon_tcg_rag.monitoring.logger import get_logger, setup_logging
 from pokemon_tcg_rag.monitoring.metrics_collector import DEFAULT_METRICS_COLLECTOR
+from pokemon_tcg_rag.monitoring.tracing import initialize_tracing
 
 LOGGER = get_logger(__name__)
 
@@ -27,6 +28,7 @@ LOGGER = get_logger(__name__)
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     setup_logging()
+    initialize_tracing()
     settings = get_settings()
     app = FastAPI(
         title="Pokemon TCG Rules RAG Expert API",

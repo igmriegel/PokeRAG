@@ -1,0 +1,41 @@
+groups:
+  - name: pokemon_rag_api
+    rules:
+      - alert: PokemonRAGHighErrorRate
+        expr: |
+          sum(rate(pokemon_rag_queries_total{status="failure"}[5m]))
+          /
+          clamp_min(sum(rate(pokemon_rag_queries_total[5m])), 1)
+          > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          owner: backend
+        annotations:
+          summary: "RAG query failure rate above 5%"
+          description: "The API is rejecting or failing more than 5% of queries over a 5m window."
+
+      - alert: PokemonRAGHighLatencyP95
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(pokemon_rag_query_latency_seconds_bucket[5m])) by (le)
+          ) > 4
+        for: 10m
+        labels:
+          severity: warning
+          owner: backend
+        annotations:
+          summary: "P95 query latency above 4s"
+          description: "The end-to-end query latency SLO is violated."
+
+      - alert: PokemonRAGHighProviderSpend
+        expr: |
+          sum(rate(pokemon_rag_provider_cost_usd_total[1h])) > 1
+        for: 1h
+        labels:
+          severity: critical
+          owner: finops
+        annotations:
+          summary: "Provider spend above budget"
+          description: "Hourly provider spend has exceeded the configured budget envelope."

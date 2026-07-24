@@ -55,7 +55,12 @@ def _answer_response() -> AnswerResponse:
 
 
 class FakeRAGChain:
-    def query(self, question: str, top_k: int | None = None) -> AnswerResponse:
+    def query(
+        self,
+        question: str,
+        top_k: int | None = None,
+        metadata_filters: dict[str, str] | None = None,
+    ) -> AnswerResponse:
         response = _answer_response()
         return response.model_copy(update={"query": question})
 

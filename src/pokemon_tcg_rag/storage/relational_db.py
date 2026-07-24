@@ -13,6 +13,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sess
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import PokemonRAGError
 from pokemon_tcg_rag.domain.models import FeedbackRecord
+from pokemon_tcg_rag.monitoring.tracing import traced_span
 
 
 class Base(DeclarativeBase):
@@ -50,24 +51,32 @@ class RelationalDatabase:
 
     def save_feedback(self, record: FeedbackRecord) -> FeedbackRecord:
         """Persist a feedback record and return it."""
-        session: Session = self.SessionLocal()
-        try:
-            row = FeedbackORM(
-                feedback_id=record.feedback_id,
-                query_id=record.query_id,
-                query=record.query,
-                answer=record.answer,
-                rating=record.rating,
-                comment=record.comment,
-                model_name=record.model_name,
-                latency_seconds=record.latency_seconds,
-                created_at=record.created_at,
-            )
-            session.add(row)
-            session.commit()
-            return record
-        except Exception as exc:  # pragma: no cover - persistence boundary
-            session.rollback()
-            raise PokemonRAGError(f"Failed to save feedback: {exc}") from exc
-        finally:
-            session.close()
+        with traced_span(
+            "db.feedback.save",
+            attributes={
+                "db.system": "postgresql",
+                "feedback.rating": record.rating,
+                "feedback.has_comment": bool(record.comment),
+            },
+        ):
+            session: Session = self.SessionLocal()
+            try:
+                row = FeedbackORM(
+                    feedback_id=record.feedback_id,
+                    query_id=record.query_id,
+                    query=record.query,
+                    answer=record.answer,
+                    rating=record.rating,
+                    comment=record.comment,
+                    model_name=record.model_name,
+                    latency_seconds=record.latency_seconds,
+                    created_at=record.created_at,
+                )
+                session.add(row)
+                session.commit()
+                return record
+            except Exception as exc:  # pragma: no cover - persistence boundary
+                session.rollback()
+                raise PokemonRAGError(f"Failed to save feedback: {exc}") from exc
+            finally:
+                session.close()
