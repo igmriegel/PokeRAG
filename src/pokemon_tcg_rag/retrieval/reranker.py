@@ -1,50 +1,53 @@
 """
-Document Re-ranking Module using BGE Cross-Encoder Reranker.
+Cross-encoder reranker.
 """
 
-import logging
+from __future__ import annotations
+
+from collections.abc import Sequence
+
 from sentence_transformers import CrossEncoder
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.models import RetrievedChunk
 
-logger = logging.getLogger(__name__)
-
 
 class BGEReranker:
-    """Re-ranks retrieved candidate chunks using BGE Cross-Encoder for high semantic precision."""
+    """Re-rank candidate chunks using the BGE cross-encoder."""
 
     def __init__(self) -> None:
         settings = get_settings()
         self.model_name = settings.RERANKER_MODEL
-        self._reranker_model = None
+        self.default_top_k = settings.RETRIEVAL_FINAL_TOP_K
+        self._reranker_model: CrossEncoder | None = None
 
     @property
     def model(self) -> CrossEncoder:
         if self._reranker_model is None:
-            logger.info("Loading Cross-Encoder reranker model: %s", self.model_name)
             self._reranker_model = CrossEncoder(self.model_name)
         return self._reranker_model
 
-    def rerank(self, query: str, candidate_chunks: list[RetrievedChunk], top_k: int = 5) -> list[RetrievedChunk]:
-        """Re-rank candidate chunks using query-document pairs."""
+    def rerank(
+        self,
+        query: str,
+        candidate_chunks: Sequence[RetrievedChunk],
+        top_k: int | None = None,
+    ) -> list[RetrievedChunk]:
+        """Score candidate chunks with a cross-encoder and return the top results."""
         if not candidate_chunks:
             return []
 
+        limit = top_k or self.default_top_k
         pairs = [[query, item.chunk.text] for item in candidate_chunks]
-        scores = self.model.predict(pairs)
+        scores = list(self.model.predict(pairs, convert_to_numpy=True))
 
-        reranked: list[RetrievedChunk] = []
-        for idx, score in enumerate(scores):
-            original = candidate_chunks[idx]
-            reranked.append(
-                RetrievedChunk(
-                    chunk=original.chunk,
-                    score=float(score),
-                    retrieval_method="bge_reranked"
-                )
+        reranked = [
+            RetrievedChunk(
+                chunk=item.chunk,
+                score=float(score),
+                retrieval_method="bge_reranked",
             )
-
-        # Sort descending by cross-encoder relevance score
-        reranked.sort(key=lambda x: x.score, reverse=True)
-        return reranked[:top_k]
+            for item, score in zip(candidate_chunks, scores, strict=False)
+        ]
+        reranked.sort(key=lambda item: item.score, reverse=True)
+        return reranked[:limit]
