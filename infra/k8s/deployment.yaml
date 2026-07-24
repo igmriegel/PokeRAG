@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: pokemon-rag-app:latest
+          image: pokemon-rag-app:0.1.0
           ports:
             - containerPort: 8000
             - containerPort: 8501
