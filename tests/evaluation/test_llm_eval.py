@@ -46,7 +46,9 @@ def _chunk(doc_id: str, source: DocumentSource = DocumentSource.RULEBOOK_PDF) ->
 
 @pytest.mark.evaluation
 def test_faithfulness_score_range() -> None:
-    score = calculate_faithfulness("Rare Candy can be used when rules permit it.", [_chunk("doc-q001")])
+    score = calculate_faithfulness(
+        "Rare Candy can be used when rules permit it.", [_chunk("doc-q001")]
+    )
 
     assert 0.0 <= score <= 1.0
 
@@ -93,7 +95,10 @@ def test_prompt_ab_comparison(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert set(report.llm_results) == {"prompt_a_gpt-4o-mini", "prompt_b_gpt-4o-mini"}
     assert report.best_llm_configuration == "prompt_a_gpt-4o-mini"
-    assert report.llm_results["prompt_a_gpt-4o-mini"].faithfulness > report.llm_results["prompt_b_gpt-4o-mini"].faithfulness
+    assert (
+        report.llm_results["prompt_a_gpt-4o-mini"].faithfulness
+        > report.llm_results["prompt_b_gpt-4o-mini"].faithfulness
+    )
 
 
 @pytest.mark.evaluation
@@ -137,4 +142,7 @@ def test_model_comparison_records_best(monkeypatch: pytest.MonkeyPatch) -> None:
     report = evaluator.evaluate_llm_configurations()
 
     assert report.best_llm_configuration == "prompt_a_gpt-4.1-mini"
-    assert report.llm_results["prompt_a_gpt-4.1-mini"].correctness > report.llm_results["prompt_a_gpt-4o-mini"].correctness
+    assert (
+        report.llm_results["prompt_a_gpt-4.1-mini"].correctness
+        > report.llm_results["prompt_a_gpt-4o-mini"].correctness
+    )

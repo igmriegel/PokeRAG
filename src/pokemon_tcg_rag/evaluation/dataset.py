@@ -87,7 +87,11 @@ class EvaluationDatasetLoader:
                 f"Benchmark dataset must contain exactly {EXPECTED_CASE_COUNT} cases; found {len(cases)}"
             )
 
-        LOGGER.info("benchmark_dataset_loaded", path=str(self.dataset_path), cases=len(cases))
+        LOGGER.info(
+            "benchmark_dataset_loaded path=%s cases=%s",
+            self.dataset_path,
+            len(cases),
+        )
         return cases
 
     def _normalize_case(self, item: dict[str, Any], index: int) -> dict[str, Any]:
@@ -101,7 +105,9 @@ class EvaluationDatasetLoader:
         if reference_answer is None:
             keywords = item.get("expected_answer_keywords")
             if isinstance(keywords, list) and keywords:
-                reference_answer = "; ".join(str(keyword).strip() for keyword in keywords if str(keyword).strip())
+                reference_answer = "; ".join(
+                    str(keyword).strip() for keyword in keywords if str(keyword).strip()
+                )
 
         normalized = {
             "question_id": question_id,

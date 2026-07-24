@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from pokemon_tcg_rag.domain.models import AnswerResponse, RetrievedChunk
+from pokemon_tcg_rag.domain.models import AnswerResponse, DocumentMetadata, RetrievedChunk
 
 
 class QueryRequest(BaseModel):
@@ -37,7 +37,7 @@ class CitationSchema(BaseModel):
     source_url: str | None = None
 
     @classmethod
-    def from_metadata(cls, metadata) -> CitationSchema:
+    def from_metadata(cls, metadata: DocumentMetadata) -> CitationSchema:
         return cls(
             source=metadata.source.value,
             document_title=metadata.document_title,
@@ -95,7 +95,9 @@ class QueryResponse(BaseModel):
     latency_seconds: float
 
     @classmethod
-    def from_answer_response(cls, response: AnswerResponse, query_id: str | None = None) -> QueryResponse:
+    def from_answer_response(
+        cls, response: AnswerResponse, query_id: str | None = None
+    ) -> QueryResponse:
         return cls(
             query_id=query_id or response.query_id or "",
             query=response.query,

@@ -6,10 +6,11 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Mapping, Sequence
+from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from pokemon_tcg_rag.domain.models import DocumentMetadata, RetrievedChunk
+from pokemon_tcg_rag.domain.models import AnswerResponse, DocumentMetadata, RetrievedChunk
 from pokemon_tcg_rag.evaluation.dataset import EvalTestCase, EvaluationDatasetLoader
 from pokemon_tcg_rag.evaluation.metrics import (
     calculate_citation_quality,
@@ -22,6 +23,10 @@ from pokemon_tcg_rag.evaluation.metrics import (
 )
 
 LOGGER = logging.getLogger(__name__)
+
+
+class SupportsQuery(Protocol):
+    def query(self, raw_query: str, top_k: int | None = None) -> AnswerResponse: ...
 
 
 class RetrievalStrategyResult(BaseModel):
@@ -71,10 +76,10 @@ class EvaluationReport(BaseModel):
             lines.append("")
             lines.append("| Strategy | Recall@5 | Recall@10 | MRR | Hit@5 | Hit@10 |")
             lines.append("| :--- | ---: | ---: | ---: | ---: | ---: |")
-            for result in self.retrieval_results.values():
+            for retrieval_result in self.retrieval_results.values():
                 lines.append(
-                    f"| {result.strategy_name} | {result.recall_at_5:.4f} | {result.recall_at_10:.4f} | "
-                    f"{result.mrr:.4f} | {result.hit_rate_at_5:.4f} | {result.hit_rate_at_10:.4f} |"
+                    f"| {retrieval_result.strategy_name} | {retrieval_result.recall_at_5:.4f} | {retrieval_result.recall_at_10:.4f} | "
+                    f"{retrieval_result.mrr:.4f} | {retrieval_result.hit_rate_at_5:.4f} | {retrieval_result.hit_rate_at_10:.4f} |"
                 )
             lines.append("")
             lines.append(f"Best retrieval strategy: {self.best_retrieval_strategy or 'n/a'}")
@@ -83,12 +88,14 @@ class EvaluationReport(BaseModel):
         if self.llm_results:
             lines.append("## LLM configurations")
             lines.append("")
-            lines.append("| Configuration | Faithfulness | Correctness | Citation Quality | Completeness |")
+            lines.append(
+                "| Configuration | Faithfulness | Correctness | Citation Quality | Completeness |"
+            )
             lines.append("| :--- | ---: | ---: | ---: | ---: |")
-            for result in self.llm_results.values():
+            for llm_result in self.llm_results.values():
                 lines.append(
-                    f"| {result.configuration_name} | {result.faithfulness:.4f} | {result.correctness:.4f} | "
-                    f"{result.citation_quality:.4f} | {result.completeness:.4f} |"
+                    f"| {llm_result.configuration_name} | {llm_result.faithfulness:.4f} | {llm_result.correctness:.4f} | "
+                    f"{llm_result.citation_quality:.4f} | {llm_result.completeness:.4f} |"
                 )
             lines.append("")
             lines.append(f"Best LLM configuration: {self.best_llm_configuration or 'n/a'}")
@@ -126,7 +133,7 @@ class RAGEvaluator:
 
     def __init__(
         self,
-        rag_chain: object | None = None,
+        rag_chain: SupportsQuery | None = None,
         dataset_loader: EvaluationDatasetLoader | None = None,
         retrieval_handlers: Mapping[str, RetrievalHandler] | None = None,
         llm_handlers: Mapping[str, LLMHandler] | None = None,
@@ -142,13 +149,17 @@ class RAGEvaluator:
     ) -> EvaluationReport:
         """Run all retrieval handlers on the benchmark and compare their metrics."""
         cases = self.dataset_loader.load_dataset()
-        handlers = dict(strategy_handlers or self.retrieval_handlers or self._default_retrieval_handlers())
+        handlers = dict(
+            strategy_handlers or self.retrieval_handlers or self._default_retrieval_handlers()
+        )
         if not handlers:
             raise ValueError("No retrieval handlers available for evaluation")
 
         retrieval_results: dict[str, RetrievalStrategyResult] = {}
         for strategy_name, handler in handlers.items():
-            retrieval_results[strategy_name] = self._evaluate_single_retrieval_strategy(strategy_name, handler, cases)
+            retrieval_results[strategy_name] = self._evaluate_single_retrieval_strategy(
+                strategy_name, handler, cases
+            )
 
         best_strategy = self._select_best_retrieval_strategy(retrieval_results)
         return EvaluationReport(
@@ -170,9 +181,7 @@ class RAGEvaluator:
         llm_results: dict[str, LLMConfigurationResult] = {}
         for configuration_name, handler in handlers.items():
             llm_results[configuration_name] = self._evaluate_single_llm_configuration(
-                configuration_name,
-                handler,
-                cases,
+                configuration_name, handler, cases
             )
 
         best_configuration = self._select_best_llm_configuration(llm_results)
@@ -287,7 +296,9 @@ class RAGEvaluator:
             return sample.completeness
         return calculate_completeness(sample.answer, sample.reference_answer)
 
-    def _select_best_retrieval_strategy(self, results: Mapping[str, RetrievalStrategyResult]) -> str:
+    def _select_best_retrieval_strategy(
+        self, results: Mapping[str, RetrievalStrategyResult]
+    ) -> str:
         best_name = max(
             results,
             key=lambda name: (
@@ -297,7 +308,7 @@ class RAGEvaluator:
                 results[name].hit_rate_at_10,
             ),
         )
-        LOGGER.info("best_retrieval_strategy_selected", strategy=best_name)
+        LOGGER.info("best_retrieval_strategy_selected strategy=%s", best_name)
         return best_name
 
     def _select_best_llm_configuration(self, results: Mapping[str, LLMConfigurationResult]) -> str:
@@ -316,15 +327,16 @@ class RAGEvaluator:
                 results[name].correctness,
             ),
         )
-        LOGGER.info("best_llm_configuration_selected", configuration=best_name)
+        LOGGER.info("best_llm_configuration_selected configuration=%s", best_name)
         return best_name
 
     def _default_retrieval_handlers(self) -> dict[str, RetrievalHandler]:
-        if self.rag_chain is None:
+        rag_chain = self.rag_chain
+        if rag_chain is None:
             return {}
 
         def baseline_handler(query: str, top_k: int) -> Sequence[RetrievedChunk | str]:
-            response = self.rag_chain.query(query)  # type: ignore[call-arg]
+            response = rag_chain.query(query)
             return response.retrieved_chunks[:top_k]
 
         return {"baseline": baseline_handler}

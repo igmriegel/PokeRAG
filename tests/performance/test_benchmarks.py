@@ -29,8 +29,13 @@ def test_bm25_retrieval_speed_benchmark() -> None:
             doc_id=f"d_{i}",
             text=f"Sample Pokemon TCG rule document number {i} regarding evolution and energy attachment.",
             token_count=12,
-            metadata=DocumentMetadata(source=DocumentSource.RULEBOOK_PDF, document_title="Rulebook", rule_type=RuleType.GENERAL_RULE)
-        ) for i in range(1000)
+            metadata=DocumentMetadata(
+                source=DocumentSource.RULEBOOK_PDF,
+                document_title="Rulebook",
+                rule_type=RuleType.GENERAL_RULE,
+            ),
+        )
+        for i in range(1000)
     ]
     start = time.time()
     bm25 = BM25Retriever(chunks)
@@ -141,7 +146,9 @@ def test_regression_gate_fails_below_threshold(tmp_path: Path) -> None:
     )
     fake_evaluator = _FakeEvaluator(retrieval_report, llm_report)
 
-    exit_code = main(["--report-dir", str(tmp_path)], evaluator=fake_evaluator, latency_samples=[0.1, 0.2])  # type: ignore[arg-type]
+    exit_code = main(
+        ["--report-dir", str(tmp_path)], evaluator=fake_evaluator, latency_samples=[0.1, 0.2]
+    )  # type: ignore[arg-type]
 
     assert exit_code == 1
 

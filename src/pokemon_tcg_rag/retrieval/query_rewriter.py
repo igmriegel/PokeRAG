@@ -4,13 +4,13 @@ Query rewriting helper for retrieval-optimized Pokemon TCG searches.
 
 from __future__ import annotations
 
-from pokemon_tcg_rag.llm.client import LLMClient
+from pokemon_tcg_rag.llm.client import LLMClient, SupportsGeneration
 
 
 class QueryRewriter:
     """Rewrite vague user questions into domain-specific retrieval queries."""
 
-    def __init__(self, client: LLMClient | None = None) -> None:
+    def __init__(self, client: SupportsGeneration | None = None) -> None:
         self.client = client or LLMClient()
 
     def rewrite_query(self, original_query: str) -> str:

@@ -48,7 +48,9 @@ def _load_run_ingestion_module() -> object:
 
 
 @pytest.mark.smoke
-def test_run_ingestion_cli_smoke(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_run_ingestion_cli_smoke(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     """TEST-032: CLI should execute the pipeline and report success."""
     run_ingestion = _load_run_ingestion_module()
 

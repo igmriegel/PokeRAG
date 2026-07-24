@@ -5,7 +5,7 @@ Runtime composition helpers for the FastAPI application.
 from __future__ import annotations
 
 import uuid
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
@@ -15,7 +15,7 @@ from pokemon_tcg_rag.api.routes import set_dependencies
 from pokemon_tcg_rag.config.settings import Settings, get_settings
 from pokemon_tcg_rag.domain.exceptions import ConfigurationError
 from pokemon_tcg_rag.domain.models import Chunk, FeedbackRecord, RetrievedChunk
-from pokemon_tcg_rag.llm.client import LLMClient
+from pokemon_tcg_rag.llm.client import LLMClient, SupportsGeneration
 from pokemon_tcg_rag.llm.rag_chain import RAGChain
 from pokemon_tcg_rag.monitoring.feedback_store import FeedbackStore
 from pokemon_tcg_rag.retrieval.bm25 import BM25Retriever
@@ -99,19 +99,19 @@ class OfflineVectorDatabase(VectorDatabase):
     def __init__(self, collection_name: str) -> None:
         self.collection_name = collection_name
 
-    def init_collection(self) -> None:
+    def init_collection(self, metadata: dict[str, object] | None = None) -> None:
         """No-op for local degraded startup."""
 
     def search_dense(
         self,
-        query_vector: list[float],
+        query_vector: Sequence[float],
         top_k: int = 10,
         filters: dict[str, str] | None = None,
     ) -> list[RetrievedChunk]:
         """Return no dense matches when the vector store is unavailable."""
         return []
 
-    def upsert_chunks(self, chunks: list[Chunk]) -> None:
+    def upsert_chunks(self, chunks: Sequence[Chunk]) -> None:
         """Ignore writes in degraded mode."""
 
 
@@ -174,8 +174,8 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
     vector_db: VectorDatabase | OfflineVectorDatabase = VectorDatabase()
     dense_retriever: DenseRetriever | OfflineDenseRetriever = DenseRetriever(vector_db)
 
-    query_rewriter_client: LLMClient | OfflineQueryRewriterClient
-    llm_client: LLMClient | OfflineAnswerClient
+    query_rewriter_client: SupportsGeneration
+    llm_client: SupportsGeneration
     openai_key = active_settings.OPENAI_API_KEY.strip()
     if openai_key:
         llm_client = LLMClient()

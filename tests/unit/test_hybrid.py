@@ -81,8 +81,12 @@ def test_dedup_across_retrievers() -> None:
 @pytest.mark.unit
 def test_hybrid_beats_single_on_fixture() -> None:
     """TEST-063: hybrid retrieval should keep the strongest merged candidate first."""
-    dense = FakeDense([_make_retrieved("dense_best", 0.9, "dense"), _make_retrieved("shared", 0.8, "dense")])
-    bm25 = FakeBM25([_make_retrieved("shared", 2.0, "bm25"), _make_retrieved("lexical_best", 1.0, "bm25")])
+    dense = FakeDense(
+        [_make_retrieved("dense_best", 0.9, "dense"), _make_retrieved("shared", 0.8, "dense")]
+    )
+    bm25 = FakeBM25(
+        [_make_retrieved("shared", 2.0, "bm25"), _make_retrieved("lexical_best", 1.0, "bm25")]
+    )
     retriever = HybridRetriever(dense, bm25, rrf_k=60)
 
     results = retriever.retrieve("Rare Candy", top_k=3)

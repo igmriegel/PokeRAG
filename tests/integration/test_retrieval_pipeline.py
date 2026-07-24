@@ -56,7 +56,9 @@ class FakeReranker:
     def __init__(self) -> None:
         self.calls: list[tuple[str, int]] = []
 
-    def rerank(self, query: str, candidate_chunks: list[RetrievedChunk], top_k: int = 5) -> list[RetrievedChunk]:
+    def rerank(
+        self, query: str, candidate_chunks: list[RetrievedChunk], top_k: int = 5
+    ) -> list[RetrievedChunk]:
         self.calls.append((query, top_k))
         return sorted(candidate_chunks, key=lambda item: item.score, reverse=True)[:top_k]
 
@@ -64,7 +66,10 @@ class FakeReranker:
 @pytest.mark.integration
 def test_pipeline_chains_stages() -> None:
     """TEST-073: retrieval pipeline must chain rewrite -> hybrid -> rerank."""
-    candidates = [_make_retrieved("c1", 0.1, "hybrid_rrf"), _make_retrieved("c2", 0.9, "hybrid_rrf")]
+    candidates = [
+        _make_retrieved("c1", 0.1, "hybrid_rrf"),
+        _make_retrieved("c2", 0.9, "hybrid_rrf"),
+    ]
     query_rewriter = FakeQueryRewriter()
     hybrid = FakeHybridRetriever(candidates)
     reranker = FakeReranker()

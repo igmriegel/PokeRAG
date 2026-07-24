@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, cast
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qmodels
@@ -74,7 +74,7 @@ class VectorDatabase:
         if isinstance(metadata, dict):
             return metadata
         if hasattr(metadata, "model_dump"):
-            return metadata.model_dump()
+            return cast(dict[str, Any], metadata.model_dump())
         return dict(metadata)
 
     def _assert_collection_metadata(self, expected: dict[str, Any]) -> None:
@@ -170,7 +170,7 @@ class VectorDatabase:
         )
         chunk = Chunk(
             chunk_id=str(payload.get("chunk_id", point.id)),
-            doc_id=payload.get("doc_id", str(point.id)),
+            document_id=payload.get("doc_id", str(point.id)),
             text=payload.get("text", ""),
             token_count=len(payload.get("text", "").split()),
             metadata=metadata,

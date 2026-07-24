@@ -10,7 +10,7 @@ import json
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 from sentence_transformers import SentenceTransformer
@@ -50,7 +50,9 @@ class CorpusManifest:
             CorpusManifestFile(
                 path=str(entry["path"]),
                 sha256=str(entry["sha256"]),
-                chunk_count=int(entry["chunk_count"]) if entry.get("chunk_count") is not None else None,
+                chunk_count=int(entry["chunk_count"])
+                if entry.get("chunk_count") is not None
+                else None,
             )
             for entry in data.get("files", [])
         )
@@ -58,7 +60,9 @@ class CorpusManifest:
             corpus_id=str(data["corpus_id"]),
             version=str(data["version"]),
             description=str(data.get("description", "")),
-            expected_chunk_count=int(data["chunk_count"]) if data.get("chunk_count") is not None else None,
+            expected_chunk_count=int(data["chunk_count"])
+            if data.get("chunk_count") is not None
+            else None,
             files=files,
         )
 
@@ -105,7 +109,9 @@ class CorpusManifest:
 class ChunkEmbedder:
     """Encode chunk texts into 1024-dimensional vectors."""
 
-    def __init__(self, model_name: str | None = None, model: SentenceTransformer | None = None) -> None:
+    def __init__(
+        self, model_name: str | None = None, model: SentenceTransformer | None = None
+    ) -> None:
         settings = get_settings()
         self.model_name = model_name or settings.EMBEDDING_MODEL_PRIMARY
         self._model = model or SentenceTransformer(self.model_name)
@@ -118,7 +124,9 @@ class ChunkEmbedder:
             convert_to_numpy=True,
             normalize_embeddings=True,
         )
-        return [vector.tolist() if hasattr(vector, "tolist") else list(vector) for vector in vectors]
+        return [
+            vector.tolist() if hasattr(vector, "tolist") else list(vector) for vector in vectors
+        ]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -185,7 +193,7 @@ def _load_manifest(directory: Path) -> dict[str, Any] | None:
     if not manifest_path.exists():
         return None
     with manifest_path.open("r", encoding="utf-8") as fh:
-        return json.load(fh)
+        return cast(dict[str, Any], json.load(fh))
 
 
 def _load_chunks_from_path(path: Path) -> list[Chunk]:
@@ -251,7 +259,7 @@ def seed_from_directory(
 def _record_to_chunk(record: dict[str, object]) -> Chunk:
     page_number = record.get("page_number")
     if page_number is not None and not isinstance(page_number, int):
-        page_number = int(page_number)
+        page_number = int(cast(Any, page_number))
 
     metadata = DocumentMetadata(
         source=DocumentSource(str(record["source"])),
@@ -260,16 +268,18 @@ def _record_to_chunk(record: dict[str, object]) -> Chunk:
         section_title=None if record.get("section_title") is None else str(record["section_title"]),
         card_name=None if record.get("card_name") is None else str(record["card_name"]),
         rule_type=RuleType(str(record["rule_type"])),
-        publication_date=None if record.get("publication_date") is None else str(record["publication_date"]),
+        publication_date=None
+        if record.get("publication_date") is None
+        else str(record["publication_date"]),
         source_url=None if record.get("source_url") is None else str(record["source_url"]),
         checksum=None if record.get("checksum") is None else str(record["checksum"]),
     )
     embedding = record.get("embedding")
     return Chunk(
         chunk_id=str(record["chunk_id"]),
-        doc_id=str(record["doc_id"]),
+        document_id=str(record["doc_id"]),
         text=str(record["text"]),
-        token_count=int(record.get("token_count", 0)),
+        token_count=int(cast(Any, record.get("token_count", 0))),
         metadata=metadata,
         embedding=embedding if isinstance(embedding, list) else None,
     )

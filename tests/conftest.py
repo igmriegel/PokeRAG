@@ -25,7 +25,7 @@ def sample_document() -> Document:
             page_number=15,
             rule_type=RuleType.GENERAL_RULE,
             card_name="Rare Candy",
-        )
+        ),
     )
 
 
@@ -38,5 +38,5 @@ def sample_chunk(sample_document: Document) -> Chunk:
         text=sample_document.content,
         token_count=24,
         metadata=sample_document.metadata,
-        embedding=[0.1] * 1024
+        embedding=[0.1] * 1024,
     )

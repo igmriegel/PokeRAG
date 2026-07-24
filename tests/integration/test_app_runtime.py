@@ -113,6 +113,7 @@ def test_lifespan_bootstraps_real_dependencies(monkeypatch) -> None:
 
 def test_build_runtime_container_uses_offline_fallback_without_openai(monkeypatch) -> None:
     """Development startup must degrade when OpenAI, Qdrant and Postgres are unavailable."""
+
     def fail_qdrant(self) -> None:
         raise RuntimeError("qdrant down")
 
@@ -128,7 +129,10 @@ def test_build_runtime_container_uses_offline_fallback_without_openai(monkeypatc
     )
     try:
         assert container.rag_chain.llm_client.model_name == "offline-llm"
-        assert container.retrieval_pipeline.query_rewriter.client.model_name == "offline-query-rewriter"
+        assert (
+            container.retrieval_pipeline.query_rewriter.client.model_name
+            == "offline-query-rewriter"
+        )
         assert isinstance(container.vector_db, api_runtime.OfflineVectorDatabase)
         assert isinstance(container.feedback_store, api_runtime.OfflineFeedbackStore)
         feedback = container.feedback_store.submit_feedback(

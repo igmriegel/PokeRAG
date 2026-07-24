@@ -10,7 +10,6 @@ from pathlib import Path
 import pytest
 import yaml
 
-
 PROJECT_ROOT = Path(__file__).parents[2]
 COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yml"
 
@@ -36,7 +35,7 @@ def test_all_seven_services_declared() -> None:
         config = yaml.safe_load(fh)
 
     declared_services = set(config.get("services", {}).keys())
-    assert EXPECTED_SERVICES == declared_services, (
+    assert declared_services == EXPECTED_SERVICES, (
         f"Service mismatch.\n  Expected: {sorted(EXPECTED_SERVICES)}\n  Found:    {sorted(declared_services)}"
     )
 

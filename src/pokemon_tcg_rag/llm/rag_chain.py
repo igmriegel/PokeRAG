@@ -8,7 +8,7 @@ import time
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.models import AnswerResponse, DocumentMetadata
-from pokemon_tcg_rag.llm.client import LLMClient
+from pokemon_tcg_rag.llm.client import LLMClient, SupportsGeneration
 from pokemon_tcg_rag.llm.prompts import PromptTemplateManager
 from pokemon_tcg_rag.retrieval.pipeline import RetrievalPipeline
 
@@ -19,7 +19,7 @@ class RAGChain:
     def __init__(
         self,
         retrieval_pipeline: RetrievalPipeline,
-        llm_client: LLMClient | None = None,
+        llm_client: SupportsGeneration | None = None,
         prompt_manager: PromptTemplateManager | None = None,
     ) -> None:
         self.retrieval_pipeline = retrieval_pipeline

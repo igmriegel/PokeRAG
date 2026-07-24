@@ -49,7 +49,9 @@ def dependency_status() -> tuple[bool, bool]:
 def query_rag(payload: QueryRequest) -> QueryResponse:
     """Execute the RAG pipeline and map the response to the public schema."""
     if _rag_chain is None:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="RAG chain unavailable")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="RAG chain unavailable"
+        )
 
     try:
         response: AnswerResponse = _rag_chain.query(payload.question, top_k=payload.top_k)
@@ -79,21 +81,29 @@ def query_rag(payload: QueryRequest) -> QueryResponse:
             num_docs=0,
             status="failure",
         )
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+        ) from exc
 
 
 @router.post("/feedback", status_code=status.HTTP_201_CREATED)
 def submit_feedback(payload: FeedbackRequest) -> dict[str, str]:
     """Persist user feedback through the feedback store service."""
     if _feedback_store is None:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Feedback store unavailable")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Feedback store unavailable"
+        )
     if payload.query_id in _submitted_feedback:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Feedback already submitted for this query")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Feedback already submitted for this query"
+        )
     stored_query = _query_sessions.get(payload.query_id)
     if stored_query is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown query_id")
     if stored_query.query != payload.query or stored_query.answer != payload.answer:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Feedback payload does not match query")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Feedback payload does not match query"
+        )
 
     try:
         _feedback_store.submit_feedback(
@@ -111,7 +121,9 @@ def submit_feedback(payload: FeedbackRequest) -> dict[str, str]:
     except HTTPException:
         raise
     except Exception as exc:  # pragma: no cover - route boundary
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+        ) from exc
 
 
 @router.get("/health", response_model=HealthResponse)

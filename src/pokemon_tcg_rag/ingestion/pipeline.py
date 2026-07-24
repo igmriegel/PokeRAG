@@ -101,10 +101,20 @@ class IngestionPipeline:
 
         if index:
             seed_chunks(chunks)
-            LOGGER.info("ingestion_finished", documents=len(normalized_documents), chunks=len(chunks), indexed=True)
+            LOGGER.info(
+                "ingestion_finished",
+                documents=len(normalized_documents),
+                chunks=len(chunks),
+                indexed=True,
+            )
             return chunks
 
-        LOGGER.info("ingestion_finished", documents=len(normalized_documents), chunks=len(chunks), indexed=False)
+        LOGGER.info(
+            "ingestion_finished",
+            documents=len(normalized_documents),
+            chunks=len(chunks),
+            indexed=False,
+        )
         return normalized_documents
 
     def _normalize_sources(self, sources: Iterable[str] | None) -> set[str]:

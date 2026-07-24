@@ -161,7 +161,7 @@ executable by an AI Code Agent, and traceable to a requirement
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-066 | Repair static quality gates | REQ-033 | TASK-042 | Pending |
+| TASK-066 | Repair static quality gates | REQ-033 | TASK-042 | Done |
 | TASK-067 | Enforce 90% coverage and clean-clone CI | REQ-033, REQ-034 | TASK-041, TASK-042, TASK-066 | Pending |
 | TASK-068 | Build a real infrastructure integration layer | REQ-033 | TASK-063, TASK-064, TASK-065, TASK-067 | Pending |
 | TASK-069 | Add full compose and browser/API end-to-end test | REQ-033, REQ-034 | TASK-068 | Pending |

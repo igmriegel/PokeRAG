@@ -19,7 +19,9 @@ from pokemon_tcg_rag.evaluation.dataset import EvalTestCase, EvaluationDatasetLo
 from pokemon_tcg_rag.evaluation.evaluator import RAGEvaluator
 
 
-def _case(question_id: str, question: str, doc_ids: list[str], source: DocumentSource) -> EvalTestCase:
+def _case(
+    question_id: str, question: str, doc_ids: list[str], source: DocumentSource
+) -> EvalTestCase:
     return EvalTestCase(
         question_id=question_id,
         question=question,
@@ -45,7 +47,9 @@ def _chunk(doc_id: str, source: DocumentSource, page_number: int | None = None) 
     return RetrievedChunk(chunk=chunk, score=1.0, retrieval_method="mock")
 
 
-def _retrieval_handlers() -> tuple[dict[str, Callable[[str, int], list[RetrievedChunk]]], dict[str, int]]:
+def _retrieval_handlers() -> tuple[
+    dict[str, Callable[[str, int], list[RetrievedChunk]]], dict[str, int]
+]:
     calls = {"dense": 0, "bm25": 0, "hybrid": 0, "hybrid_rerank": 0}
 
     def dense(_: str, __: int) -> list[RetrievedChunk]:

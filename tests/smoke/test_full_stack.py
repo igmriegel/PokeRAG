@@ -65,7 +65,9 @@ def test_all_services_healthy() -> None:
         config = yaml.safe_load(fh)
 
     services = config.get("services", {})
-    assert {"qdrant", "postgres", "ingestion", "api", "ui", "prometheus", "grafana"} == set(services)
+    assert {"qdrant", "postgres", "ingestion", "api", "ui", "prometheus", "grafana"} == set(
+        services
+    )
 
 
 @pytest.mark.smoke

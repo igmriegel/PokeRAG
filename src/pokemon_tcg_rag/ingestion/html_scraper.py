@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 import requests
 from bs4 import BeautifulSoup
@@ -22,10 +22,17 @@ from pokemon_tcg_rag.monitoring.logger import get_logger
 LOGGER = get_logger(__name__)
 
 
+class TargetPage(TypedDict):
+    url: str
+    source: DocumentSource
+    title: str
+    rule_type: RuleType
+
+
 class HTMLPageScraper:
     """Scrape the official HTML pages into domain documents."""
 
-    TARGET_PAGES = [
+    TARGET_PAGES: list[TargetPage] = [
         {
             "url": "https://www.pokemon.com/us/play-pokemon/about/pokemon-tcg-banned-card-list",
             "source": DocumentSource.BAN_LIST_HTML,

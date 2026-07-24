@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 import requests
 import streamlit as st
@@ -59,10 +59,12 @@ def render_answer(response: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def fetch_answer(api_url: str, question: str, top_k: int, post: Callable[..., Any] = requests.post) -> dict[str, Any]:
+def fetch_answer(
+    api_url: str, question: str, top_k: int, post: Callable[..., Any] = requests.post
+) -> dict[str, Any]:
     response = post(f"{api_url}/query", json=build_query_payload(question, top_k), timeout=30)
     response.raise_for_status()
-    return response.json()
+    return cast(dict[str, Any], response.json())
 
 
 def send_feedback(
@@ -78,11 +80,13 @@ def send_feedback(
 ) -> dict[str, Any]:
     response = post(
         f"{api_url}/feedback",
-        json=build_feedback_payload(query_id, query, answer, rating, model_name, latency_seconds, comment),
+        json=build_feedback_payload(
+            query_id, query, answer, rating, model_name, latency_seconds, comment
+        ),
         timeout=30,
     )
     response.raise_for_status()
-    return response.json()
+    return cast(dict[str, Any], response.json())
 
 
 def main() -> None:
@@ -127,21 +131,23 @@ def main() -> None:
             except Exception as exc:  # pragma: no cover - UI boundary
                 st.error(f"Falha ao conectar com o serviço backend: {exc}")
 
-    summary = st.session_state.get("last_summary")
-    if summary:
+    last_summary: dict[str, Any] | None = st.session_state.get("last_summary")
+    if last_summary:
         st.markdown("### 💬 Resposta do Juiz Oficial")
-        st.success(summary["answer"])
+        st.success(last_summary["answer"])
 
         col1, col2, col3 = st.columns(3)
-        col1.metric("Tempo de Resposta", f"{summary['metrics']['latency_seconds']:.2f}s")
-        col2.metric("Modelo Utilizado", summary["metrics"]["model_name"])
-        col3.metric("Documentos Consultados", summary["metrics"]["retrieved_count"])
+        col1.metric("Tempo de Resposta", f"{last_summary['metrics']['latency_seconds']:.2f}s")
+        col2.metric("Modelo Utilizado", last_summary["metrics"]["model_name"])
+        col3.metric("Documentos Consultados", last_summary["metrics"]["retrieved_count"])
 
-        if summary.get("rewritten_query"):
-            st.info(f"🔍 **Query Reformulada (Query Rewriting):** `{summary['rewritten_query']}`")
+        if last_summary.get("rewritten_query"):
+            st.info(
+                f"🔍 **Query Reformulada (Query Rewriting):** `{last_summary['rewritten_query']}`"
+            )
 
         st.markdown("### 📖 Fontes Citadas")
-        for citation in summary["citations"]:
+        for citation in last_summary["citations"]:
             page_num = citation.get("page_number")
             page_suffix = f" | Pág: {page_num}" if page_num else ""
             st.markdown(
@@ -150,7 +156,7 @@ def main() -> None:
             )
 
         with st.expander("🔍 Ver Trechos de Texto Utilizados (Chunks)"):
-            for idx, chunk in enumerate(summary["chunks"], start=1):
+            for idx, chunk in enumerate(last_summary["chunks"], start=1):
                 st.markdown(
                     f"**Chunk #{idx}** (Score: `{chunk.get('score', 0.0):.4f}` | "
                     f"Método: `{chunk.get('retrieval_method', 'N/A')}`)"
@@ -164,24 +170,24 @@ def main() -> None:
             if st.button("👍 Resposta Precisa"):
                 send_feedback(
                     api_url=api_url,
-                    query_id=summary["query_id"],
+                    query_id=last_summary["query_id"],
                     query=user_query,
-                    answer=summary["answer"],
+                    answer=last_summary["answer"],
                     rating=1,
-                    model_name=summary["metrics"]["model_name"],
-                    latency_seconds=summary["metrics"]["latency_seconds"],
+                    model_name=last_summary["metrics"]["model_name"],
+                    latency_seconds=last_summary["metrics"]["latency_seconds"],
                 )
                 st.success("Obrigado pelo seu feedback positivo!")
         with fb_col2:
             if st.button("👎 Resposta Incorreta / Incompleta"):
                 send_feedback(
                     api_url=api_url,
-                    query_id=summary["query_id"],
+                    query_id=last_summary["query_id"],
                     query=user_query,
-                    answer=summary["answer"],
+                    answer=last_summary["answer"],
                     rating=-1,
-                    model_name=summary["metrics"]["model_name"],
-                    latency_seconds=summary["metrics"]["latency_seconds"],
+                    model_name=last_summary["metrics"]["model_name"],
+                    latency_seconds=last_summary["metrics"]["latency_seconds"],
                 )
                 st.error("Obrigado pelo seu feedback. Registramos a falha para revisão.")
 

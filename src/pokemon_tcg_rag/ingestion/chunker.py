@@ -65,7 +65,7 @@ class DocumentChunker:
         text = " ".join(token_window).strip()
         return Chunk(
             chunk_id=f"{document.doc_id}#{index}",
-            doc_id=document.doc_id,
+            document_id=document.doc_id,
             text=text,
             token_count=len(token_window),
             metadata=document.metadata,

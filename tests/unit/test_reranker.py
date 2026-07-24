@@ -45,10 +45,17 @@ def _make_candidate(chunk_id: str, text: str) -> RetrievedChunk:
 @pytest.mark.unit
 def test_rerank_returns_top_k(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-064: reranker must return the requested number of candidates."""
-    monkeypatch.setattr("pokemon_tcg_rag.retrieval.reranker.CrossEncoder", lambda *args, **kwargs: FakeCrossEncoder())
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.retrieval.reranker.CrossEncoder",
+        lambda *args, **kwargs: FakeCrossEncoder(),
+    )
     reranker = BGEReranker()
 
-    output = reranker.rerank("Rare Candy", [_make_candidate("c1", "a"), _make_candidate("c2", "b"), _make_candidate("c3", "c")], top_k=2)
+    output = reranker.rerank(
+        "Rare Candy",
+        [_make_candidate("c1", "a"), _make_candidate("c2", "b"), _make_candidate("c3", "c")],
+        top_k=2,
+    )
 
     assert len(output) == 2
 
@@ -56,10 +63,17 @@ def test_rerank_returns_top_k(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.unit
 def test_rerank_reorders_by_score(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-065: reranker must sort candidates by cross-encoder score."""
-    monkeypatch.setattr("pokemon_tcg_rag.retrieval.reranker.CrossEncoder", lambda *args, **kwargs: FakeCrossEncoder())
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.retrieval.reranker.CrossEncoder",
+        lambda *args, **kwargs: FakeCrossEncoder(),
+    )
     reranker = BGEReranker()
 
-    output = reranker.rerank("Rare Candy", [_make_candidate("c1", "a"), _make_candidate("c2", "b"), _make_candidate("c3", "c")], top_k=3)
+    output = reranker.rerank(
+        "Rare Candy",
+        [_make_candidate("c1", "a"), _make_candidate("c2", "b"), _make_candidate("c3", "c")],
+        top_k=3,
+    )
 
     assert [item.chunk.chunk_id for item in output] == ["c2", "c3", "c1"]
 
@@ -67,7 +81,10 @@ def test_rerank_reorders_by_score(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.unit
 def test_fewer_candidates_than_k(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-066: fewer candidates than requested should return all of them."""
-    monkeypatch.setattr("pokemon_tcg_rag.retrieval.reranker.CrossEncoder", lambda *args, **kwargs: FakeCrossEncoder())
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.retrieval.reranker.CrossEncoder",
+        lambda *args, **kwargs: FakeCrossEncoder(),
+    )
     reranker = BGEReranker()
 
     output = reranker.rerank("Rare Candy", [_make_candidate("c1", "a")], top_k=5)

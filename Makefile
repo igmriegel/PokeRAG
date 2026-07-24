@@ -36,7 +36,7 @@ lint:
 
 format:
 	ruff check --fix src/ tests/
-	black src/ tests/
+	$(PYTHON) -m black src/ tests/
 
 typecheck:
 	mypy src/

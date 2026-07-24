@@ -30,10 +30,12 @@ def _make_chunk(chunk_id: str, text: str) -> Chunk:
 def test_index_and_retrieve() -> None:
     """TEST-058: BM25 must index chunks and retrieve scored results."""
     retriever = BM25Retriever()
-    retriever.index_chunks([
-        _make_chunk("c1", "Rare Candy allows a quick evolution"),
-        _make_chunk("c2", "Mega Evolution change"),
-    ])
+    retriever.index_chunks(
+        [
+            _make_chunk("c1", "Rare Candy allows a quick evolution"),
+            _make_chunk("c2", "Mega Evolution change"),
+        ]
+    )
 
     results = retriever.retrieve("Rare Candy", top_k=2)
 
@@ -44,10 +46,12 @@ def test_index_and_retrieve() -> None:
 @pytest.mark.unit
 def test_keyword_match_ranks_first() -> None:
     """TEST-059: exact keyword matches must rank first."""
-    retriever = BM25Retriever([
-        _make_chunk("c1", "Rare Candy"),
-        _make_chunk("c2", "Potion"),
-    ])
+    retriever = BM25Retriever(
+        [
+            _make_chunk("c1", "Rare Candy"),
+            _make_chunk("c2", "Potion"),
+        ]
+    )
 
     results = retriever.retrieve("Rare Candy", top_k=2)
 

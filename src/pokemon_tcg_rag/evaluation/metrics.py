@@ -87,7 +87,9 @@ def calculate_correctness(answer: str, reference_answer: str) -> float:
 
     overlap = answer_tokens.intersection(reference_tokens)
     token_score = len(overlap) / len(reference_tokens)
-    sequence_score = SequenceMatcher(None, answer.lower().strip(), reference_answer.lower().strip()).ratio()
+    sequence_score = SequenceMatcher(
+        None, answer.lower().strip(), reference_answer.lower().strip()
+    ).ratio()
     return round(min(1.0, 0.6 * token_score + 0.4 * sequence_score), 4)
 
 
@@ -101,10 +103,7 @@ def calculate_citation_quality(
     if not context_chunks:
         return 0.0
 
-    context_keys = {
-        _citation_key(item.chunk.metadata)
-        for item in context_chunks
-    }
+    context_keys = {_citation_key(item.chunk.metadata) for item in context_chunks}
     matches = sum(1 for citation in citations if _citation_key(citation) in context_keys)
     return round(matches / len(citations), 4)
 
@@ -155,7 +154,7 @@ def _token_set(text: str) -> set[str]:
     return {match.group(0).lower() for match in _TOKEN_PATTERN.finditer(text)}
 
 
-def _citation_key(metadata: DocumentMetadata) -> tuple[str, str | None]:
+def _citation_key(metadata: DocumentMetadata) -> tuple[str, int | None]:
     return (metadata.source.value, metadata.page_number)
 
 

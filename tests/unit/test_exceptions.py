@@ -20,6 +20,7 @@ from pokemon_tcg_rag.domain.exceptions import (
 # TEST-012  Exception hierarchy
 # ─────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_exception_hierarchy() -> None:
     """TEST-012: All domain exceptions must subclass PokemonRAGError (and thus Exception)."""
@@ -50,6 +51,7 @@ def test_base_is_pokemon_rag_error() -> None:
 # TEST-013  Exceptions carry message attribute
 # ─────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_exceptions_carry_message() -> None:
     """TEST-013: Every exception must store and expose the message attribute."""
@@ -72,7 +74,14 @@ def test_exceptions_carry_message() -> None:
 @pytest.mark.unit
 def test_exceptions_are_catchable_as_base() -> None:
     """All domain exceptions must be catchable via PokemonRAGError."""
-    for exc_cls in (IngestionError, ParsingError, RetrievalError, VectorStoreError, LLMError, ConfigurationError):
+    for exc_cls in (
+        IngestionError,
+        ParsingError,
+        RetrievalError,
+        VectorStoreError,
+        LLMError,
+        ConfigurationError,
+    ):
         with pytest.raises(PokemonRAGError):
             raise exc_cls("test message")
 
@@ -80,6 +89,13 @@ def test_exceptions_are_catchable_as_base() -> None:
 @pytest.mark.unit
 def test_exceptions_are_catchable_as_exception() -> None:
     """All domain exceptions must be catchable via bare Exception."""
-    for exc_cls in (IngestionError, ParsingError, RetrievalError, VectorStoreError, LLMError, ConfigurationError):
+    for exc_cls in (
+        IngestionError,
+        ParsingError,
+        RetrievalError,
+        VectorStoreError,
+        LLMError,
+        ConfigurationError,
+    ):
         with pytest.raises(Exception):  # noqa: B017
             raise exc_cls("test message")

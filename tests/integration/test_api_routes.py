@@ -52,7 +52,9 @@ def _answer_response() -> AnswerResponse:
 
 
 class FakeRAGChain:
-    def __init__(self, response: AnswerResponse | None = None, error: Exception | None = None) -> None:
+    def __init__(
+        self, response: AnswerResponse | None = None, error: Exception | None = None
+    ) -> None:
         self.response = response or _answer_response()
         self.error = error
         self.calls: list[str] = []

@@ -97,10 +97,16 @@ def test_pipeline_aggregates_all_sources(tmp_path: Path, monkeypatch: pytest.Mon
         "pokemon_tcg_rag.ingestion.pipeline.HTMLPageScraper.fetch_all_html_pages",
         fake_fetch_all_html_pages,
     )
-    monkeypatch.setattr("pokemon_tcg_rag.ingestion.pipeline.IngestionPipeline._download_pdf", fake_download_pdf)
-    monkeypatch.setattr("pokemon_tcg_rag.ingestion.pipeline.PDFParser.parse_pdf_file", fake_parse_pdf_file)
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.IngestionPipeline._download_pdf", fake_download_pdf
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.PDFParser.parse_pdf_file", fake_parse_pdf_file
+    )
 
-    pipeline = IngestionPipeline(raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed")
+    pipeline = IngestionPipeline(
+        raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed"
+    )
     documents = pipeline.run()
 
     assert len(documents) == 9
@@ -128,9 +134,13 @@ def test_download_dedup_by_checksum(tmp_path: Path, monkeypatch: pytest.MonkeyPa
         def raise_for_status() -> None:
             return None
 
-    monkeypatch.setattr("pokemon_tcg_rag.ingestion.pipeline.requests.get", lambda *args, **kwargs: DummyResponse())
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.requests.get", lambda *args, **kwargs: DummyResponse()
+    )
 
-    pipeline = IngestionPipeline(raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed")
+    pipeline = IngestionPipeline(
+        raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed"
+    )
     pdf_url = "https://example.com/rules.pdf"
 
     first_path = pipeline._download_pdf(pdf_url)
@@ -174,7 +184,9 @@ def test_processed_persistence_written(tmp_path: Path, monkeypatch: pytest.Monke
         lambda self, file_path, source, rule_type: [],
     )
 
-    pipeline = IngestionPipeline(raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed")
+    pipeline = IngestionPipeline(
+        raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed"
+    )
     pipeline.run(sources=["pokegym"])
 
     assert (tmp_path / "processed" / "documents.jsonl").exists()
@@ -199,14 +211,21 @@ def test_pipeline_produces_chunks(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(
         "pokemon_tcg_rag.ingestion.pipeline.HTMLPageScraper.fetch_all_html_pages",
         lambda self: [
-            _build_document("html_ban", "Ban list content", DocumentSource.BAN_LIST_HTML, RuleType.BAN_STATUS),
+            _build_document(
+                "html_ban", "Ban list content", DocumentSource.BAN_LIST_HTML, RuleType.BAN_STATUS
+            ),
             _build_document(
                 "html_promo",
                 "Promo legality content",
                 DocumentSource.PROMO_LEGALITY_HTML,
                 RuleType.PROMO_STATUS,
             ),
-            _build_document("html_mega", "Mega rules content", DocumentSource.MEGA_RULES_HTML, RuleType.MECHANIC_RULE),
+            _build_document(
+                "html_mega",
+                "Mega rules content",
+                DocumentSource.MEGA_RULES_HTML,
+                RuleType.MECHANIC_RULE,
+            ),
         ],
     )
     monkeypatch.setattr(

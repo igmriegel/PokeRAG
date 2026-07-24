@@ -15,6 +15,7 @@ from pokemon_tcg_rag.monitoring.logger import get_logger, setup_logging
 # TEST-014  JSON output from setup_logging
 # ─────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_setup_logging_json_output(capsys: pytest.CaptureFixture[str]) -> None:
     """TEST-014: A logged event must serialize to JSON with expected keys."""
@@ -44,6 +45,7 @@ def test_setup_logging_json_output(capsys: pytest.CaptureFixture[str]) -> None:
 # TEST-015  Log level is honoured from Settings
 # ─────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_log_level_from_settings(
     monkeypatch: pytest.MonkeyPatch,
@@ -59,19 +61,13 @@ def test_log_level_from_settings(
     # DEBUG message must be suppressed when level is WARNING
     logger.debug("debug_message_suppressed")
     captured_debug = capsys.readouterr()
-    debug_lines = [
-        ln for ln in captured_debug.out.splitlines()
-        if "debug_message_suppressed" in ln
-    ]
+    debug_lines = [ln for ln in captured_debug.out.splitlines() if "debug_message_suppressed" in ln]
     assert not debug_lines, "DEBUG messages must be suppressed at WARNING level"
 
     # WARNING message must appear
     logger.warning("warning_message_visible")
     captured_warn = capsys.readouterr()
-    warning_lines = [
-        ln for ln in captured_warn.out.splitlines()
-        if "warning_message_visible" in ln
-    ]
+    warning_lines = [ln for ln in captured_warn.out.splitlines() if "warning_message_visible" in ln]
     assert warning_lines, "WARNING messages must be visible at WARNING level"
 
     get_settings.cache_clear()

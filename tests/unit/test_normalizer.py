@@ -40,7 +40,10 @@ def test_whitespace_collapsed() -> None:
     normalized = DocumentNormalizer().normalize(document)
 
     assert normalized.content == "Rare Candy\ncan be used on your turn."
-    assert normalized.metadata.checksum == hashlib.sha256(normalized.content.encode("utf-8")).hexdigest()
+    assert (
+        normalized.metadata.checksum
+        == hashlib.sha256(normalized.content.encode("utf-8")).hexdigest()
+    )
 
 
 @pytest.mark.unit

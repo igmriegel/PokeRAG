@@ -44,7 +44,11 @@ def _make_retrieved(chunk_id: str, score: float) -> RetrievedChunk:
         doc_id=f"doc-{chunk_id}",
         text=f"text-{chunk_id}",
         token_count=1,
-        metadata=DocumentMetadata(source=DocumentSource.RULEBOOK_PDF, document_title="Rulebook", rule_type=RuleType.GENERAL_RULE),
+        metadata=DocumentMetadata(
+            source=DocumentSource.RULEBOOK_PDF,
+            document_title="Rulebook",
+            rule_type=RuleType.GENERAL_RULE,
+        ),
     )
     return RetrievedChunk(chunk=chunk, score=score, retrieval_method="dense")
 
@@ -53,7 +57,9 @@ def _make_retrieved(chunk_id: str, score: float) -> RetrievedChunk:
 def test_dense_returns_top_k(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-055: dense retriever must return only the requested top_k results."""
     fake_model = FakeModel()
-    monkeypatch.setattr("pokemon_tcg_rag.retrieval.dense.SentenceTransformer", lambda *args, **kwargs: fake_model)
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer", lambda *args, **kwargs: fake_model
+    )
 
     results = [_make_retrieved("c1", 0.1), _make_retrieved("c2", 0.9)]
     db = FakeVectorDB(results)
@@ -70,7 +76,9 @@ def test_dense_returns_top_k(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_query_encoded_to_1024(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-056: the query embedding must be 1024-dimensional."""
     fake_model = FakeModel()
-    monkeypatch.setattr("pokemon_tcg_rag.retrieval.dense.SentenceTransformer", lambda *args, **kwargs: fake_model)
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer", lambda *args, **kwargs: fake_model
+    )
 
     db = FakeVectorDB([_make_retrieved("c1", 0.5)])
     retriever = DenseRetriever(db)
@@ -85,7 +93,9 @@ def test_query_encoded_to_1024(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_results_ordered_by_score(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-057: results must be sorted by descending score."""
     fake_model = FakeModel()
-    monkeypatch.setattr("pokemon_tcg_rag.retrieval.dense.SentenceTransformer", lambda *args, **kwargs: fake_model)
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer", lambda *args, **kwargs: fake_model
+    )
 
     results = [_make_retrieved("c1", 0.1), _make_retrieved("c2", 0.9), _make_retrieved("c3", 0.5)]
     db = FakeVectorDB(results)

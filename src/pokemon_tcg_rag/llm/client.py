@@ -5,6 +5,7 @@ LLM provider abstraction client.
 from __future__ import annotations
 
 import time
+from typing import Protocol
 
 from openai import OpenAI
 
@@ -15,7 +16,9 @@ from pokemon_tcg_rag.domain.exceptions import LLMError
 class LLMClient:
     """Wrapper around an OpenAI-compatible chat completions endpoint."""
 
-    def __init__(self, client: OpenAI | None = None, retries: int = 3, retry_delay: float = 0.5) -> None:
+    def __init__(
+        self, client: OpenAI | None = None, retries: int = 3, retry_delay: float = 0.5
+    ) -> None:
         settings = get_settings()
         self.client = client or OpenAI(api_key=settings.OPENAI_API_KEY)
         self.model_name = settings.OPENAI_MODEL_NAME
@@ -45,3 +48,11 @@ class LLMClient:
                 raise LLMError(f"LLM generation failed: {exc}") from exc
 
         raise LLMError(f"LLM generation failed: {last_error}")
+
+
+class SupportsGeneration(Protocol):
+    """Minimal contract for prompt-rewriting and answer-generation clients."""
+
+    model_name: str
+
+    def generate_answer(self, prompt: str) -> str: ...

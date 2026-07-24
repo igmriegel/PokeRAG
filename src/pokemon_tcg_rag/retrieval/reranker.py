@@ -5,6 +5,7 @@ Cross-encoder reranker.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Any, cast
 
 from sentence_transformers import CrossEncoder
 
@@ -32,7 +33,9 @@ class BGEReranker:
                 self._reranker_model = CrossEncoder(self.model_name)
             except Exception as exc:  # pragma: no cover - defensive fallback
                 self._disabled_reason = str(exc)
-                LOGGER.warning("reranker_disabled", model=self.model_name, reason=self._disabled_reason)
+                LOGGER.warning(
+                    "reranker_disabled", model=self.model_name, reason=self._disabled_reason
+                )
                 raise
         return self._reranker_model
 
@@ -51,9 +54,9 @@ class BGEReranker:
             ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
             return list(ordered[:limit])
 
-        pairs = [[query, item.chunk.text] for item in candidate_chunks]
+        pairs = [(query, item.chunk.text) for item in candidate_chunks]
         try:
-            scores = list(self.model.predict(pairs, convert_to_numpy=True))
+            scores = list(cast(Any, self.model.predict)(pairs, convert_to_numpy=True))
         except Exception:
             ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
             return list(ordered[:limit])

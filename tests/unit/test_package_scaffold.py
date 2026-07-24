@@ -9,7 +9,6 @@ from pathlib import Path
 
 import pytest
 
-
 REQUIREMENTS_PATH = Path(__file__).parents[2] / "requirements.txt"
 
 

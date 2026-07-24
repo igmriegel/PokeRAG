@@ -16,7 +16,14 @@ from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 
 
 class FakeSentenceTransformer:
-    def encode(self, texts, batch_size=32, show_progress_bar=False, convert_to_numpy=True, normalize_embeddings=True):  # noqa: D401
+    def encode(
+        self,
+        texts,
+        batch_size=32,
+        show_progress_bar=False,
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+    ):  # noqa: D401
         return [[0.1] * 1024 for _ in texts]
 
 
@@ -37,7 +44,9 @@ def _make_chunk(chunk_id: str) -> Chunk:
 @pytest.mark.integration
 def test_embedding_dimension_1024(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-049: embeddings must be 1024-dimensional."""
-    monkeypatch.setattr(seed_db, "SentenceTransformer", lambda *args, **kwargs: FakeSentenceTransformer())
+    monkeypatch.setattr(
+        seed_db, "SentenceTransformer", lambda *args, **kwargs: FakeSentenceTransformer()
+    )
 
     embedder = ChunkEmbedder()
     vectors = embedder.embed_texts(["a", "b"])
@@ -49,7 +58,9 @@ def test_embedding_dimension_1024(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.integration
 def test_seed_upserts_all_chunks(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-050: all chunks must be embedded and upserted."""
-    monkeypatch.setattr(seed_db, "SentenceTransformer", lambda *args, **kwargs: FakeSentenceTransformer())
+    monkeypatch.setattr(
+        seed_db, "SentenceTransformer", lambda *args, **kwargs: FakeSentenceTransformer()
+    )
 
     class DummyVectorDb:
         def __init__(self) -> None:
@@ -76,7 +87,9 @@ def test_seed_upserts_all_chunks(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.integration
 def test_seed_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-051: rerunning the seed job against the same chunks must not duplicate points."""
-    monkeypatch.setattr(seed_db, "SentenceTransformer", lambda *args, **kwargs: FakeSentenceTransformer())
+    monkeypatch.setattr(
+        seed_db, "SentenceTransformer", lambda *args, **kwargs: FakeSentenceTransformer()
+    )
 
     qdrant = QdrantClient(location=":memory:")
     vector_db = VectorDatabase(client=qdrant)

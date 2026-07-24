@@ -5,6 +5,7 @@ Relational database persistence for feedback records.
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import CheckConstraint, DateTime, Float, Integer, String, Text, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
@@ -22,9 +23,7 @@ class FeedbackORM(Base):
     """Feedback persistence model."""
 
     __tablename__ = "user_feedback"
-    __table_args__ = (
-        CheckConstraint("rating IN (-1, 1)", name="ck_user_feedback_rating_binary"),
-    )
+    __table_args__ = (CheckConstraint("rating IN (-1, 1)", name="ck_user_feedback_rating_binary"),)
 
     feedback_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     query_id: Mapped[str] = mapped_column(String(128), nullable=False, unique=True, index=True)
@@ -40,7 +39,7 @@ class FeedbackORM(Base):
 class RelationalDatabase:
     """PostgreSQL persistence manager for feedback records."""
 
-    def __init__(self, engine=None) -> None:
+    def __init__(self, engine: Any | None = None) -> None:
         settings = get_settings()
         self.engine = engine or create_engine(settings.postgres_uri, pool_pre_ping=True)
         self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)

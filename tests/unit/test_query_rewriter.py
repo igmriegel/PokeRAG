@@ -30,7 +30,9 @@ def test_rewrite_expands_vague_query() -> None:
     rewritten = rewriter.rewrite_query("Can I use this card?")
 
     assert "Pokemon TCG" in rewritten
-    assert client.prompts[0].startswith("You rewrite user questions for Pokemon TCG rules retrieval.")
+    assert client.prompts[0].startswith(
+        "You rewrite user questions for Pokemon TCG rules retrieval."
+    )
 
 
 @pytest.mark.unit

@@ -58,7 +58,9 @@ def test_context_ordering_and_numbering() -> None:
 def test_prompt_contains_citation_instruction() -> None:
     """TEST-077: prompt must instruct the model to cite sources."""
     manager = PromptTemplateManager()
-    prompt = manager.build_prompt("Can I use Rare Candy?", [_make_retrieved("c1", "Rare Candy rule")])
+    prompt = manager.build_prompt(
+        "Can I use Rare Candy?", [_make_retrieved("c1", "Rare Candy rule")]
+    )
 
     assert "cite" in prompt.lower()
     assert "[1]" in prompt

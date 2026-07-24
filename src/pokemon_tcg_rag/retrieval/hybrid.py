@@ -42,7 +42,9 @@ class HybridRetriever:
             fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(rank)
             chunk_map.setdefault(chunk_id, result)
 
-        ordered_ids = sorted(fused_scores, key=lambda chunk_id: fused_scores[chunk_id], reverse=True)[:top_k]
+        ordered_ids = sorted(
+            fused_scores, key=lambda chunk_id: fused_scores[chunk_id], reverse=True
+        )[:top_k]
         return [
             RetrievedChunk(
                 chunk=chunk_map[chunk_id].chunk,

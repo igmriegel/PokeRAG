@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urljoin
 
 import requests
@@ -159,7 +159,10 @@ class PokegymCrawler:
         first_row = table.find("tr")
         if not first_row:
             return []
-        return [self._normalize_header(cell.get_text(" ", strip=True)) for cell in first_row.find_all(["th", "td"])]
+        return [
+            self._normalize_header(cell.get_text(" ", strip=True))
+            for cell in first_row.find_all(["th", "td"])
+        ]
 
     def _row_from_cells(self, headers: list[str], cells: list[Tag], tr: Tag) -> dict[str, str]:
         values = [cell.get_text(" ", strip=True) for cell in cells]
@@ -169,7 +172,7 @@ class PokegymCrawler:
             if field == "url":
                 link = cells[idx].find("a", href=True)
                 if link:
-                    data["url"] = urljoin(self.BASE_URL, link["href"])
+                    data["url"] = urljoin(self.BASE_URL, cast(str, link.get("href")))
                 else:
                     data["url"] = values[idx]
                 continue
@@ -178,7 +181,7 @@ class PokegymCrawler:
         if "url" not in data:
             link = tr.find("a", href=True)
             if link:
-                data["url"] = urljoin(self.BASE_URL, link["href"])
+                data["url"] = urljoin(self.BASE_URL, cast(str, link.get("href")))
 
         return self._canonicalize_row(data)
 
@@ -204,7 +207,7 @@ class PokegymCrawler:
         if "url" not in data:
             link = block.find("a", href=True)
             if link:
-                data["url"] = urljoin(self.BASE_URL, link["href"])
+                data["url"] = urljoin(self.BASE_URL, cast(str, link.get("href")))
 
         return self._canonicalize_row(data)
 
@@ -239,7 +242,12 @@ class PokegymCrawler:
             "url": "url",
             "link": "url",
         }
-        return mapping.get(header, {0: "date", 1: "set", 2: "card", 3: "question", 4: "answer", 5: "url"}.get(index, header))
+        return mapping.get(
+            header,
+            {0: "date", 1: "set", 2: "card", 3: "question", 4: "answer", 5: "url"}.get(
+                index, header
+            ),
+        )
 
     def _canonicalize_row(self, data: dict[str, str]) -> dict[str, str]:
         return {

@@ -40,14 +40,18 @@ class RetrievalPipeline:
 
     def execute_retrieval(self, raw_query: str, top_k: int = 5) -> tuple[str, list[RetrievedChunk]]:
         """Run query rewriting, hybrid retrieval, and reranking."""
-        rewritten_query = self.query_rewriter.rewrite_query(raw_query) if self.enable_query_rewrite else raw_query
+        rewritten_query = (
+            self.query_rewriter.rewrite_query(raw_query) if self.enable_query_rewrite else raw_query
+        )
         candidates = self.hybrid_retriever.retrieve(
             query=rewritten_query,
             top_k=max(top_k, self.settings.RETRIEVAL_TOP_K_DENSE),
         )
 
         if self.enable_reranking and candidates:
-            final_chunks = self.reranker.rerank(query=rewritten_query, candidate_chunks=candidates, top_k=top_k)
+            final_chunks = self.reranker.rerank(
+                query=rewritten_query, candidate_chunks=candidates, top_k=top_k
+            )
         else:
             final_chunks = candidates[:top_k]
 

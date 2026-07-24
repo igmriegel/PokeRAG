@@ -23,6 +23,7 @@ from pokemon_tcg_rag.domain.models import (
 # TEST-007  DocumentSource enum members
 # ─────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_document_source_enum_members() -> None:
     """TEST-007: DocumentSource must have exactly 9 members matching the brief §3."""
@@ -46,6 +47,7 @@ def test_document_source_enum_members() -> None:
 # TEST-008  RuleType enum members
 # ─────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_rule_type_enum_members() -> None:
     """TEST-008: RuleType must have exactly 7 members matching the brief §3."""
@@ -66,6 +68,7 @@ def test_rule_type_enum_members() -> None:
 # ─────────────────────────────────────────────
 # TEST-009  Chunk requires metadata
 # ─────────────────────────────────────────────
+
 
 @pytest.mark.unit
 def test_chunk_requires_metadata() -> None:
@@ -102,6 +105,7 @@ def test_chunk_json_serializable(sample_chunk: Chunk) -> None:
 # TEST-010  FeedbackRecord rating validation
 # ─────────────────────────────────────────────
 
+
 @pytest.mark.unit
 def test_feedback_rating_validation() -> None:
     """TEST-010: FeedbackRecord must reject ratings outside {-1, 1}."""
@@ -130,6 +134,7 @@ def test_feedback_rating_validation() -> None:
 # ─────────────────────────────────────────────
 # TEST-011  RetrievedChunk has score
 # ─────────────────────────────────────────────
+
 
 @pytest.mark.unit
 def test_retrieved_chunk_has_score(sample_chunk: Chunk) -> None:
