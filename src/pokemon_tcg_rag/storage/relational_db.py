@@ -1,67 +1,72 @@
 """
-PostgreSQL Relational DB integration for feedback and audit logs.
+Relational database persistence for feedback records.
 """
 
-import logging
-from sqlalchemy import Column, DateTime, Integer, String, Text, create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from __future__ import annotations
+
+from datetime import datetime
+
+from sqlalchemy import CheckConstraint, DateTime, Float, Integer, String, Text, create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 from pokemon_tcg_rag.config.settings import get_settings
+from pokemon_tcg_rag.domain.exceptions import PokemonRAGError
 from pokemon_tcg_rag.domain.models import FeedbackRecord
 
-logger = logging.getLogger(__name__)
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    """SQLAlchemy base class."""
 
 
 class FeedbackORM(Base):
-    """SQLAlchemy model for storing user feedback and RAG metrics."""
-    __tablename__ = "user_feedback"
+    """Feedback persistence model."""
 
-    feedback_id = Column(String, primary_key=True)
-    query = Column(Text, nullable=False)
-    answer = Column(Text, nullable=False)
-    rating = Column(Integer, nullable=False)  # 1 or -1
-    comment = Column(Text, nullable=True)
-    model_name = Column(String, nullable=False)
-    latency_seconds = Column(String, nullable=False)
-    created_at = Column(DateTime, nullable=False)
+    __tablename__ = "user_feedback"
+    __table_args__ = (
+        CheckConstraint("rating IN (-1, 1)", name="ck_user_feedback_rating_binary"),
+    )
+
+    feedback_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    query: Mapped[str] = mapped_column(Text, nullable=False)
+    answer: Mapped[str] = mapped_column(Text, nullable=False)
+    rating: Mapped[int] = mapped_column(Integer, nullable=False)
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    model_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    latency_seconds: Mapped[float] = mapped_column(Float, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class RelationalDatabase:
-    """PostgreSQL storage manager for user feedback and query audit trails."""
+    """PostgreSQL persistence manager for feedback records."""
 
-    def __init__(self) -> None:
+    def __init__(self, engine=None) -> None:
         settings = get_settings()
-        self.engine = create_engine(settings.postgres_uri, pool_pre_ping=True)
-        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+        self.engine = engine or create_engine(settings.postgres_uri, pool_pre_ping=True)
+        self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
 
     def init_db(self) -> None:
-        """Create database tables."""
-        try:
-            Base.metadata.create_all(bind=self.engine)
-            logger.info("Database tables initialized successfully.")
-        except Exception as exc:
-            logger.warning("Could not initialize relational DB tables: %s", exc)
+        """Create tables if they do not already exist."""
+        Base.metadata.create_all(bind=self.engine)
 
-    def save_feedback(self, record: FeedbackRecord) -> None:
-        """Save feedback record to database."""
-        session = self.SessionLocal()
+    def save_feedback(self, record: FeedbackRecord) -> FeedbackRecord:
+        """Persist a feedback record and return it."""
+        session: Session = self.SessionLocal()
         try:
-            orm_record = FeedbackORM(
+            row = FeedbackORM(
                 feedback_id=record.feedback_id,
                 query=record.query,
                 answer=record.answer,
                 rating=record.rating,
                 comment=record.comment,
                 model_name=record.model_name,
-                latency_seconds=str(record.latency_seconds),
+                latency_seconds=record.latency_seconds,
                 created_at=record.created_at,
             )
-            session.add(orm_record)
+            session.add(row)
             session.commit()
-        except Exception as exc:
+            return record
+        except Exception as exc:  # pragma: no cover - persistence boundary
             session.rollback()
-            logger.error("Failed to save feedback record: %s", exc)
+            raise PokemonRAGError(f"Failed to save feedback: {exc}") from exc
         finally:
             session.close()
