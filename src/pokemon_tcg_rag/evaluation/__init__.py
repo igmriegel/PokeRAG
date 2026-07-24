@@ -2,8 +2,14 @@
 Evaluation package for benchmark dataset loading, retrieval metrics, and LLM output evaluation.
 """
 
-from pokemon_tcg_rag.evaluation.dataset import EvaluationDatasetLoader
-from pokemon_tcg_rag.evaluation.evaluator import RAGEvaluator
+from pokemon_tcg_rag.evaluation.dataset import EvalTestCase, EvaluationDatasetLoader
+from pokemon_tcg_rag.evaluation.evaluator import (
+    EvaluationReport,
+    LLMConfigurationResult,
+    LLMEvaluationSample,
+    RAGEvaluator,
+    RetrievalStrategyResult,
+)
 from pokemon_tcg_rag.evaluation.metrics import (
     calculate_faithfulness,
     calculate_hit_rate,
@@ -16,6 +22,11 @@ __all__ = [
     "calculate_mrr",
     "calculate_hit_rate",
     "calculate_faithfulness",
+    "EvalTestCase",
     "EvaluationDatasetLoader",
+    "EvaluationReport",
+    "LLMEvaluationSample",
+    "LLMConfigurationResult",
+    "RetrievalStrategyResult",
     "RAGEvaluator",
 ]

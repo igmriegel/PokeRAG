@@ -92,11 +92,11 @@ executable by an AI Code Agent, and traceable to a requirement
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-032 | Benchmark dataset loader + 100 questions (`evaluation/dataset.py`) | REQ-018 | TASK-003 | Pending |
-| TASK-033 | Retrieval metrics — Recall@K, MRR, Hit Rate (`evaluation/metrics.py`) | REQ-018 | TASK-003 | Pending |
-| TASK-034 | Retrieval strategy comparison evaluator (`evaluation/evaluator.py`) | REQ-018 | TASK-023, TASK-032, TASK-033 | Pending |
-| TASK-035 | LLM answer evaluation — Faithfulness/Correctness (`evaluation/metrics.py`, `evaluation/evaluator.py`) | REQ-019 | TASK-025, TASK-032 | Pending |
-| TASK-036 | Evaluation CLI & regression gate (`scripts/run_evaluation.py`) | REQ-018, REQ-019 | TASK-034, TASK-035 | Pending |
+| TASK-032 | Benchmark dataset loader + 100 questions (`evaluation/dataset.py`) | REQ-018 | TASK-003 | Done |
+| TASK-033 | Retrieval metrics — Recall@K, MRR, Hit Rate (`evaluation/metrics.py`) | REQ-018 | TASK-003 | Done |
+| TASK-034 | Retrieval strategy comparison evaluator (`evaluation/evaluator.py`) | REQ-018 | TASK-023, TASK-032, TASK-033 | Done |
+| TASK-035 | LLM answer evaluation — Faithfulness/Correctness (`evaluation/metrics.py`, `evaluation/evaluator.py`) | REQ-019 | TASK-025, TASK-032 | Done |
+| TASK-036 | Evaluation CLI & regression gate (`scripts/run_evaluation.py`) | REQ-018, REQ-019 | TASK-034, TASK-035 | Done |
 
 ## Sprint 8 — Monitoring & Deployment (`SPRINT_08_MONITORING_DEPLOY`)
 

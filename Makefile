@@ -1,4 +1,4 @@
-.PHONY: help install lint format typecheck test test-unit test-integration test-e2e test-smoke eval quality ingest seed run-api run-ui docker-up docker-down clean
+.PHONY: help install lint format typecheck test test-unit test-integration test-e2e test-smoke eval evaluate quality ingest seed run-api run-ui docker-up docker-down clean
 
 help:
 	@echo "Pokemon TCG RAG - Development & Harness Makefile"
@@ -13,6 +13,7 @@ help:
 	@echo "test-smoke       : Run smoke tests"
 	@echo "test-e2e         : Run end-to-end tests"
 	@echo "eval             : Run RAG and LLM evaluation suite"
+	@echo "evaluate         : Run RAG and LLM evaluation suite"
 	@echo "ingest           : Run raw data scraping and ingestion pipeline"
 	@echo "seed             : Embed chunks and seed Qdrant"
 	@echo "run-api          : Launch FastAPI backend server"
@@ -52,6 +53,9 @@ test-e2e:
 
 eval:
 	pytest tests/evaluation/ -m evaluation
+
+evaluate:
+	python3 scripts/run_evaluation.py
 
 quality: lint typecheck test
 

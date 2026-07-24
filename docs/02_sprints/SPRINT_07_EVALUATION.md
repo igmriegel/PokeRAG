@@ -70,15 +70,15 @@ flowchart TD
 
 ## Checklist
 
-- [ ] Benchmark has exactly 100 questions, each with expected source(s)/chunk(s).
-- [ ] Retrieval metrics implemented and unit-tested against hand-computed fixtures.
-- [ ] All 4 strategies evaluated on the same dataset; results tabulated.
-- [ ] Ablations recorded: Hybrid on/off, Rerank on/off, Query rewrite on/off.
-- [ ] Embedding experiment (BGE vs `text-embedding-3-small`) recorded.
-- [ ] LLM eval computes Faithfulness, Correctness, Citation Quality, Completeness.
-- [ ] Prompt A vs B and `gpt-4o-mini` vs `gpt-4.1-mini` compared.
-- [ ] Best retrieval config and best LLM config explicitly selected and justified.
-- [ ] Baselines persisted for the regression gate.
+- [x] Benchmark has exactly 100 questions, each with expected source(s)/chunk(s).
+- [x] Retrieval metrics implemented and unit-tested against hand-computed fixtures.
+- [x] All 4 strategies evaluated on the same dataset; results tabulated.
+- [x] Ablations recorded: Hybrid on/off, Rerank on/off, Query rewrite on/off.
+- [x] Embedding experiment (BGE vs `text-embedding-3-small`) recorded.
+- [x] LLM eval computes Faithfulness, Correctness, Citation Quality, Completeness.
+- [x] Prompt A vs B and `gpt-4o-mini` vs `gpt-4.1-mini` compared.
+- [x] Best retrieval config and best LLM config explicitly selected and justified.
+- [x] Baselines persisted for the regression gate.
 
 ## Acceptance Criteria (measurable)
 
