@@ -86,7 +86,7 @@ executable by an AI Code Agent, and traceable to a requirement
 | TASK-028 | API request/response schemas (`api/schemas.py`) | REQ-013 | TASK-003 | Done |
 | TASK-029 | FastAPI routes & app — `/query` `/feedback` `/health` (`api/routes.py`, `api/main.py`) | REQ-013, REQ-014 | TASK-025, TASK-027, TASK-028 | Done |
 | TASK-030 | Streamlit Web UI (`ui/streamlit_app.py`) | REQ-013, REQ-014 | TASK-029 | Done |
-| TASK-031 | Example client script (`examples/query_example.py`) | REQ-013 | TASK-025 | Pending |
+| TASK-031 | Example client script (`examples/query_example.py`) | REQ-013 | TASK-025 | Done |
 
 ## Sprint 7 — Evaluation (`SPRINT_07_EVALUATION`)
 
