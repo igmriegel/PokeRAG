@@ -6,14 +6,13 @@ enums DocumentSource and RuleType, and Pydantic models DocumentMetadata,
 Document, Chunk, RetrievedChunk, AnswerResponse, and FeedbackRecord.
 """
 
-from datetime import datetime
-from enum import Enum
-from typing import Annotated
+from datetime import UTC, datetime
+from enum import StrEnum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-class DocumentSource(str, Enum):
+class DocumentSource(StrEnum):
     """Source categories for official Pokemon TCG data (9 members)."""
 
     POKEGYM = "pokegym_rulings"
@@ -27,7 +26,7 @@ class DocumentSource(str, Enum):
     MEGA_RULES_HTML = "mega_rules_html"
 
 
-class RuleType(str, Enum):
+class RuleType(StrEnum):
     """Type of ruling or official document content (7 members)."""
 
     RULING = "ruling"
@@ -41,6 +40,8 @@ class RuleType(str, Enum):
 
 class DocumentMetadata(BaseModel):
     """Metadata schema attached to every indexed document and chunk."""
+
+    model_config = ConfigDict(frozen=True)
 
     source: DocumentSource
     document_title: str
@@ -59,14 +60,24 @@ class Document(BaseModel):
     doc_id: str
     content: str
     metadata: DocumentMetadata
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @field_validator("content")
+    @classmethod
+    def content_must_not_be_empty(cls, v: str) -> str:
+        """Ensure document content is non-empty."""
+        if not v or not v.strip():
+            raise ValueError("Document content must not be empty")
+        return v
 
 
 class Chunk(BaseModel):
     """Normalized text chunk ready for embedding and vector database indexing."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     chunk_id: str
-    document_id: str  # canonical name matching TASK-003 spec
+    doc_id: str = Field(alias="document_id")
     text: str
     token_count: int = 0
     metadata: DocumentMetadata
@@ -79,6 +90,11 @@ class Chunk(BaseModel):
         if not v or not v.strip():
             raise ValueError("Chunk text must not be empty")
         return v
+
+    @property
+    def document_id(self) -> str:
+        """Backward-compatible alias for the canonical doc_id field."""
+        return self.doc_id
 
 
 class RetrievedChunk(BaseModel):
@@ -99,7 +115,12 @@ class AnswerResponse(BaseModel):
     retrieved_chunks: list[RetrievedChunk]
     model_name: str
     latency_seconds: float
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @property
+    def chunks(self) -> list[RetrievedChunk]:
+        """Backward-compatible alias for retrieved_chunks."""
+        return self.retrieved_chunks
 
 
 class FeedbackRecord(BaseModel):
@@ -108,11 +129,11 @@ class FeedbackRecord(BaseModel):
     feedback_id: str
     query: str
     answer: str
-    rating: Annotated[int, Field(description="1 for thumbs-up, -1 for thumbs-down")]
+    rating: int = Field(description="1 for thumbs-up, -1 for thumbs-down")
     comment: str | None = None
     model_name: str
     latency_seconds: float
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @field_validator("rating")
     @classmethod

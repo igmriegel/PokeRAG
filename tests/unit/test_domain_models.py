@@ -5,21 +5,19 @@ Unit tests for domain models and enums.
 """
 
 import json
-import pytest
 
+import pytest
 from pydantic import ValidationError
 
 from pokemon_tcg_rag.domain.models import (
     AnswerResponse,
     Chunk,
-    Document,
     DocumentMetadata,
     DocumentSource,
     FeedbackRecord,
     RetrievedChunk,
     RuleType,
 )
-
 
 # ─────────────────────────────────────────────
 # TEST-007  DocumentSource enum members
@@ -75,7 +73,7 @@ def test_chunk_requires_metadata() -> None:
     with pytest.raises(ValidationError):
         Chunk(  # type: ignore[call-arg]
             chunk_id="c1",
-            document_id="d1",
+            doc_id="d1",
             text="Some text",
         )
 
@@ -88,7 +86,7 @@ def test_chunk_rejects_empty_text() -> None:
         document_title="Test Doc",
     )
     with pytest.raises(ValidationError, match="must not be empty"):
-        Chunk(chunk_id="c1", document_id="d1", text="   ", metadata=meta)
+        Chunk(chunk_id="c1", doc_id="d1", text="   ", metadata=meta)
 
 
 @pytest.mark.unit

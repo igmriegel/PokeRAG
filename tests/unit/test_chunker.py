@@ -23,7 +23,7 @@ def test_chunk_size_and_overlap(sample_document: Document) -> None:
     chunker = DocumentChunker(chunk_size=10, chunk_overlap=2)
     chunks = chunker.chunk_document(sample_document)
     assert len(chunks) > 0
-    assert chunks[0].document_id == sample_document.doc_id
+    assert chunks[0].doc_id == sample_document.doc_id
     assert chunks[0].metadata.source == sample_document.metadata.source
 
 
