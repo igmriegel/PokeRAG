@@ -6,9 +6,14 @@ Unit tests for the Streamlit application helpers.
 
 from __future__ import annotations
 
+import pytest
+
 from pokemon_tcg_rag.ui.streamlit_app import (
     build_feedback_payload,
+    fetch_answer,
+    get_backend_api_url,
     render_answer,
+    send_feedback,
 )
 
 
@@ -56,3 +61,76 @@ def test_sources_and_metrics_displayed() -> None:
     assert summary["metrics"]["model_name"] == "gpt-4o-mini"
     assert summary["metrics"]["latency_seconds"] == 1.0
     assert summary["chunks"][0]["retrieval_method"] == "dense"
+
+
+def test_backend_api_url_comes_from_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
+    """TEST-132: the backend URL must be sourced from trusted configuration."""
+    monkeypatch.setenv("POKERAG_API_URL", "http://api:8000/api/v1")
+
+    assert get_backend_api_url() == "http://api:8000/api/v1"
+
+
+@pytest.mark.parametrize("url", ["ftp://localhost:8000", "http://user:pass@localhost:8000"])
+def test_backend_api_url_rejects_unsupported_values(
+    monkeypatch: pytest.MonkeyPatch, url: str
+) -> None:
+    """Unsafe URL schemes or embedded credentials must be rejected."""
+    monkeypatch.setenv("POKERAG_API_URL", url)
+
+    with pytest.raises(ValueError):
+        get_backend_api_url()
+
+
+def test_fetch_answer_blocks_redirects() -> None:
+    """Query traffic must not follow redirects."""
+    captured: dict[str, object] = {}
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict[str, str]:
+            return {"answer": "ok"}
+
+    def fake_post(url: str, **kwargs: object) -> Response:
+        captured["url"] = url
+        captured["kwargs"] = kwargs
+        return Response()
+
+    response = fetch_answer("http://example.com/api/v1", "question", 3, post=fake_post)
+
+    assert response["answer"] == "ok"
+    assert captured["url"] == "http://example.com/api/v1/query"
+    assert captured["kwargs"]["allow_redirects"] is False
+
+
+def test_send_feedback_blocks_redirects() -> None:
+    """Feedback submission must not follow redirects."""
+    captured: dict[str, object] = {}
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict[str, str]:
+            return {"status": "ok"}
+
+    def fake_post(url: str, **kwargs: object) -> Response:
+        captured["url"] = url
+        captured["kwargs"] = kwargs
+        return Response()
+
+    response = send_feedback(
+        "http://example.com/api/v1",
+        "qid-1",
+        "question",
+        "answer",
+        1,
+        "gpt-4o-mini",
+        0.2,
+        post=fake_post,
+    )
+
+    assert response["status"] == "ok"
+    assert captured["url"] == "http://example.com/api/v1/feedback"
+    assert captured["kwargs"]["allow_redirects"] is False

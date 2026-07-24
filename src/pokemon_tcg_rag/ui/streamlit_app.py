@@ -7,11 +7,25 @@ from __future__ import annotations
 import os
 from collections.abc import Callable
 from typing import Any, cast
+from urllib.parse import urlparse
 
 import requests
 import streamlit as st
 
-DEFAULT_API_URL = os.getenv("POKERAG_API_URL", "http://localhost:8000/api/v1")
+DEFAULT_API_URL = "http://localhost:8000/api/v1"
+
+
+def get_backend_api_url() -> str:
+    """Return the trusted backend URL configured by deployment, not by end users."""
+    api_url = os.getenv("POKERAG_API_URL", DEFAULT_API_URL).strip()
+    parsed = urlparse(api_url)
+    if parsed.scheme not in {"http", "https"}:
+        raise ValueError("POKERAG_API_URL must use http or https")
+    if not parsed.netloc:
+        raise ValueError("POKERAG_API_URL must include a host")
+    if parsed.username or parsed.password:
+        raise ValueError("POKERAG_API_URL must not include credentials")
+    return api_url.rstrip("/")
 
 
 def build_query_payload(question: str, top_k: int) -> dict[str, Any]:
@@ -62,7 +76,12 @@ def render_answer(response: dict[str, Any]) -> dict[str, Any]:
 def fetch_answer(
     api_url: str, question: str, top_k: int, post: Callable[..., Any] = requests.post
 ) -> dict[str, Any]:
-    response = post(f"{api_url}/query", json=build_query_payload(question, top_k), timeout=30)
+    response = post(
+        f"{api_url}/query",
+        json=build_query_payload(question, top_k),
+        timeout=30,
+        allow_redirects=False,
+    )
     response.raise_for_status()
     return cast(dict[str, Any], response.json())
 
@@ -84,6 +103,7 @@ def send_feedback(
             query_id, query, answer, rating, model_name, latency_seconds, comment
         ),
         timeout=30,
+        allow_redirects=False,
     )
     response.raise_for_status()
     return cast(dict[str, Any], response.json())
@@ -97,9 +117,11 @@ def main() -> None:
     st.session_state.setdefault("last_response", None)
     st.session_state.setdefault("last_summary", None)
 
+    api_url = get_backend_api_url()
     with st.sidebar:
         st.header("⚙️ Configuration")
-        api_url = st.text_input("Backend API URL", value=DEFAULT_API_URL)
+        st.caption("Backend API URL configurado pela implantação")
+        st.code(api_url, language="text")
         top_k = st.slider("Top K Retrieved Chunks", min_value=1, max_value=10, value=5)
         st.divider()
         st.markdown("### 📚 Official Data Sources")
