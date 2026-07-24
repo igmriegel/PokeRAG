@@ -1,7 +1,7 @@
 # ⚡ Pokemon TCG Rules Specialist - Hybrid RAG Expert System
 
-[![CI Pipeline](https://github.com/pokemon-tcg-rag/pokemon-tcg-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/pokemon-tcg-rag/pokemon-tcg-rag/actions/workflows/ci.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![CI Pipeline](https://github.com/igmriegel/PokeRAG/actions/workflows/ci.yml/badge.svg)](https://github.com/igmriegel/PokeRAG/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![Code Coverage](https://img.shields.io/badge/coverage-90%25-green.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -55,7 +55,7 @@ graph TD
 - ✏️ **User Query Rewriting**: Expands ambiguous user phrasing into domain-specific Pokemon TCG queries.
 - 📊 **Evaluations Suite**: Measures `Recall@5`, `Recall@10`, `MRR`, `Hit Rate`, and `Faithfulness` across retrieval strategies on a 100-question ground truth dataset.
 - 📈 **Monitoring & Observability**: Integrated Prometheus metrics export and pre-configured Grafana dashboards displaying 6 key operational metrics.
-- 🚀 **Full Containerization**: Entire environment (API, UI, Ingestion, Qdrant, Postgres, Prometheus, Grafana) orchestrates cleanly with a single command: `docker-compose up`.
+- 🚀 **Full Containerization**: Entire environment (API, UI, Ingestion, Qdrant, Postgres, Prometheus, Grafana) orchestrates cleanly with a single command: `docker compose up --build -d`.
 
 ---
 
@@ -63,9 +63,9 @@ graph TD
 
 | Category | Technology |
 | :--- | :--- |
-| **Language & Runtime** | Python 3.10+ |
+| **Language & Runtime** | Python 3.11+ |
 | **Vector Database** | Qdrant v1.7.4 |
-| **Relational Database** | PostgreSQL 15 |
+| **Relational Database** | PostgreSQL 16 |
 | **Dense Embeddings** | `BAAI/bge-large-en-v1.5` / `text-embedding-3-small` |
 | **Lexical Search** | `rank-bm25` |
 | **Cross-Encoder Reranker** | `BAAI/bge-reranker-large` |
@@ -83,8 +83,8 @@ graph TD
 
 ### Step 1: Clone Repository & Configure Environment
 ```bash
-git clone https://github.com/pokemon-tcg-rag/pokemon-tcg-rag.git
-cd pokemon-tcg-rag
+git clone git@github.com:igmriegel/PokeRAG.git
+cd PokeRAG
 cp .env.example .env
 ```
 Edit `.env` and provide your `OPENAI_API_KEY`.
@@ -92,7 +92,7 @@ Edit `.env` and provide your `OPENAI_API_KEY`.
 ### Step 2: Run via Docker Compose (Recommended)
 Launch all services in isolated containers:
 ```bash
-docker-compose up --build -d
+docker compose up --build -d
 ```
 All services will start up automatically:
 - 🌐 **Streamlit UI**: [http://localhost:8501](http://localhost:8501)
@@ -104,7 +104,7 @@ All services will start up automatically:
 ### Step 3: Execute Automated Ingestion Pipeline
 To scrape Pokegym, extract official PDFs, chunk documents, generate embeddings, and seed Qdrant:
 ```bash
-docker-compose run ingestion
+docker compose run ingestion
 ```
 
 ---
@@ -120,10 +120,10 @@ source .venv/bin/activate
 make install
 
 # 3. Run Quality Checks (Linter, Typing, Tests with Coverage)
-make check-quality
+make quality
 
 # 4. Seed Databases & Run Ingestion
-make seed-db
+make seed
 make ingest
 
 # 5. Launch Local Backend & UI
@@ -149,6 +149,9 @@ make eval
 | **Hybrid Search (Dense + BM25)** | 88.4% | 93.1% | 0.81 | 90.2% | 0.18s |
 | **Hybrid + BGE Reranker (Selected)** | **94.8%** | **98.2%** | **0.91** | **96.5%** | **0.32s** |
 
+> These benchmark numbers are historical reference from the bundled evaluation artifacts.
+> Re-run `make eval` to regenerate current evidence for the checked-in corpus.
+
 ---
 
 ## 📂 Engineering Harness Documentation (`docs/`)
@@ -159,7 +162,7 @@ This project includes a comprehensive **Engineering Harness** structured for aut
 docs/
 ├── 00_project/         # Project vision, requirements, success criteria, tech stack, backlog, roadmap, assumptions, risks
 ├── 01_architecture/    # Complete architectural specs, domain models, RAG architecture, retrieval & indexing pipeline, security, deployment, observability
-├── 02_sprints/         # Sprint plans (Sprints 01-08) with acceptance criteria & checklists
+├── 02_sprints/         # Sprint plans (Sprints 01-18) with acceptance criteria & checklists
 ├── 03_tasks/           # Granular task specifications, task dependency graph, agent playbook
 ├── 04_decisions/       # Architecture Decision Records (ADR 001 - ADR 006)
 └── 05_agent_harness/   # Project Constitution, Agent Playbook, Quality Gate Spec, Traceability Matrix, Implementation Guide

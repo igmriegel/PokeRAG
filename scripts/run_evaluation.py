@@ -34,6 +34,7 @@ from pokemon_tcg_rag.evaluation.evaluator import (
     RAGEvaluator,
     RetrievalStrategyResult,
 )
+from pokemon_tcg_rag.evaluation.factories import build_production_retrieval_handlers
 
 DEFAULT_REPORT_DIR = Path("data/evaluation/reports")
 DEFAULT_LATENCY_REPORT = "latency_summary.json"
@@ -154,16 +155,38 @@ def main(
         default=None,
         help="Optional latency samples used to build the latency benchmark report.",
     )
+    parser.add_argument(
+        "--real-retrieval",
+        action="store_true",
+        help="Use the production retrieval stack instead of synthetic handlers.",
+    )
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     try:
-        report = run_evaluation(
-            report_dir=args.report_dir,
-            evaluator=evaluator,
-            latency_samples=latency_samples
-            if latency_samples is not None
-            else args.latency_samples,
-        )
+        container = None
+        if args.real_retrieval:
+            from pokemon_tcg_rag.api.runtime import build_runtime_container
+
+            container = build_runtime_container()
+            evaluator = evaluator or RAGEvaluator(
+                dataset_loader=EvaluationDatasetLoader(),
+                retrieval_handlers=build_production_retrieval_handlers(
+                    container.dense_retriever,
+                    container.retrieval_pipeline.hybrid_retriever,
+                    container.retrieval_pipeline,
+                ),
+            )
+        try:
+            report = run_evaluation(
+                report_dir=args.report_dir,
+                evaluator=evaluator,
+                latency_samples=latency_samples
+                if latency_samples is not None
+                else args.latency_samples,
+            )
+        finally:
+            if container is not None:
+                container.close()
     except RegressionGateError as exc:
         print(f"Evaluation regression gate failed: {exc}", file=sys.stderr)
         return 1

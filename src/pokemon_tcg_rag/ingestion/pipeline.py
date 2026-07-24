@@ -63,6 +63,7 @@ class IngestionPipeline:
         self,
         sources: Iterable[str] | None = None,
         index: bool = False,
+        incremental: bool = False,
     ) -> list[Document] | list[Chunk]:
         """
         Run the configured ingestion sources and persist processed artifacts.
@@ -99,11 +100,17 @@ class IngestionPipeline:
 
         normalized_documents = [self.normalizer.normalize(document) for document in documents]
         chunks = self._chunk_documents(normalized_documents)
+        ingestion_state = self._build_ingestion_state(normalized_documents, chunks)
+        diff = self._diff_ingestion_state(ingestion_state)
 
         self._persist_processed_documents(normalized_documents)
         self._persist_chunk_documents(chunks)
         self._persist_provenance_manifest(normalized_documents)
+        self._persist_ingestion_state(ingestion_state, diff)
         self._log_source_counts(normalized_documents)
+
+        if incremental and not diff["added"] and not diff["updated"] and not diff["deleted"]:
+            LOGGER.info("ingestion_incremental_noop", sources=sorted(selected))
 
         if index:
             seed_chunks(chunks)
@@ -201,6 +208,18 @@ class IngestionPipeline:
                 fh.write(json.dumps(payload, ensure_ascii=False))
                 fh.write("\n")
 
+    def _persist_ingestion_state(
+        self, state: dict[str, dict[str, object]], diff: dict[str, list[str]]
+    ) -> None:
+        self.processed_dir.mkdir(parents=True, exist_ok=True)
+        path = self.processed_dir / "ingestion_manifest.json"
+        payload = {
+            "version": "2026-07-24",
+            "documents": state,
+            "diff": diff,
+        }
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
     def _flatten_document(self, document: Document) -> dict[str, object]:
         return {
             "doc_id": document.doc_id,
@@ -276,6 +295,54 @@ class IngestionPipeline:
         for document in documents:
             chunks.extend(self.chunker.chunk_document(document))
         return chunks
+
+    def _build_ingestion_state(
+        self, documents: list[Document], chunks: list[Chunk]
+    ) -> dict[str, dict[str, object]]:
+        chunk_counts: dict[str, int] = {}
+        for chunk in chunks:
+            chunk_counts[chunk.doc_id] = chunk_counts.get(chunk.doc_id, 0) + 1
+
+        state: dict[str, dict[str, object]] = {}
+        for document in documents:
+            state[document.doc_id] = {
+                "doc_id": document.doc_id,
+                "source": document.metadata.source.value,
+                "source_url": document.metadata.source_url,
+                "checksum": document.metadata.checksum
+                or hashlib.sha256(document.content.encode("utf-8")).hexdigest(),
+                "parser_version": self._parser_version(document),
+                "chunk_count": chunk_counts.get(document.doc_id, 0),
+            }
+        return state
+
+    def _load_previous_ingestion_state(self) -> dict[str, dict[str, object]]:
+        path = self.processed_dir / "ingestion_manifest.json"
+        if not path.exists():
+            return {}
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+        documents = payload.get("documents", {})
+        if isinstance(documents, dict):
+            return documents
+        return {}
+
+    def _diff_ingestion_state(
+        self, current_state: dict[str, dict[str, object]]
+    ) -> dict[str, list[str]]:
+        previous_state = self._load_previous_ingestion_state()
+        current_ids = set(current_state)
+        previous_ids = set(previous_state)
+        added = sorted(current_ids - previous_ids)
+        deleted = sorted(previous_ids - current_ids)
+        updated = sorted(
+            doc_id
+            for doc_id in current_ids.intersection(previous_ids)
+            if current_state[doc_id] != previous_state.get(doc_id)
+        )
+        return {"added": added, "updated": updated, "deleted": deleted}
 
     def _parser_version(self, document: Document) -> str:
         source = document.metadata.source.value

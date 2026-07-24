@@ -1,0 +1,19 @@
+{
+  "dataset_name": "Pokemon TCG RAG Benchmark 100",
+  "version": "2026-07-24",
+  "benchmark_sha256": "56b400fa058a9d6466c29bbb9abe01286d72d0b7ce5690fd7e78ba9cb913d87b",
+  "corpus_manifest_sha256": "531d4ee60bc9803814d464717443ff34b29856c0372293acf633850fe141aafb",
+  "total_cases": 100,
+  "source_categories": 9,
+  "review_status": "reviewed",
+  "reviewers": {
+    "primary": "engineering",
+    "secondary": "engineering",
+    "adjudicator": "tech-lead"
+  },
+  "split_policy": {
+    "train": 70,
+    "dev": 15,
+    "test": 15
+  }
+}
