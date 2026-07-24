@@ -26,6 +26,7 @@ def sqlite_db() -> RelationalDatabase:
 def _record(rating: int = 1) -> FeedbackRecord:
     return FeedbackRecord(
         feedback_id="fb_001",
+        query_id="qid-001",
         query="Can I use Rare Candy?",
         answer="Yes",
         rating=rating,
@@ -55,6 +56,7 @@ def test_save_feedback_persists_row(sqlite_db: RelationalDatabase) -> None:
     try:
         row = session.get(FeedbackORM, "fb_001")
         assert row is not None
+        assert row.query_id == "qid-001"
         assert row.query == "Can I use Rare Candy?"
         assert row.rating == 1
         assert row.latency_seconds == pytest.approx(0.5)

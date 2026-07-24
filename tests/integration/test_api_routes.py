@@ -89,6 +89,7 @@ def test_query_endpoint_returns_answer() -> None:
 
     response = query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
 
+    assert response.query_id
     assert response.answer == "Yes."
     assert response.citations[0].document_title == "Official Rulebook"
     assert fake_chain.calls == ["Can I use Rare Candy?"]
@@ -101,10 +102,13 @@ def test_feedback_endpoint_persists() -> None:
     fake_feedback = FakeFeedbackStore()
     set_dependencies(fake_chain, fake_feedback)
 
+    query_response = query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
+
     response = submit_feedback(
         FeedbackRequest(
-            query="q",
-            answer="a",
+            query_id=query_response.query_id,
+            query=query_response.query,
+            answer=query_response.answer,
             rating=1,
             comment="ok",
             model_name="gpt-4o-mini",
@@ -114,6 +118,80 @@ def test_feedback_endpoint_persists() -> None:
 
     assert response["status"] == "success"
     assert fake_feedback.calls[0]["rating"] == 1
+    assert fake_feedback.calls[0]["query_id"] == query_response.query_id
+
+
+@pytest.mark.integration
+def test_feedback_endpoint_rejects_unknown_query_id() -> None:
+    """TEST-094: feedback must fail when query ownership is unknown."""
+    fake_chain = FakeRAGChain()
+    fake_feedback = FakeFeedbackStore()
+    set_dependencies(fake_chain, fake_feedback)
+
+    with pytest.raises(HTTPException) as exc_info:
+        submit_feedback(
+            FeedbackRequest(
+                query_id="qid-missing",
+                query="q",
+                answer="a",
+                rating=1,
+                model_name="gpt-4o-mini",
+                latency_seconds=0.5,
+            )
+        )
+
+    assert exc_info.value.status_code == 404
+
+
+@pytest.mark.integration
+def test_feedback_endpoint_rejects_duplicates() -> None:
+    """TEST-094: feedback must be accepted exactly once per query."""
+    fake_chain = FakeRAGChain()
+    fake_feedback = FakeFeedbackStore()
+    set_dependencies(fake_chain, fake_feedback)
+
+    query_response = query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
+    payload = FeedbackRequest(
+        query_id=query_response.query_id,
+        query=query_response.query,
+        answer=query_response.answer,
+        rating=1,
+        comment="ok",
+        model_name="gpt-4o-mini",
+        latency_seconds=0.5,
+    )
+
+    first = submit_feedback(payload)
+    assert first["status"] == "success"
+
+    with pytest.raises(HTTPException) as exc_info:
+        submit_feedback(payload)
+
+    assert exc_info.value.status_code == 409
+
+
+@pytest.mark.integration
+def test_feedback_endpoint_rejects_payload_mismatch() -> None:
+    """TEST-094: feedback must not accept a payload that differs from the issued query."""
+    fake_chain = FakeRAGChain()
+    fake_feedback = FakeFeedbackStore()
+    set_dependencies(fake_chain, fake_feedback)
+
+    query_response = query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
+
+    with pytest.raises(HTTPException) as exc_info:
+        submit_feedback(
+            FeedbackRequest(
+                query_id=query_response.query_id,
+                query="Different question",
+                answer=query_response.answer,
+                rating=1,
+                model_name="gpt-4o-mini",
+                latency_seconds=0.5,
+            )
+        )
+
+    assert exc_info.value.status_code == 400
 
 
 @pytest.mark.integration

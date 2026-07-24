@@ -18,6 +18,7 @@ class FeedbackStore:
 
     def submit_feedback(
         self,
+        query_id: str,
         query: str,
         answer: str,
         rating: int,
@@ -28,6 +29,7 @@ class FeedbackStore:
         """Build and persist a feedback record."""
         record = FeedbackRecord(
             feedback_id=f"fb_{uuid.uuid4().hex[:10]}",
+            query_id=query_id,
             query=query,
             answer=answer,
             rating=rating,

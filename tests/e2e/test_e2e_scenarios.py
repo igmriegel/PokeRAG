@@ -62,6 +62,7 @@ def test_e2e_rare_candy_query() -> None:
     set_dependencies(FakeRAGChain(), FakeFeedbackStore())
     try:
         response = query_rag(QueryRequest(**payload))
+        assert response.query_id
         assert response.answer == "Yes."
         assert response.citations
         assert response.query == payload["question"]
@@ -71,17 +72,20 @@ def test_e2e_rare_candy_query() -> None:
 
 @pytest.mark.e2e
 def test_e2e_feedback_submission() -> None:
-    fb_payload = {
-        "query": "Is Mew VMAX legal?",
-        "answer": "Mew VMAX is currently rotated out of Standard format.",
-        "rating": 1,
-        "comment": "Accurate ban status citation.",
-        "model_name": "gpt-4o-mini",
-        "latency_seconds": 0.35,
-    }
     set_dependencies(FakeRAGChain(), FakeFeedbackStore())
     try:
-        response = submit_feedback(FeedbackRequest(**fb_payload))
+        query_response = query_rag(QueryRequest(question="Is Mew VMAX legal?", top_k=5))
+        response = submit_feedback(
+            FeedbackRequest(
+                query_id=query_response.query_id,
+                query=query_response.query,
+                answer=query_response.answer,
+                rating=1,
+                comment="Accurate ban status citation.",
+                model_name="gpt-4o-mini",
+                latency_seconds=0.35,
+            )
+        )
         assert response["status"] == "success"
     finally:
         set_dependencies()

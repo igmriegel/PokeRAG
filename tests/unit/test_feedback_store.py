@@ -29,6 +29,7 @@ def test_submit_feedback_persists() -> None:
     store = FeedbackStore(db=db)
 
     record = store.submit_feedback(
+        query_id="qid-1",
         query="q",
         answer="a",
         rating=1,
@@ -47,7 +48,7 @@ def test_invalid_rating_rejected() -> None:
     store = FeedbackStore(db=FakeDB())
 
     with pytest.raises(ValidationError):
-        store.submit_feedback("q", "a", 0, None, "gpt-4o-mini", 0.1)
+        store.submit_feedback("qid-1", "q", "a", 0, None, "gpt-4o-mini", 0.1)
 
 
 @pytest.mark.unit
@@ -56,7 +57,7 @@ def test_returns_feedback_record() -> None:
     db = FakeDB()
     store = FeedbackStore(db=db)
 
-    record = store.submit_feedback("q", "a", -1, None, "gpt-4o-mini", 0.1)
+    record = store.submit_feedback("qid-1", "q", "a", -1, None, "gpt-4o-mini", 0.1)
 
     assert isinstance(record, FeedbackRecord)
     assert record.rating == -1

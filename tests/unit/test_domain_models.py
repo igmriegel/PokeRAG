@@ -107,6 +107,7 @@ def test_feedback_rating_validation() -> None:
     """TEST-010: FeedbackRecord must reject ratings outside {-1, 1}."""
     base: dict = {
         "feedback_id": "fb_001",
+        "query_id": "qid_001",
         "query": "q",
         "answer": "a",
         "model_name": "gpt-4o-mini",

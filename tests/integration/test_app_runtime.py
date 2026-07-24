@@ -63,6 +63,7 @@ class FakeFeedbackStore:
     def submit_feedback(self, **kwargs: object) -> FeedbackRecord:
         return FeedbackRecord(
             feedback_id="fb_123",
+            query_id=str(kwargs["query_id"]),
             query=str(kwargs["query"]),
             answer=str(kwargs["answer"]),
             rating=int(kwargs["rating"]),
@@ -131,6 +132,7 @@ def test_build_runtime_container_uses_offline_fallback_without_openai(monkeypatc
         assert isinstance(container.vector_db, api_runtime.OfflineVectorDatabase)
         assert isinstance(container.feedback_store, api_runtime.OfflineFeedbackStore)
         feedback = container.feedback_store.submit_feedback(
+            query_id="qid-1",
             query="q",
             answer="a",
             rating=1,

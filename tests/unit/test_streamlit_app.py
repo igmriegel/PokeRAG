@@ -16,6 +16,7 @@ def test_render_answer_helper() -> None:
     """TEST-097: render helper must summarize the response."""
     summary = render_answer(
         {
+            "query_id": "qid-1",
             "answer": "Yes.",
             "rewritten_query": "Pokemon TCG Rare Candy legality",
             "citations": [{"document_title": "Official Rulebook"}],
@@ -32,9 +33,10 @@ def test_render_answer_helper() -> None:
 
 def test_feedback_payload_built() -> None:
     """TEST-098: feedback payload must include the key API fields."""
-    payload = build_feedback_payload("q", "a", 1, "gpt-4o-mini", 0.5, "comment")
+    payload = build_feedback_payload("qid-1", "q", "a", 1, "gpt-4o-mini", 0.5, "comment")
 
     assert payload["rating"] == 1
+    assert payload["query_id"] == "qid-1"
     assert payload["comment"] == "comment"
     assert payload["latency_seconds"] == 0.5
 

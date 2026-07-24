@@ -69,6 +69,7 @@ def test_answer_response_maps_to_schema() -> None:
     """TEST-091: AnswerResponse must map cleanly into QueryResponse."""
     response = QueryResponse.from_answer_response(_answer_response())
 
+    assert response.query_id == ""
     assert response.query == "Can I use Rare Candy?"
     assert response.rewritten_query == "Pokemon TCG Rare Candy legality"
     assert response.citations[0].document_title == "Official Rulebook"
@@ -81,6 +82,7 @@ def test_feedback_request_rating_bounds() -> None:
     """TEST-092: feedback rating must be limited to +/- 1."""
     with pytest.raises(ValidationError):
         FeedbackRequest(
+            query_id="qid-1",
             query="q",
             answer="a",
             rating=0,
@@ -89,6 +91,7 @@ def test_feedback_request_rating_bounds() -> None:
         )
 
     valid = FeedbackRequest(
+        query_id="qid-1",
         query="q",
         answer="a",
         rating=1,

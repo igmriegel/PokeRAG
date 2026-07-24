@@ -4,6 +4,8 @@ FastAPI route controllers.
 
 from __future__ import annotations
 
+import uuid
+
 from fastapi import APIRouter, HTTPException, status
 
 from pokemon_tcg_rag.api.schemas import (
@@ -21,6 +23,8 @@ router = APIRouter()
 
 _rag_chain: RAGChain | None = None
 _feedback_store: FeedbackStore | None = None
+_query_sessions: dict[str, AnswerResponse] = {}
+_submitted_feedback: set[str] = set()
 
 
 def set_dependencies(
@@ -31,6 +35,9 @@ def set_dependencies(
     global _rag_chain, _feedback_store
     _rag_chain = rag_chain
     _feedback_store = feedback_store
+    if rag_chain is None and feedback_store is None:
+        _query_sessions.clear()
+        _submitted_feedback.clear()
 
 
 def dependency_status() -> tuple[bool, bool]:
@@ -46,6 +53,9 @@ def query_rag(payload: QueryRequest) -> QueryResponse:
 
     try:
         response: AnswerResponse = _rag_chain.query(payload.question, top_k=payload.top_k)
+        query_id = response.query_id or f"qr_{uuid.uuid4().hex[:12]}"
+        response = response.model_copy(update={"query_id": query_id})
+        _query_sessions[query_id] = response
         DEFAULT_METRICS_COLLECTOR.record_query(
             model=response.model_name,
             latency=response.latency_seconds,
@@ -53,7 +63,7 @@ def query_rag(payload: QueryRequest) -> QueryResponse:
             status="success",
             sources=[citation.source for citation in response.citations],
         )
-        return QueryResponse.from_answer_response(response)
+        return QueryResponse.from_answer_response(response, query_id=query_id)
     except HTTPException:
         DEFAULT_METRICS_COLLECTOR.record_query(
             model="unknown",
@@ -77,9 +87,17 @@ def submit_feedback(payload: FeedbackRequest) -> dict[str, str]:
     """Persist user feedback through the feedback store service."""
     if _feedback_store is None:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Feedback store unavailable")
+    if payload.query_id in _submitted_feedback:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Feedback already submitted for this query")
+    stored_query = _query_sessions.get(payload.query_id)
+    if stored_query is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown query_id")
+    if stored_query.query != payload.query or stored_query.answer != payload.answer:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Feedback payload does not match query")
 
     try:
         _feedback_store.submit_feedback(
+            query_id=payload.query_id,
             query=payload.query,
             answer=payload.answer,
             rating=payload.rating,
@@ -87,6 +105,7 @@ def submit_feedback(payload: FeedbackRequest) -> dict[str, str]:
             model_name=payload.model_name,
             latency=payload.latency_seconds,
         )
+        _submitted_feedback.add(payload.query_id)
         DEFAULT_METRICS_COLLECTOR.record_feedback(payload.rating)
         return {"status": "success", "message": "Feedback recorded successfully."}
     except HTTPException:

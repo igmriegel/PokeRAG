@@ -27,6 +27,7 @@ class FeedbackORM(Base):
     )
 
     feedback_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    query_id: Mapped[str] = mapped_column(String(128), nullable=False, unique=True, index=True)
     query: Mapped[str] = mapped_column(Text, nullable=False)
     answer: Mapped[str] = mapped_column(Text, nullable=False)
     rating: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -54,6 +55,7 @@ class RelationalDatabase:
         try:
             row = FeedbackORM(
                 feedback_id=record.feedback_id,
+                query_id=record.query_id,
                 query=record.query,
                 answer=record.answer,
                 rating=record.rating,

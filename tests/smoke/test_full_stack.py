@@ -74,6 +74,7 @@ def test_end_to_end_query_roundtrip() -> None:
     set_dependencies(rag_chain=FakeRAGChain(), feedback_store=feedback_store)
     try:
         response = query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
+        assert response.query_id
         assert response.answer == "Grounded answer."
         assert response.retrieved_chunks
         assert health_check().status == "healthy"
@@ -95,10 +96,12 @@ def test_feedback_roundtrip_records_payload() -> None:
     feedback_store = FakeFeedbackStore()
     set_dependencies(rag_chain=FakeRAGChain(), feedback_store=feedback_store)
     try:
+        query_response = query_rag(QueryRequest(question="q", top_k=5))
         response = submit_feedback(
             FeedbackRequest(
-                query="q",
-                answer="a",
+                query_id=query_response.query_id,
+                query=query_response.query,
+                answer=query_response.answer,
                 rating=1,
                 model_name="gpt-4o-mini",
                 latency_seconds=0.5,

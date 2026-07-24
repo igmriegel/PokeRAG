@@ -19,6 +19,7 @@ def build_query_payload(question: str, top_k: int) -> dict[str, Any]:
 
 
 def build_feedback_payload(
+    query_id: str,
     query: str,
     answer: str,
     rating: int,
@@ -27,6 +28,7 @@ def build_feedback_payload(
     comment: str | None = None,
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
+        "query_id": query_id,
         "query": query,
         "answer": answer,
         "rating": rating,
@@ -48,6 +50,7 @@ def render_answer(response: dict[str, Any]) -> dict[str, Any]:
         "retrieved_count": len(chunks),
     }
     return {
+        "query_id": response.get("query_id"),
         "answer": response.get("answer", ""),
         "rewritten_query": response.get("rewritten_query"),
         "citations": citations,
@@ -64,6 +67,7 @@ def fetch_answer(api_url: str, question: str, top_k: int, post: Callable[..., An
 
 def send_feedback(
     api_url: str,
+    query_id: str,
     query: str,
     answer: str,
     rating: int,
@@ -74,7 +78,7 @@ def send_feedback(
 ) -> dict[str, Any]:
     response = post(
         f"{api_url}/feedback",
-        json=build_feedback_payload(query, answer, rating, model_name, latency_seconds, comment),
+        json=build_feedback_payload(query_id, query, answer, rating, model_name, latency_seconds, comment),
         timeout=30,
     )
     response.raise_for_status()
@@ -85,6 +89,9 @@ def main() -> None:
     st.set_page_config(page_title="Pokemon TCG Rules Specialist", page_icon="⚡", layout="wide")
     st.title("⚡ Pokemon TCG Rules Expert Assistant")
     st.caption("Official Rulebooks, Tournament Handbooks, Errata & Pokegym Rulings Specialist")
+
+    st.session_state.setdefault("last_response", None)
+    st.session_state.setdefault("last_summary", None)
 
     with st.sidebar:
         st.header("⚙️ Configuration")
@@ -115,62 +122,68 @@ def main() -> None:
             try:
                 response = fetch_answer(api_url, user_query, top_k)
                 summary = render_answer(response)
-
-                st.markdown("### 💬 Resposta do Juiz Oficial")
-                st.success(summary["answer"])
-
-                col1, col2, col3 = st.columns(3)
-                col1.metric("Tempo de Resposta", f"{summary['metrics']['latency_seconds']:.2f}s")
-                col2.metric("Modelo Utilizado", summary["metrics"]["model_name"])
-                col3.metric("Documentos Consultados", summary["metrics"]["retrieved_count"])
-
-                if summary.get("rewritten_query"):
-                    st.info(f"🔍 **Query Reformulada (Query Rewriting):** `{summary['rewritten_query']}`")
-
-                st.markdown("### 📖 Fontes Citadas")
-                for citation in summary["citations"]:
-                    page_num = citation.get("page_number")
-                    page_suffix = f" | Pág: {page_num}" if page_num else ""
-                    st.markdown(
-                        f"- **{citation['document_title']}** ({citation['source']}) | "
-                        f"Tipo: `{citation['rule_type']}` {page_suffix}"
-                    )
-
-                with st.expander("🔍 Ver Trechos de Texto Utilizados (Chunks)"):
-                    for idx, chunk in enumerate(summary["chunks"], start=1):
-                        st.markdown(
-                            f"**Chunk #{idx}** (Score: `{chunk.get('score', 0.0):.4f}` | "
-                            f"Método: `{chunk.get('retrieval_method', 'N/A')}`)"
-                        )
-                        st.code(chunk.get("text", ""), language="markdown")
-
-                st.divider()
-                st.markdown("### 👍 Avalie esta resposta")
-                fb_col1, fb_col2 = st.columns(2)
-                with fb_col1:
-                    if st.button("👍 Resposta Precisa"):
-                        send_feedback(
-                            api_url=api_url,
-                            query=user_query,
-                            answer=summary["answer"],
-                            rating=1,
-                            model_name=summary["metrics"]["model_name"],
-                            latency_seconds=summary["metrics"]["latency_seconds"],
-                        )
-                        st.success("Obrigado pelo seu feedback positivo!")
-                with fb_col2:
-                    if st.button("👎 Resposta Incorreta / Incompleta"):
-                        send_feedback(
-                            api_url=api_url,
-                            query=user_query,
-                            answer=summary["answer"],
-                            rating=-1,
-                            model_name=summary["metrics"]["model_name"],
-                            latency_seconds=summary["metrics"]["latency_seconds"],
-                        )
-                        st.error("Obrigado pelo seu feedback. Registramos a falha para revisão.")
+                st.session_state["last_response"] = response
+                st.session_state["last_summary"] = summary
             except Exception as exc:  # pragma: no cover - UI boundary
                 st.error(f"Falha ao conectar com o serviço backend: {exc}")
+
+    summary = st.session_state.get("last_summary")
+    if summary:
+        st.markdown("### 💬 Resposta do Juiz Oficial")
+        st.success(summary["answer"])
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Tempo de Resposta", f"{summary['metrics']['latency_seconds']:.2f}s")
+        col2.metric("Modelo Utilizado", summary["metrics"]["model_name"])
+        col3.metric("Documentos Consultados", summary["metrics"]["retrieved_count"])
+
+        if summary.get("rewritten_query"):
+            st.info(f"🔍 **Query Reformulada (Query Rewriting):** `{summary['rewritten_query']}`")
+
+        st.markdown("### 📖 Fontes Citadas")
+        for citation in summary["citations"]:
+            page_num = citation.get("page_number")
+            page_suffix = f" | Pág: {page_num}" if page_num else ""
+            st.markdown(
+                f"- **{citation['document_title']}** ({citation['source']}) | "
+                f"Tipo: `{citation['rule_type']}` {page_suffix}"
+            )
+
+        with st.expander("🔍 Ver Trechos de Texto Utilizados (Chunks)"):
+            for idx, chunk in enumerate(summary["chunks"], start=1):
+                st.markdown(
+                    f"**Chunk #{idx}** (Score: `{chunk.get('score', 0.0):.4f}` | "
+                    f"Método: `{chunk.get('retrieval_method', 'N/A')}`)"
+                )
+                st.code(chunk.get("text", ""), language="markdown")
+
+        st.divider()
+        st.markdown("### 👍 Avalie esta resposta")
+        fb_col1, fb_col2 = st.columns(2)
+        with fb_col1:
+            if st.button("👍 Resposta Precisa"):
+                send_feedback(
+                    api_url=api_url,
+                    query_id=summary["query_id"],
+                    query=user_query,
+                    answer=summary["answer"],
+                    rating=1,
+                    model_name=summary["metrics"]["model_name"],
+                    latency_seconds=summary["metrics"]["latency_seconds"],
+                )
+                st.success("Obrigado pelo seu feedback positivo!")
+        with fb_col2:
+            if st.button("👎 Resposta Incorreta / Incompleta"):
+                send_feedback(
+                    api_url=api_url,
+                    query_id=summary["query_id"],
+                    query=user_query,
+                    answer=summary["answer"],
+                    rating=-1,
+                    model_name=summary["metrics"]["model_name"],
+                    latency_seconds=summary["metrics"]["latency_seconds"],
+                )
+                st.error("Obrigado pelo seu feedback. Registramos a falha para revisão.")
 
 
 if __name__ == "__main__":

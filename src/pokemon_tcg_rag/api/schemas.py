@@ -85,6 +85,7 @@ class ChunkSnippetSchema(BaseModel):
 class QueryResponse(BaseModel):
     """Public API response for an answer."""
 
+    query_id: str
     query: str
     rewritten_query: str | None = None
     answer: str
@@ -94,8 +95,9 @@ class QueryResponse(BaseModel):
     latency_seconds: float
 
     @classmethod
-    def from_answer_response(cls, response: AnswerResponse) -> QueryResponse:
+    def from_answer_response(cls, response: AnswerResponse, query_id: str | None = None) -> QueryResponse:
         return cls(
+            query_id=query_id or response.query_id or "",
             query=response.query,
             rewritten_query=response.rewritten_query,
             answer=response.answer,
@@ -111,6 +113,7 @@ class QueryResponse(BaseModel):
 class FeedbackRequest(BaseModel):
     """Payload submitted by the UI and client for feedback persistence."""
 
+    query_id: str = Field(..., min_length=1)
     query: str = Field(..., min_length=1)
     answer: str = Field(..., min_length=1)
     rating: int = Field(..., description="1 for thumbs up, -1 for thumbs down")

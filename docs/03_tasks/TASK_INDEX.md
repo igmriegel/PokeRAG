@@ -155,7 +155,7 @@ executable by an AI Code Agent, and traceable to a requirement
 | TASK-062 | Enforce the query configuration contract | REQ-031 | TASK-057 | Done |
 | TASK-063 | Version the corpus and deterministic bootstrap fixture | REQ-032 | TASK-041, TASK-056 | Done |
 | TASK-064 | Complete the production composition root | REQ-031, REQ-032 | TASK-061, TASK-062, TASK-063 | Done |
-| TASK-065 | Prove the operational query and feedback journey | REQ-031 | TASK-050, TASK-051, TASK-064 | Pending |
+| TASK-065 | Prove the operational query and feedback journey | REQ-031 | TASK-050, TASK-051, TASK-064 | Done |
 
 ## Sprint 14 — Quality & Reproducibility (`SPRINT_14_QUALITY_REPRODUCIBILITY`)
 
