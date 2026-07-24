@@ -45,7 +45,7 @@ def query_rag(payload: QueryRequest) -> QueryResponse:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="RAG chain unavailable")
 
     try:
-        response: AnswerResponse = _rag_chain.query(payload.question)
+        response: AnswerResponse = _rag_chain.query(payload.question, top_k=payload.top_k)
         DEFAULT_METRICS_COLLECTOR.record_query(
             model=response.model_name,
             latency=response.latency_seconds,

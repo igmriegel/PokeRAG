@@ -62,7 +62,7 @@ class FakeChain:
     def __init__(self) -> None:
         self.calls: list[str] = []
 
-    def query(self, question: str) -> AnswerResponse:
+    def query(self, question: str, top_k: int | None = None) -> AnswerResponse:
         self.calls.append(question)
         return _response()
 

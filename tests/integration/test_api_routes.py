@@ -57,7 +57,7 @@ class FakeRAGChain:
         self.error = error
         self.calls: list[str] = []
 
-    def query(self, question: str) -> AnswerResponse:
+    def query(self, question: str, top_k: int | None = None) -> AnswerResponse:
         self.calls.append(question)
         if self.error is not None:
             raise self.error

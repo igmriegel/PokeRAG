@@ -27,12 +27,13 @@ class RAGChain:
         self.prompt_manager = prompt_manager or PromptTemplateManager()
         self.settings = get_settings()
 
-    def query(self, raw_query: str) -> AnswerResponse:
+    def query(self, raw_query: str, top_k: int | None = None) -> AnswerResponse:
         """Return a cited answer response for the given query."""
         start = time.time()
+        effective_top_k = top_k or self.settings.RETRIEVAL_FINAL_TOP_K
         rewritten_query, chunks = self.retrieval_pipeline.execute_retrieval(
             raw_query=raw_query,
-            top_k=self.settings.RETRIEVAL_FINAL_TOP_K,
+            top_k=effective_top_k,
         )
 
         if not chunks:
