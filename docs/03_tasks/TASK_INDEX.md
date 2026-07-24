@@ -77,7 +77,7 @@ executable by an AI Code Agent, and traceable to a requirement
 | TASK-024 | Prompt templates & Judge persona (`llm/prompts.py`) | REQ-011, REQ-012 | TASK-003 | Done |
 | TASK-025 | RAG chain — retrieve→prompt→answer (`llm/rag_chain.py`) | REQ-011, REQ-012 | TASK-021, TASK-023, TASK-024 | Done |
 | TASK-026 | Relational DB & feedback ORM (`storage/relational_db.py`) | REQ-014 | TASK-002, TASK-003 | Done |
-| TASK-027 | Feedback store service (`monitoring/feedback_store.py`) | REQ-014 | TASK-026 | Pending |
+| TASK-027 | Feedback store service (`monitoring/feedback_store.py`) | REQ-014 | TASK-026 | Done |
 
 ## Sprint 6 — Interface: API & UI (`SPRINT_06_UI_FEEDBACK`)
 
