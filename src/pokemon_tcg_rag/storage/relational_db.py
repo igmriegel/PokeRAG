@@ -41,7 +41,7 @@ class RelationalDatabase:
 
     def __init__(self, engine: Any | None = None) -> None:
         settings = get_settings()
-        self.engine = engine or create_engine(settings.postgres_uri, pool_pre_ping=True)
+        self.engine = engine or create_engine(settings.postgres_runtime_uri, pool_pre_ping=True)
         self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
 
     def init_db(self) -> None:

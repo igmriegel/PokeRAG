@@ -53,6 +53,27 @@ def test_postgres_uri_composition() -> None:
 
 
 @pytest.mark.unit
+def test_postgres_runtime_and_migration_uri_composition() -> None:
+    """Dedicated runtime and migration URIs must use their own credential sets."""
+    s = Settings(
+        POSTGRES_HOST="db.example.com",
+        POSTGRES_PORT=5433,
+        POSTGRES_DB="testdb",
+        POSTGRES_RUNTIME_USER="runtime_user",
+        POSTGRES_RUNTIME_PASSWORD="runtime_pass",
+        POSTGRES_MIGRATION_USER="migrator_user",
+        POSTGRES_MIGRATION_PASSWORD="migrator_pass",
+    )
+    assert (
+        s.postgres_runtime_uri
+        == "postgresql://runtime_user:runtime_pass@db.example.com:5433/testdb"
+    )
+    assert s.postgres_migration_uri == (
+        "postgresql://migrator_user:migrator_pass@db.example.com:5433/testdb"
+    )
+
+
+@pytest.mark.unit
 def test_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-005: Environment variables must override defaults."""
     monkeypatch.setenv("OPENAI_MODEL_NAME", "gpt-4o")

@@ -66,6 +66,12 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "pokemon_tcg_rag_db"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
+    POSTGRES_OWNER_USER: str = "pokemon_owner"
+    POSTGRES_OWNER_PASSWORD: str = "pokemon_owner_password"
+    POSTGRES_MIGRATION_USER: str = "pokemon_migrator"
+    POSTGRES_MIGRATION_PASSWORD: str = "pokemon_migrator_password"
+    POSTGRES_RUNTIME_USER: str = "pokemon_runtime"
+    POSTGRES_RUNTIME_PASSWORD: str = "pokemon_runtime_password"
 
     # Retrieval & Reranking Settings
     RETRIEVAL_TOP_K_DENSE: int = 10
@@ -92,6 +98,34 @@ class Settings(BaseSettings):
         """Construct PostgreSQL connection URI."""
         return (
             f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
+
+    @property
+    def postgres_owner_uri(self) -> str:
+        """Connection URI for the bootstrap owner role."""
+        return (
+            f"postgresql://{self.POSTGRES_OWNER_USER}:{self.POSTGRES_OWNER_PASSWORD}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
+
+    @property
+    def postgres_migration_uri(self) -> str:
+        """Connection URI for the migration role, falling back to the owner role when unset."""
+        migration_user = self.POSTGRES_MIGRATION_USER or self.POSTGRES_OWNER_USER
+        migration_password = self.POSTGRES_MIGRATION_PASSWORD or self.POSTGRES_OWNER_PASSWORD
+        return (
+            f"postgresql://{migration_user}:{migration_password}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
+
+    @property
+    def postgres_runtime_uri(self) -> str:
+        """Connection URI for the restricted runtime role."""
+        runtime_user = self.POSTGRES_RUNTIME_USER or self.POSTGRES_USER
+        runtime_password = self.POSTGRES_RUNTIME_PASSWORD or self.POSTGRES_PASSWORD
+        return (
+            f"postgresql://{runtime_user}:{runtime_password}"
             f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         )
 

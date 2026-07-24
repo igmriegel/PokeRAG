@@ -32,13 +32,20 @@ services:
     image: postgres:16-alpine
     container_name: pokemon_postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_USER: ${POSTGRES_OWNER_USER:-pokemon_owner}
+      POSTGRES_PASSWORD: ${POSTGRES_OWNER_PASSWORD:-pokemon_owner_password}
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set}
+      POSTGRES_OWNER_USER: ${POSTGRES_OWNER_USER:-pokemon_owner}
+      POSTGRES_OWNER_PASSWORD: ${POSTGRES_OWNER_PASSWORD:-pokemon_owner_password}
+      POSTGRES_MIGRATION_USER: ${POSTGRES_MIGRATION_USER:-pokemon_migrator}
+      POSTGRES_MIGRATION_PASSWORD: ${POSTGRES_MIGRATION_PASSWORD:-pokemon_migrator_password}
+      POSTGRES_RUNTIME_USER: ${POSTGRES_RUNTIME_USER:-pokemon_runtime}
+      POSTGRES_RUNTIME_PASSWORD: ${POSTGRES_RUNTIME_PASSWORD:-pokemon_runtime_password}
     expose:
       - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./deploy/db/init:/docker-entrypoint-initdb.d:ro
     networks:
       - pokemon_net
     healthcheck:
@@ -47,6 +54,26 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+
+  migrations:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+    container_name: pokemon_db_migrations
+    command: ["python", "scripts/run_db_migrations.py"]
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set}
+      POSTGRES_MIGRATION_USER: ${POSTGRES_MIGRATION_USER:-pokemon_migrator}
+      POSTGRES_MIGRATION_PASSWORD: ${POSTGRES_MIGRATION_PASSWORD:-pokemon_migrator_password}
+    networks:
+      - pokemon_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
 
   ingestion:
     build:
@@ -69,6 +96,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     profiles:
       - ingestion
 
@@ -86,9 +115,9 @@ services:
       QDRANT_PORT: 6333
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set}
+      POSTGRES_RUNTIME_USER: ${POSTGRES_RUNTIME_USER:-pokemon_runtime}
+      POSTGRES_RUNTIME_PASSWORD: ${POSTGRES_RUNTIME_PASSWORD:-pokemon_runtime_password}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     volumes:
       - ./data:/app/data
