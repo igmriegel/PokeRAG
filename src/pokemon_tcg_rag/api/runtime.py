@@ -90,6 +90,20 @@ class OfflineVectorDatabase(VectorDatabase):
         """Ignore writes in degraded mode."""
 
 
+class OfflineDenseRetriever(DenseRetriever):
+    """Local fallback dense retriever that avoids model loading and returns no hits."""
+
+    def __init__(self, vector_db: VectorDatabase) -> None:
+        self.vector_db = vector_db
+        self.model_name = "offline-dense-retriever"
+        self.default_top_k = 10
+        self._embedding_model = None
+
+    def retrieve(self, query: str, top_k: int | None = None) -> list[RetrievedChunk]:
+        """Return no dense matches when embeddings are unavailable locally."""
+        return []
+
+
 class OfflineFeedbackStore(FeedbackStore):
     """Local fallback feedback store that keeps submissions in memory."""
 
@@ -130,7 +144,7 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
     chunks: list[Chunk] = load_chunks(active_settings.DATA_CHUNKS_DIR)
     bm25_retriever = BM25Retriever(chunks)
     vector_db: VectorDatabase | OfflineVectorDatabase = VectorDatabase()
-    dense_retriever = DenseRetriever(vector_db)
+    dense_retriever: DenseRetriever | OfflineDenseRetriever = DenseRetriever(vector_db)
 
     query_rewriter_client: LLMClient | OfflineQueryRewriterClient
     llm_client: LLMClient | OfflineAnswerClient
@@ -150,7 +164,7 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
         if active_settings.ENVIRONMENT == "production":
             raise ConfigurationError(f"Qdrant initialization failed: {exc}") from exc
         vector_db = OfflineVectorDatabase(active_settings.QDRANT_COLLECTION_NAME)
-        dense_retriever = DenseRetriever(vector_db)
+        dense_retriever = OfflineDenseRetriever(vector_db)
 
     relational_db = RelationalDatabase()
     try:
