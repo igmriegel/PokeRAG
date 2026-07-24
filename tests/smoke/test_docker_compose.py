@@ -72,3 +72,15 @@ def test_postgres_uses_version_16() -> None:
     assert pg_image.startswith("postgres:16"), (
         f"postgres image must be postgres:16-*, got '{pg_image}'"
     )
+
+
+@pytest.mark.smoke
+def test_internal_services_are_not_publicly_published() -> None:
+    """Internal data-plane services should expose ports only inside the compose network."""
+    with open(COMPOSE_FILE) as fh:
+        config = yaml.safe_load(fh)
+
+    for service_name in ("qdrant", "postgres", "prometheus", "grafana"):
+        service_cfg = config["services"][service_name]
+        assert "ports" not in service_cfg, f"{service_name} must not publish host ports by default"
+        assert "expose" in service_cfg, f"{service_name} must expose its port internally"
