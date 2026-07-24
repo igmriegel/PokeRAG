@@ -121,11 +121,11 @@ executable by an AI Code Agent, and traceable to a requirement
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-046 | API authentication and authorization | REQ-022 | TASK-029, TASK-042 | Pending |
-| TASK-047 | API resource, payload and cost controls | REQ-023 | TASK-046 | Pending |
-| TASK-048 | Prompt-injection resistance and citation integrity | REQ-025 | TASK-025, TASK-041 | Pending |
-| TASK-049 | Safe errors, diagnostics and HTTP headers | REQ-026 | TASK-047 | Pending |
-| TASK-050 | Feedback integrity, privacy and response minimization | REQ-026 | TASK-046, TASK-027 | Pending |
+| TASK-046 | API authentication and authorization | REQ-022 | TASK-029, TASK-042 | Done |
+| TASK-047 | API resource, payload and cost controls | REQ-023 | TASK-046 | Done |
+| TASK-048 | Prompt-injection resistance and citation integrity | REQ-025 | TASK-025, TASK-041 | Done |
+| TASK-049 | Safe errors, diagnostics and HTTP headers | REQ-026 | TASK-047 | Done |
+| TASK-050 | Feedback integrity, privacy and response minimization | REQ-026 | TASK-046, TASK-027 | Done |
 
 ## Sprint 11 — Platform Hardening (`SPRINT_11_PLATFORM_HARDENING`)
 
