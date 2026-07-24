@@ -66,7 +66,7 @@ executable by an AI Code Agent, and traceable to a requirement
 | TASK-018 | BM25 lexical retriever (`retrieval/bm25.py`) | REQ-007 | TASK-013 | Done |
 | TASK-019 | Hybrid retriever — RRF k=60 (`retrieval/hybrid.py`) | REQ-008 | TASK-017, TASK-018 | Done |
 | TASK-020 | Cross-encoder reranker (`retrieval/reranker.py`) | REQ-009 | TASK-019 | Done |
-| TASK-021 | LLM client — OpenAI-compatible (`llm/client.py`) | REQ-011 | TASK-002 | Pending |
+| TASK-021 | LLM client — OpenAI-compatible (`llm/client.py`) | REQ-011 | TASK-002 | Done |
 | TASK-022 | LLM query rewriter (`retrieval/query_rewriter.py`) | REQ-010 | TASK-021 | Pending |
 
 ## Sprint 5 — RAG, LLM & Prompting (`SPRINT_05_RAG_LLM`)

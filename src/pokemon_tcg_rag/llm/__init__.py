@@ -1,9 +1,7 @@
 """
-LLM Integration package for prompt engineering, provider clients, and RAG execution chain.
-"""
+LLM integration package.
 
-from pokemon_tcg_rag.llm.client import LLMClient
-from pokemon_tcg_rag.llm.prompts import PromptTemplateManager
-from pokemon_tcg_rag.llm.rag_chain import RAGChain
+Import concrete classes from the specific submodules to avoid circular imports at package load.
+"""
 
 __all__ = ["LLMClient", "PromptTemplateManager", "RAGChain"]
