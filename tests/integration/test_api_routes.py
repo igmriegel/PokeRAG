@@ -217,4 +217,4 @@ def test_query_error_maps_to_http_500() -> None:
         query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
 
     assert exc_info.value.status_code == 500
-    assert "boom" in str(exc_info.value.detail)
+    assert "Request failed" in str(exc_info.value.detail)
