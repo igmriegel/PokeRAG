@@ -12,8 +12,15 @@ from pokemon_tcg_rag.domain.models import AnswerResponse, DocumentMetadata, Retr
 class QueryRequest(BaseModel):
     """Payload for the query endpoint."""
 
-    question: str = Field(..., min_length=1, examples=["Posso usar Rare Candy no primeiro turno?"])
-    top_k: int = Field(default=5, ge=1, le=20)
+    model_config = ConfigDict(extra="forbid")
+
+    question: str = Field(
+        ...,
+        min_length=1,
+        max_length=512,
+        examples=["Posso usar Rare Candy no primeiro turno?"],
+    )
+    top_k: int = Field(default=5, ge=1, le=10)
 
     @field_validator("question")
     @classmethod
@@ -69,7 +76,7 @@ class ChunkSnippetSchema(BaseModel):
         metadata = item.chunk.metadata
         return cls(
             chunk_id=item.chunk.chunk_id,
-            text=item.chunk.text,
+            text=_truncate_text(item.chunk.text),
             score=item.score,
             retrieval_method=item.retrieval_method,
             source=metadata.source.value,
@@ -80,6 +87,13 @@ class ChunkSnippetSchema(BaseModel):
             publication_date=metadata.publication_date,
             source_url=metadata.source_url,
         )
+
+
+def _truncate_text(text: str, limit: int = 320) -> str:
+    cleaned = text.strip()
+    if len(cleaned) <= limit:
+        return cleaned
+    return cleaned[:limit].rstrip() + "..."
 
 
 class QueryResponse(BaseModel):
@@ -115,11 +129,13 @@ class QueryResponse(BaseModel):
 class FeedbackRequest(BaseModel):
     """Payload submitted by the UI and client for feedback persistence."""
 
+    model_config = ConfigDict(extra="forbid")
+
     query_id: str = Field(..., min_length=1)
     query: str = Field(..., min_length=1)
     answer: str = Field(..., min_length=1)
     rating: int = Field(..., description="1 for thumbs up, -1 for thumbs down")
-    comment: str | None = None
+    comment: str | None = Field(default=None, max_length=1000)
     model_name: str = Field(..., min_length=1)
     latency_seconds: float = Field(..., ge=0)
 

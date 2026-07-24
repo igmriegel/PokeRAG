@@ -13,6 +13,7 @@ QUERY_LATENCY_NAME = "pokemon_rag_query_latency_seconds"
 RETRIEVED_DOCS_NAME = "pokemon_rag_retrieved_docs_count"
 FEEDBACK_COUNTER_NAME = "pokemon_rag_feedback_total"
 SOURCE_COUNTER_NAME = "pokemon_rag_query_sources_total"
+GUARDRAIL_REJECTION_COUNTER_NAME = "pokemon_rag_guardrail_rejections_total"
 
 
 class MetricsCollector:
@@ -50,6 +51,12 @@ class MetricsCollector:
             labelnames=("source",),
             registry=self.registry,
         )
+        self.guardrail_rejections = Counter(
+            GUARDRAIL_REJECTION_COUNTER_NAME,
+            "API guardrail rejections by low-cardinality reason",
+            labelnames=("reason",),
+            registry=self.registry,
+        )
 
     def record_query(
         self,
@@ -73,6 +80,10 @@ class MetricsCollector:
         """Record a user feedback observation."""
         label = "positive" if rating > 0 else "negative"
         self.feedback_counter.labels(rating=label).inc()
+
+    def record_guardrail_rejection(self, reason: str) -> None:
+        """Record a rejected request without logging sensitive payload details."""
+        self.guardrail_rejections.labels(reason=reason).inc()
 
 
 DEFAULT_METRICS_COLLECTOR = MetricsCollector(registry=REGISTRY)

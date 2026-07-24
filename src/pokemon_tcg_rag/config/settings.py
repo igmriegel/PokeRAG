@@ -26,6 +26,23 @@ class Settings(BaseSettings):
     ENVIRONMENT: Literal["development", "staging", "production", "test"] = "development"
     LOG_LEVEL: str = "INFO"
 
+    # API Authentication
+    API_AUTH_ENABLED: bool = True
+    API_AUTH_SECRET: str = ""
+    API_AUTH_ISSUER: str = "poketcg-rag"
+    API_AUTH_AUDIENCE: str = "poketcg-rag-api"
+    API_AUTH_ALGORITHM: str = "HS256"
+    API_AUTH_TOKEN_LIFETIME_SECONDS: int = 3600
+    API_MAX_BODY_BYTES: int = 16384
+    API_RATE_LIMIT_PER_MINUTE: int = 120
+    API_MAX_CONCURRENT_REQUESTS: int = 20
+    API_PROVIDER_TIMEOUT_SECONDS: float = 30.0
+    API_PROVIDER_MAX_RETRIES: int = 2
+    API_PROVIDER_CIRCUIT_BREAKER_THRESHOLD: int = 3
+    API_PROVIDER_CIRCUIT_BREAKER_RESET_SECONDS: int = 60
+    API_CORS_ALLOWED_ORIGINS: str = "http://localhost:8501,http://127.0.0.1:8501"
+    API_FEEDBACK_MAX_AGE_SECONDS: int = 86400
+
     # OpenAI API Configuration
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL_NAME: str = "gpt-4o-mini"
@@ -65,6 +82,7 @@ class Settings(BaseSettings):
     # Streamlit Interface
     STREAMLIT_SERVER_PORT: int = 8501
     STREAMLIT_SERVER_ADDRESS: str = "0.0.0.0"
+    POKERAG_API_TOKEN: str = ""
 
     # Prometheus Monitoring
     PROMETHEUS_METRICS_PORT: int = 9090
