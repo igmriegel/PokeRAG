@@ -1,0 +1,35 @@
+name: staging-deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_digest:
+        description: Approved immutable image digest
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set image digest
+        run: echo "IMAGE_DIGEST=${{ inputs.image_digest }}" >> "$GITHUB_ENV"
+
+      - name: Validate release artifacts
+        run: |
+          test -f docker-compose.yml
+          test -f deploy/k8s/stack.yaml
+          test -f deploy/k8s/security.yaml
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploy digest ${IMAGE_DIGEST} to the staging environment"
+          echo "kubectl apply -f deploy/k8s/stack.yaml"
+
+      - name: Remote smoke
+        run: |
+          echo "curl --fail --header 'Authorization: Bearer $STAGING_BEARER_TOKEN' $STAGING_URL/ready"

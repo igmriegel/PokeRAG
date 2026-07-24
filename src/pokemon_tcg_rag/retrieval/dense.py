@@ -11,6 +11,7 @@ from sentence_transformers import SentenceTransformer
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import RetrievalError
 from pokemon_tcg_rag.domain.models import RetrievedChunk
+from pokemon_tcg_rag.monitoring.tracing import traced_span
 from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 
 
@@ -30,12 +31,25 @@ class DenseRetriever:
             self._embedding_model = SentenceTransformer(self.model_name)
         return self._embedding_model
 
-    def retrieve(self, query: str, top_k: int | None = None) -> list[RetrievedChunk]:
+    def retrieve(
+        self,
+        query: str,
+        top_k: int | None = None,
+        filters: dict[str, str] | None = None,
+    ) -> list[RetrievedChunk]:
         """Encode a query into an embedding and search the vector database."""
         limit = top_k or self.default_top_k
         try:
-            query_vector = self._encode_query(query)
-            results = self.vector_db.search_dense(query_vector=query_vector, top_k=limit)
+            with traced_span(
+                "retrieval.dense",
+                attributes={"retrieval.top_k": limit, "query.length": len(query.strip())},
+            ):
+                query_vector = self._encode_query(query)
+                results = self.vector_db.search_dense(
+                    query_vector=query_vector,
+                    top_k=limit,
+                    filters=filters,
+                )
         except Exception as exc:  # pragma: no cover - defensive wrapper
             raise RetrievalError(f"Dense retrieval failed: {exc}") from exc
         return sorted(results, key=lambda item: item.score, reverse=True)[:limit]

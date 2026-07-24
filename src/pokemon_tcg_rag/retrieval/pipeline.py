@@ -6,7 +6,9 @@ from __future__ import annotations
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.models import RetrievedChunk
+from pokemon_tcg_rag.monitoring.tracing import traced_span
 from pokemon_tcg_rag.retrieval.bm25 import BM25Retriever
+from pokemon_tcg_rag.retrieval.cache import RetrievalCache
 from pokemon_tcg_rag.retrieval.dense import DenseRetriever
 from pokemon_tcg_rag.retrieval.hybrid import HybridRetriever
 from pokemon_tcg_rag.retrieval.query_rewriter import QueryRewriter
@@ -35,24 +37,58 @@ class RetrievalPipeline:
             rrf_k=settings.RETRIEVAL_HYBRID_RRF_K,
         )
         self.reranker = reranker or BGEReranker()
+        self.cache = RetrievalCache(
+            max_items=settings.RETRIEVAL_CACHE_MAX_ITEMS,
+            ttl_seconds=settings.RETRIEVAL_CACHE_TTL_SECONDS,
+        )
         self.enable_query_rewrite = enable_query_rewrite
         self.enable_reranking = enable_reranking
 
-    def execute_retrieval(self, raw_query: str, top_k: int = 5) -> tuple[str, list[RetrievedChunk]]:
+    def execute_retrieval(
+        self,
+        raw_query: str,
+        top_k: int = 5,
+        metadata_filters: dict[str, str] | None = None,
+    ) -> tuple[str, list[RetrievedChunk]]:
         """Run query rewriting, hybrid retrieval, and reranking."""
-        rewritten_query = (
-            self.query_rewriter.rewrite_query(raw_query) if self.enable_query_rewrite else raw_query
-        )
-        candidates = self.hybrid_retriever.retrieve(
-            query=rewritten_query,
-            top_k=max(top_k, self.settings.RETRIEVAL_TOP_K_DENSE),
-        )
-
-        if self.enable_reranking and candidates:
-            final_chunks = self.reranker.rerank(
-                query=rewritten_query, candidate_chunks=candidates, top_k=top_k
+        with traced_span(
+            "retrieval.execute",
+            attributes={
+                "retrieval.enable_query_rewrite": self.enable_query_rewrite,
+                "retrieval.enable_reranking": self.enable_reranking,
+                "retrieval.top_k": top_k,
+            },
+        ):
+            cache_key = self.cache.make_key(
+                corpus_version=self.settings.CORPUS_VERSION,
+                embedding_model=self.settings.EMBEDDING_MODEL_PRIMARY,
+                reranker_model=self.settings.RERANKER_MODEL,
+                rewrite_enabled=self.enable_query_rewrite,
+                rerank_enabled=self.enable_reranking,
+                top_k=top_k,
+                raw_query=raw_query.strip().lower(),
+                filters=metadata_filters or {},
             )
-        else:
-            final_chunks = candidates[:top_k]
+            cached = self.cache.get(cache_key)
+            if cached is not None:
+                return raw_query, cached
+            rewritten_query = (
+                self.query_rewriter.rewrite_query(raw_query)
+                if self.enable_query_rewrite
+                else raw_query
+            )
+            candidates = self.hybrid_retriever.retrieve(
+                query=rewritten_query,
+                top_k=max(top_k, self.settings.RETRIEVAL_TOP_K_DENSE),
+                filters=metadata_filters,
+            )
 
-        return rewritten_query, final_chunks
+            if self.enable_reranking and candidates:
+                final_chunks = self.reranker.rerank(
+                    query=rewritten_query, candidate_chunks=candidates, top_k=top_k
+                )
+            else:
+                final_chunks = candidates[:top_k]
+
+            self.cache.set(cache_key, final_chunks)
+            return rewritten_query, final_chunks

@@ -8,6 +8,11 @@ from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.models import RetrievedChunk
 from pokemon_tcg_rag.retrieval.bm25 import BM25Retriever
 from pokemon_tcg_rag.retrieval.dense import DenseRetriever
+from pokemon_tcg_rag.retrieval.policy import (
+    apply_mmr,
+    matches_metadata_filters,
+    normalize_metadata_filters,
+)
 
 
 class HybridRetriever:
@@ -24,9 +29,17 @@ class HybridRetriever:
         self.bm25_retriever = bm25_retriever
         self.rrf_k = rrf_k if rrf_k is not None else settings.RETRIEVAL_HYBRID_RRF_K
 
-    def retrieve(self, query: str, top_k: int = 10) -> list[RetrievedChunk]:
+    def retrieve(
+        self,
+        query: str,
+        top_k: int = 10,
+        filters: dict[str, str] | None = None,
+    ) -> list[RetrievedChunk]:
         """Retrieve via both strategies and fuse rankings with RRF."""
-        dense_results = self.dense_retriever.retrieve(query=query, top_k=top_k)
+        normalized_filters = normalize_metadata_filters(filters)
+        dense_results = self.dense_retriever.retrieve(
+            query=query, top_k=top_k, filters=normalized_filters or None
+        )
         bm25_results = self.bm25_retriever.retrieve(query=query, top_k=top_k)
 
         fused_scores: dict[str, float] = {}
@@ -45,7 +58,7 @@ class HybridRetriever:
         ordered_ids = sorted(
             fused_scores, key=lambda chunk_id: fused_scores[chunk_id], reverse=True
         )[:top_k]
-        return [
+        fused_results = [
             RetrievedChunk(
                 chunk=chunk_map[chunk_id].chunk,
                 score=fused_scores[chunk_id],
@@ -53,6 +66,12 @@ class HybridRetriever:
             )
             for chunk_id in ordered_ids
         ]
+        filtered_results = [
+            result
+            for result in fused_results
+            if matches_metadata_filters(result, normalized_filters)
+        ]
+        return apply_mmr(filtered_results, top_k=top_k, lambda_mult=0.5)
 
     def _rrf_score(self, rank: int) -> float:
         return 1.0 / (self.rrf_k + rank)
