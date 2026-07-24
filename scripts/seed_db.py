@@ -1,22 +1,7 @@
 #!/usr/bin/env python3
-"""
-CLI script to seed vector database and relational database with baseline collections.
-"""
+"""CLI wrapper around the chunk embedding/indexing helpers."""
 
-from pokemon_tcg_rag.storage.relational_db import RelationalDatabase
-from pokemon_tcg_rag.storage.vector_db import VectorDatabase
-
-
-def main() -> None:
-    print("Seeding Vector Database (Qdrant)...")
-    vdb = VectorDatabase()
-    vdb.init_collection()
-
-    print("Seeding Relational Database (PostgreSQL)...")
-    rdb = RelationalDatabase()
-    rdb.init_db()
-
-    print("Database seeding completed successfully.")
+from pokemon_tcg_rag.storage.indexing import main
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

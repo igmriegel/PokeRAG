@@ -55,7 +55,7 @@ executable by an AI Code Agent, and traceable to a requirement
 | TASK-012 | Document normalizer (`ingestion/normalizer.py`) | REQ-004 | TASK-003, TASK-010 | Done |
 | TASK-013 | Document chunker (`ingestion/chunker.py`) | REQ-004 | TASK-012 | Done |
 | TASK-014 | Qdrant vector store client (`storage/vector_db.py`) | REQ-005 | TASK-002, TASK-003 | Done |
-| TASK-015 | Embedding & indexing job (`scripts/seed_db.py`) | REQ-005 | TASK-013, TASK-014 | Pending |
+| TASK-015 | Embedding & indexing job (`scripts/seed_db.py`) | REQ-005 | TASK-013, TASK-014 | Done |
 | TASK-016 | Ingestion→index integration + chunks Parquet (`ingestion/pipeline.py`) | REQ-004, REQ-005 | TASK-013, TASK-015 | Pending |
 
 ## Sprint 4 — Retrieval: Dense, BM25, Hybrid, Rerank (`SPRINT_04_RETRIEVAL`)

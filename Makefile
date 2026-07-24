@@ -1,4 +1,4 @@
-.PHONY: help install lint format typecheck test test-unit test-integration test-e2e test-smoke eval quality ingest run-api run-ui docker-up docker-down clean
+.PHONY: help install lint format typecheck test test-unit test-integration test-e2e test-smoke eval quality ingest seed run-api run-ui docker-up docker-down clean
 
 help:
 	@echo "Pokemon TCG RAG - Development & Harness Makefile"
@@ -14,6 +14,7 @@ help:
 	@echo "test-e2e         : Run end-to-end tests"
 	@echo "eval             : Run RAG and LLM evaluation suite"
 	@echo "ingest           : Run raw data scraping and ingestion pipeline"
+	@echo "seed             : Embed chunks and seed Qdrant"
 	@echo "run-api          : Launch FastAPI backend server"
 	@echo "run-ui           : Launch Streamlit web UI"
 	@echo "docker-up        : Start all services via docker-compose"
@@ -57,8 +58,8 @@ quality: lint typecheck test
 ingest:
 	python3 scripts/run_ingestion.py
 
-seed-db:
-	python scripts/seed_db.py
+seed:
+	python3 scripts/seed_db.py
 
 run-api:
 	uvicorn pokemon_tcg_rag.api.main:app --host 0.0.0.0 --port 8000 --reload
