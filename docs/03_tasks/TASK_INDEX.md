@@ -45,7 +45,7 @@ executable by an AI Code Agent, and traceable to a requirement
 | TASK-007 | Pokegym rulings crawler (`ingestion/crawler_pokegym.py`) | REQ-001 | TASK-003, TASK-005 | Done |
 | TASK-008 | HTML pages scraper — Ban/Promo/Mega (`ingestion/html_scraper.py`) | REQ-003 | TASK-003, TASK-005 | Done |
 | TASK-009 | PDF & Rulebook parser (`ingestion/pdf_parser.py`) | REQ-002 | TASK-003, TASK-005 | Done |
-| TASK-010 | Ingestion orchestrator: download & raw persistence (`ingestion/pipeline.py`) | REQ-001, REQ-002, REQ-003 | TASK-007, TASK-008, TASK-009 | Pending |
+| TASK-010 | Ingestion orchestrator: download & raw persistence (`ingestion/pipeline.py`) | REQ-001, REQ-002, REQ-003 | TASK-007, TASK-008, TASK-009 | Done |
 | TASK-011 | Ingestion CLI & Docker ingestion service (`scripts/run_ingestion.py`) | REQ-016 | TASK-010, TASK-006 | Pending |
 
 ## Sprint 3 — Normalization, Chunking & Indexing (`SPRINT_03_CHUNKING_INDEXING`)
