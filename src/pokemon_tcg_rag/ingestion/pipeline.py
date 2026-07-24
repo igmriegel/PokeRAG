@@ -15,7 +15,6 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import pandas as pd
-import requests
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import IngestionError
@@ -25,6 +24,7 @@ from pokemon_tcg_rag.ingestion.crawler_pokegym import PokegymCrawler
 from pokemon_tcg_rag.ingestion.html_scraper import HTMLPageScraper
 from pokemon_tcg_rag.ingestion.normalizer import DocumentNormalizer
 from pokemon_tcg_rag.ingestion.pdf_parser import PDFParser
+from pokemon_tcg_rag.ingestion.trust_boundary import download_trusted_bytes
 from pokemon_tcg_rag.monitoring.logger import get_logger
 from pokemon_tcg_rag.storage.indexing import seed_chunks
 
@@ -44,12 +44,17 @@ class IngestionPipeline:
         self.raw_data_dir = Path(raw_data_dir or settings.DATA_RAW_DIR)
         self.processed_dir = Path(processed_dir or settings.DATA_PROCESSED_DIR)
         self.chunks_dir = Path(chunks_dir or settings.DATA_CHUNKS_DIR)
+        self.quarantine_dir = self.raw_data_dir / "quarantine"
         self.pdf_dir = self.raw_data_dir / "pdfs"
         self.crawler = PokegymCrawler(
             raw_html_dir=self.raw_data_dir / "html",
             raw_json_dir=self.raw_data_dir / "json",
+            quarantine_dir=self.quarantine_dir,
         )
-        self.html_scraper = HTMLPageScraper(raw_output_dir=self.raw_data_dir / "html")
+        self.html_scraper = HTMLPageScraper(
+            raw_output_dir=self.raw_data_dir / "html",
+            quarantine_dir=self.quarantine_dir,
+        )
         self.pdf_parser = PDFParser()
         self.normalizer = DocumentNormalizer()
         self.chunker = DocumentChunker()
@@ -97,6 +102,7 @@ class IngestionPipeline:
 
         self._persist_processed_documents(normalized_documents)
         self._persist_chunk_documents(chunks)
+        self._persist_provenance_manifest(normalized_documents)
         self._log_source_counts(normalized_documents)
 
         if index:
@@ -140,16 +146,13 @@ class IngestionPipeline:
 
     def _download_pdf(self, url: str) -> Path:
         self.pdf_dir.mkdir(parents=True, exist_ok=True)
-        response = requests.get(
+        content, _ = download_trusted_bytes(
             url,
+            max_bytes=25_000_000,
             timeout=60,
-            headers={
-                "User-Agent": "PokemonTCGRAG/1.0 (+https://github.com/igmriegel/PokeRAG)",
-            },
+            user_agent="PokemonTCGRAG/1.0 (+https://github.com/igmriegel/PokeRAG)",
+            allowed_content_types=("application/pdf", "application/octet-stream"),
         )
-        response.raise_for_status()
-
-        content = response.content
         checksum = hashlib.sha256(content).hexdigest()
         filename = f"{Path(urlparse(url).path).stem}_{checksum[:12]}.pdf"
         pdf_path = self.pdf_dir / filename
@@ -180,6 +183,23 @@ class IngestionPipeline:
             pd.DataFrame(flattened_records).to_parquet(parquet_path, index=False)
         else:
             pd.DataFrame(columns=self._chunk_columns()).to_parquet(parquet_path, index=False)
+
+    def _persist_provenance_manifest(self, documents: list[Document]) -> None:
+        self.processed_dir.mkdir(parents=True, exist_ok=True)
+        manifest_path = self.processed_dir / "provenance.jsonl"
+        with manifest_path.open("w", encoding="utf-8") as fh:
+            for document in documents:
+                payload = {
+                    "doc_id": document.doc_id,
+                    "source": document.metadata.source.value,
+                    "source_url": document.metadata.source_url,
+                    "checksum": document.metadata.checksum
+                    or hashlib.sha256(document.content.encode("utf-8")).hexdigest(),
+                    "parser_version": self._parser_version(document),
+                    "retrieved_at": document.created_at.isoformat(),
+                }
+                fh.write(json.dumps(payload, ensure_ascii=False))
+                fh.write("\n")
 
     def _flatten_document(self, document: Document) -> dict[str, object]:
         return {
@@ -256,3 +276,11 @@ class IngestionPipeline:
         for document in documents:
             chunks.extend(self.chunker.chunk_document(document))
         return chunks
+
+    def _parser_version(self, document: Document) -> str:
+        source = document.metadata.source.value
+        if source in {"pokegym"}:
+            return getattr(self.crawler, "PARSER_VERSION", "pokegym-crawler")
+        if source in {"ban_list_html", "promo_legality_html", "mega_rules_html"}:
+            return getattr(self.html_scraper, "PARSER_VERSION", "html-scraper")
+        return getattr(self.pdf_parser, "PARSER_VERSION", "pdf-parser")

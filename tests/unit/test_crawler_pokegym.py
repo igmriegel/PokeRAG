@@ -78,6 +78,8 @@ def test_emits_documents_with_metadata(tmp_path: Path, monkeypatch: pytest.Monke
     class DummyResponse:
         def __init__(self, text: str) -> None:
             self.text = text
+            self.content = text.encode("utf-8")
+            self.headers = {"content-type": "text/html; charset=utf-8"}
 
         def raise_for_status(self) -> None:
             return None
@@ -85,7 +87,7 @@ def test_emits_documents_with_metadata(tmp_path: Path, monkeypatch: pytest.Monke
     def fake_get(*args: object, **kwargs: object) -> DummyResponse:
         return DummyResponse(SAMPLE_HTML)
 
-    monkeypatch.setattr("pokemon_tcg_rag.ingestion.crawler_pokegym.requests.get", fake_get)
+    monkeypatch.setattr("pokemon_tcg_rag.ingestion.trust_boundary.requests.get", fake_get)
 
     crawler = PokegymCrawler(raw_html_dir=tmp_path / "html", raw_json_dir=tmp_path / "json")
     documents = crawler.fetch_all_rulings()
@@ -107,7 +109,7 @@ def test_network_error_raises_ingestion_error(monkeypatch: pytest.MonkeyPatch) -
     def fake_get(*args: object, **kwargs: object) -> None:
         raise RuntimeError("network down")
 
-    monkeypatch.setattr("pokemon_tcg_rag.ingestion.crawler_pokegym.requests.get", fake_get)
+    monkeypatch.setattr("pokemon_tcg_rag.ingestion.trust_boundary.requests.get", fake_get)
 
     crawler = PokegymCrawler()
     with pytest.raises(IngestionError):

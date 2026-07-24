@@ -12,11 +12,15 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.parse import urljoin
 
-import requests
 from bs4 import BeautifulSoup, Tag
 
 from pokemon_tcg_rag.domain.exceptions import IngestionError
 from pokemon_tcg_rag.domain.models import Document, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.ingestion.trust_boundary import (
+    download_trusted_bytes,
+    is_instruction_poisoned,
+    quarantine_payload,
+)
 from pokemon_tcg_rag.monitoring.logger import get_logger
 
 LOGGER = get_logger(__name__)
@@ -26,14 +30,17 @@ class PokegymCrawler:
     """Crawler for extracting rulings from the Pokegym compendium."""
 
     BASE_URL = "https://compendium.pokegym.net/all-rulings-by-date/"
+    PARSER_VERSION = "pokegym-crawler-v2"
 
     def __init__(
         self,
         raw_html_dir: str | Path = "data/raw_data/html",
         raw_json_dir: str | Path = "data/raw_data/json",
+        quarantine_dir: str | Path = "data/raw_data/quarantine",
     ) -> None:
         self.raw_html_dir = Path(raw_html_dir)
         self.raw_json_dir = Path(raw_json_dir)
+        self.quarantine_dir = Path(quarantine_dir)
 
     def fetch_all_rulings(self) -> list[Document]:
         """
@@ -42,18 +49,17 @@ class PokegymCrawler:
         Raw HTML is persisted alongside a JSONL projection of the structured rows.
         """
         try:
-            response = requests.get(
+            html_bytes, _ = download_trusted_bytes(
                 self.BASE_URL,
+                max_bytes=3_000_000,
                 timeout=30,
-                headers={
-                    "User-Agent": "PokemonTCGRAG/1.0 (+https://github.com/igmriegel/PokeRAG)",
-                },
+                user_agent="PokemonTCGRAG/1.0 (+https://github.com/igmriegel/PokeRAG)",
+                allowed_content_types=("text/html", "application/xhtml+xml"),
             )
-            response.raise_for_status()
         except Exception as exc:
             raise IngestionError(f"Failed to fetch Pokegym rulings: {exc}") from exc
 
-        html = response.text
+        html = html_bytes.decode("utf-8", errors="ignore")
         self._persist_raw_html(html)
 
         try:
@@ -68,6 +74,16 @@ class PokegymCrawler:
             answer = ruling.get("answer", "").strip()
             if not question and not answer:
                 continue
+            if is_instruction_poisoned(question) or is_instruction_poisoned(answer):
+                quarantine_payload(
+                    self.quarantine_dir,
+                    source_url=ruling.get("url") or self.BASE_URL,
+                    reason="instruction-poisoning",
+                    payload=f"{question}\n{answer}",
+                )
+                raise IngestionError(
+                    "Suspicious instruction-like content detected in Pokegym source"
+                )
 
             content = f"Question: {question}\nAnswer: {answer}".strip()
             metadata = DocumentMetadata(

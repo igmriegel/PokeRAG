@@ -12,11 +12,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, TypedDict
 
-import requests
 from bs4 import BeautifulSoup
 
 from pokemon_tcg_rag.domain.exceptions import IngestionError
 from pokemon_tcg_rag.domain.models import Document, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.ingestion.trust_boundary import (
+    download_trusted_bytes,
+    is_instruction_poisoned,
+    quarantine_payload,
+)
 from pokemon_tcg_rag.monitoring.logger import get_logger
 
 LOGGER = get_logger(__name__)
@@ -31,6 +35,8 @@ class TargetPage(TypedDict):
 
 class HTMLPageScraper:
     """Scrape the official HTML pages into domain documents."""
+
+    PARSER_VERSION = "html-scraper-v2"
 
     TARGET_PAGES: list[TargetPage] = [
         {
@@ -53,30 +59,44 @@ class HTMLPageScraper:
         },
     ]
 
-    def __init__(self, raw_output_dir: str | Path = "data/raw_data/html") -> None:
+    def __init__(
+        self,
+        raw_output_dir: str | Path = "data/raw_data/html",
+        quarantine_dir: str | Path = "data/raw_data/quarantine",
+    ) -> None:
         self.raw_output_dir = Path(raw_output_dir)
+        self.quarantine_dir = Path(quarantine_dir)
 
     def fetch_all_html_pages(self) -> list[Document]:
         """Fetch the configured HTML pages and return one document per page."""
         documents: list[Document] = []
         for page in self.TARGET_PAGES:
             try:
-                response = requests.get(
+                html_bytes, _ = download_trusted_bytes(
                     page["url"],
+                    max_bytes=2_000_000,
                     timeout=30,
-                    headers={
-                        "User-Agent": "PokemonTCGRAG/1.0 (+https://github.com/igmriegel/PokeRAG)",
-                    },
+                    user_agent="PokemonTCGRAG/1.0 (+https://github.com/igmriegel/PokeRAG)",
+                    allowed_content_types=("text/html", "application/xhtml+xml"),
                 )
-                response.raise_for_status()
             except Exception as exc:
                 raise IngestionError(f"Failed to fetch HTML page {page['url']}: {exc}") from exc
 
-            html = response.text
+            html = html_bytes.decode("utf-8", errors="ignore")
             self._persist_raw_html(page["source"], html)
             content = self._extract_main_content(html)
             if not content.strip():
                 raise IngestionError(f"Empty HTML content extracted from {page['url']}")
+            if is_instruction_poisoned(content):
+                quarantine_payload(
+                    self.quarantine_dir,
+                    source_url=page["url"],
+                    reason="instruction-poisoning",
+                    payload=content,
+                )
+                raise IngestionError(
+                    f"Suspicious instruction-like content detected in {page['url']}"
+                )
 
             documents.append(
                 Document(
@@ -109,7 +129,16 @@ class HTMLPageScraper:
         container = soup.find("main") or soup.find("article") or soup.body or soup
         text = container.get_text(separator="\n", strip=True)
         cleaned_lines = [line.strip() for line in text.splitlines() if line.strip()]
-        return "\n".join(cleaned_lines)
+        content = "\n".join(cleaned_lines)
+        if content and is_instruction_poisoned(content):
+            quarantine_payload(
+                self.quarantine_dir,
+                source_url="unknown",
+                reason="instruction-poisoning",
+                payload=content,
+            )
+            raise IngestionError("Suspicious instruction-like content detected in HTML body")
+        return content
 
     def _dump_json_summary(self, documents: list[Document]) -> Path:
         self.raw_output_dir.mkdir(parents=True, exist_ok=True)

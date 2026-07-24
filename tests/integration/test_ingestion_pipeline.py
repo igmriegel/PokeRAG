@@ -135,13 +135,14 @@ def test_download_dedup_by_checksum(tmp_path: Path, monkeypatch: pytest.MonkeyPa
             return None
 
     monkeypatch.setattr(
-        "pokemon_tcg_rag.ingestion.pipeline.requests.get", lambda *args, **kwargs: DummyResponse()
+        "pokemon_tcg_rag.ingestion.trust_boundary.requests.get",
+        lambda *args, **kwargs: DummyResponse(),
     )
 
     pipeline = IngestionPipeline(
         raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed"
     )
-    pdf_url = "https://example.com/rules.pdf"
+    pdf_url = "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/trading-card-game/rulebook/cri_rulebook_en.pdf"
 
     first_path = pipeline._download_pdf(pdf_url)
     second_path = pipeline._download_pdf(pdf_url)

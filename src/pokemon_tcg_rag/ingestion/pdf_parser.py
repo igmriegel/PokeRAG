@@ -16,6 +16,7 @@ import pymupdf4llm
 
 from pokemon_tcg_rag.domain.exceptions import ParsingError
 from pokemon_tcg_rag.domain.models import Document, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.ingestion.trust_boundary import is_instruction_poisoned, quarantine_payload
 from pokemon_tcg_rag.monitoring.logger import get_logger
 
 LOGGER = get_logger(__name__)
@@ -23,6 +24,8 @@ LOGGER = get_logger(__name__)
 
 class PDFParser:
     """Extract structured text from official Pokemon TCG PDF files."""
+
+    PARSER_VERSION = "pdf-parser-v2"
 
     PDF_SOURCES = {
         "rulebook": (
@@ -52,6 +55,9 @@ class PDFParser:
         ),
     }
 
+    def __init__(self, quarantine_dir: str | Path = "data/raw_data/quarantine") -> None:
+        self.quarantine_dir = Path(quarantine_dir)
+
     def parse_pdf_file(
         self,
         file_path: str | Path,
@@ -72,6 +78,16 @@ class PDFParser:
                     page_text = page.get_text("text").strip()
                     if not page_text:
                         continue
+                    if is_instruction_poisoned(page_text):
+                        quarantine_payload(
+                            self.quarantine_dir,
+                            source_url=str(path),
+                            reason="instruction-poisoning",
+                            payload=page_text,
+                        )
+                        raise ParsingError(
+                            f"Suspicious instruction-like content detected in PDF {path}"
+                        )
 
                     section_title = self._extract_section_title(page_text, markdown_text)
                     document = Document(
