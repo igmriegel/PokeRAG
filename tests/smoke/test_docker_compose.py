@@ -13,7 +13,16 @@ import yaml
 PROJECT_ROOT = Path(__file__).parents[2]
 COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yml"
 
-EXPECTED_SERVICES = {"qdrant", "postgres", "ingestion", "api", "ui", "prometheus", "grafana"}
+EXPECTED_SERVICES = {
+    "qdrant",
+    "postgres",
+    "migrations",
+    "ingestion",
+    "api",
+    "ui",
+    "prometheus",
+    "grafana",
+}
 
 
 @pytest.mark.smoke
