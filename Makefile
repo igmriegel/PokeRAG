@@ -1,4 +1,8 @@
-.PHONY: help install lint format typecheck test test-unit test-integration test-e2e test-smoke eval evaluate quality ingest seed run-api run-ui docker-up docker-down clean
+.DEFAULT_GOAL := help
+
+PYTHON := $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else echo python3; fi)
+
+.PHONY: help install lint format typecheck test test-unit test-integration test-e2e test-smoke eval evaluate quality ingest seed bootstrap-corpus run-api run-ui docker-up docker-down clean
 
 help:
 	@echo "Pokemon TCG RAG - Development & Harness Makefile"
@@ -16,6 +20,7 @@ help:
 	@echo "evaluate         : Run RAG and LLM evaluation suite"
 	@echo "ingest           : Run raw data scraping and ingestion pipeline"
 	@echo "seed             : Embed chunks and seed Qdrant"
+	@echo "bootstrap-corpus : Validate the bundled local demo corpus"
 	@echo "run-api          : Launch FastAPI backend server"
 	@echo "run-ui           : Launch Streamlit web UI"
 	@echo "docker-up        : Start all services via docker-compose"
@@ -65,11 +70,14 @@ ingest:
 seed:
 	python3 scripts/seed_db.py
 
+bootstrap-corpus:
+	python3 scripts/bootstrap_corpus.py
+
 run-api:
-	uvicorn pokemon_tcg_rag.api.main:app --host 0.0.0.0 --port 8000 --reload
+	$(PYTHON) -m uvicorn pokemon_tcg_rag.api.main:app --host 0.0.0.0 --port 8000 --reload
 
 run-ui:
-	streamlit run src/pokemon_tcg_rag/ui/streamlit_app.py --server.port 8501
+	$(PYTHON) -m streamlit run src/pokemon_tcg_rag/ui/streamlit_app.py --server.port 8501
 
 docker-up:
 	docker-compose up --build -d

@@ -10,6 +10,9 @@ from sentence_transformers import CrossEncoder
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.models import RetrievedChunk
+from pokemon_tcg_rag.monitoring.logger import get_logger
+
+LOGGER = get_logger(__name__)
 
 
 class BGEReranker:
@@ -20,11 +23,17 @@ class BGEReranker:
         self.model_name = settings.RERANKER_MODEL
         self.default_top_k = settings.RETRIEVAL_FINAL_TOP_K
         self._reranker_model: CrossEncoder | None = None
+        self._disabled_reason: str | None = None
 
     @property
     def model(self) -> CrossEncoder:
         if self._reranker_model is None:
-            self._reranker_model = CrossEncoder(self.model_name)
+            try:
+                self._reranker_model = CrossEncoder(self.model_name)
+            except Exception as exc:  # pragma: no cover - defensive fallback
+                self._disabled_reason = str(exc)
+                LOGGER.warning("reranker_disabled", model=self.model_name, reason=self._disabled_reason)
+                raise
         return self._reranker_model
 
     def rerank(
@@ -38,8 +47,16 @@ class BGEReranker:
             return []
 
         limit = top_k or self.default_top_k
+        if self._disabled_reason is not None:
+            ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
+            return list(ordered[:limit])
+
         pairs = [[query, item.chunk.text] for item in candidate_chunks]
-        scores = list(self.model.predict(pairs, convert_to_numpy=True))
+        try:
+            scores = list(self.model.predict(pairs, convert_to_numpy=True))
+        except Exception:
+            ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
+            return list(ordered[:limit])
 
         reranked = [
             RetrievedChunk(

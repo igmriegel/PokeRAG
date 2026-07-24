@@ -22,7 +22,7 @@ from pokemon_tcg_rag.retrieval.bm25 import BM25Retriever
 from pokemon_tcg_rag.retrieval.dense import DenseRetriever
 from pokemon_tcg_rag.retrieval.pipeline import RetrievalPipeline
 from pokemon_tcg_rag.retrieval.query_rewriter import QueryRewriter
-from pokemon_tcg_rag.storage.indexing import load_chunks
+from pokemon_tcg_rag.storage.indexing import load_chunks, load_corpus_manifest
 from pokemon_tcg_rag.storage.relational_db import RelationalDatabase
 from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 
@@ -166,6 +166,7 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
     active_settings = settings or get_settings()
     relational_db = RelationalDatabase()
 
+    manifest = load_corpus_manifest(active_settings.DATA_CHUNKS_DIR)
     chunks: list[Chunk] = load_chunks(active_settings.DATA_CHUNKS_DIR)
     bm25_retriever = BM25Retriever(chunks)
     vector_db: VectorDatabase | OfflineVectorDatabase = VectorDatabase()
@@ -184,7 +185,7 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
         query_rewriter_client = OfflineQueryRewriterClient()
 
     try:
-        vector_db.init_collection()
+        vector_db.init_collection(metadata=manifest.to_collection_metadata() if manifest else None)
     except Exception as exc:
         if active_settings.ENVIRONMENT == "production":
             raise ConfigurationError(f"Qdrant initialization failed: {exc}") from exc

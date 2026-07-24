@@ -73,3 +73,23 @@ def test_fewer_candidates_than_k(monkeypatch: pytest.MonkeyPatch) -> None:
     output = reranker.rerank("Rare Candy", [_make_candidate("c1", "a")], top_k=5)
 
     assert len(output) == 1
+
+
+@pytest.mark.unit
+def test_rerank_degrades_when_model_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """TASK-064: the local runtime must stay usable when the reranker model cannot load."""
+
+    class BrokenCrossEncoder:
+        def __init__(self, *args, **kwargs) -> None:
+            raise RuntimeError("offline")
+
+    monkeypatch.setattr("pokemon_tcg_rag.retrieval.reranker.CrossEncoder", BrokenCrossEncoder)
+    reranker = BGEReranker()
+
+    output = reranker.rerank(
+        "Rare Candy",
+        [_make_candidate("c1", "a"), _make_candidate("c2", "b")],
+        top_k=2,
+    )
+
+    assert [item.chunk.chunk_id for item in output] == ["c1", "c2"]

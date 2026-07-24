@@ -18,8 +18,10 @@ from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 class DummyClient:
     def __init__(self) -> None:
         self.created = False
+        self.created_kwargs: dict[str, object] | None = None
         self.upserted = None
         self.query_filter = None
+        self.collection_metadata: dict[str, object] = {}
         self.points = [
             SimpleNamespace(
                 id="chunk-1",
@@ -45,7 +47,16 @@ class DummyClient:
 
     def create_collection(self, *args, **kwargs) -> bool:
         self.created = True
+        self.created_kwargs = kwargs
+        metadata = kwargs.get("metadata")
+        if isinstance(metadata, dict):
+            self.collection_metadata = metadata
         return True
+
+    def get_collection(self, name: str) -> SimpleNamespace:
+        return SimpleNamespace(
+            config=SimpleNamespace(metadata=self.collection_metadata),
+        )
 
     def upsert(self, *args, **kwargs) -> SimpleNamespace:
         self.upserted = kwargs
@@ -86,6 +97,46 @@ def test_init_collection_dim_1024() -> None:
     db.init_collection()
 
     assert client.created is True
+    assert client.created_kwargs is not None
+    assert client.created_kwargs["metadata"] is None
+
+
+@pytest.mark.unit
+def test_init_collection_validates_manifest_metadata() -> None:
+    """TASK-061: collection metadata must match the corpus manifest."""
+    client = DummyClient()
+    db = VectorDatabase(client=client)  # type: ignore[arg-type]
+    metadata = {
+        "corpus_id": "bootstrap-demo-corpus",
+        "corpus_version": "2026-07-24",
+        "corpus_manifest_sha256": "abc",
+        "corpus_source_hash": "def",
+        "corpus_chunk_count": 4,
+    }
+
+    db.init_collection(metadata=metadata)
+
+    assert client.collection_metadata["corpus_id"] == "bootstrap-demo-corpus"
+
+
+@pytest.mark.unit
+def test_init_collection_rejects_manifest_mismatch() -> None:
+    """TASK-061: a manifest mismatch must fail closed."""
+    client = DummyClient()
+    client.created = True
+    client.collection_metadata = {
+        "corpus_id": "other-corpus",
+        "corpus_version": "2026-07-24",
+    }
+    db = VectorDatabase(client=client)  # type: ignore[arg-type]
+
+    with pytest.raises(VectorStoreError):
+        db.init_collection(
+            metadata={
+                "corpus_id": "bootstrap-demo-corpus",
+                "corpus_version": "2026-07-24",
+            }
+        )
 
 
 @pytest.mark.unit

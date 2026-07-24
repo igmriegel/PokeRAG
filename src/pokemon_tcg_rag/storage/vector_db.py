@@ -36,10 +36,15 @@ class VectorDatabase:
         self.collection_name = settings.QDRANT_COLLECTION_NAME
         self.vector_dim = settings.EMBEDDING_DIMENSION
 
-    def init_collection(self) -> None:
-        """Create the target collection if it does not already exist."""
+    def init_collection(self, metadata: dict[str, Any] | None = None) -> None:
+        """Create the target collection if it does not already exist.
+
+        If the collection already exists, verify manifest metadata when provided.
+        """
         try:
             if self.client.collection_exists(self.collection_name):
+                if metadata is not None:
+                    self._assert_collection_metadata(metadata)
                 return
 
             self.client.create_collection(
@@ -48,9 +53,37 @@ class VectorDatabase:
                     size=self.vector_dim,
                     distance=qmodels.Distance.COSINE,
                 ),
+                metadata=metadata,
             )
+            if metadata is not None:
+                self._assert_collection_metadata(metadata)
         except Exception as exc:  # pragma: no cover - defensive wrapper
             raise VectorStoreError(f"Failed to initialize Qdrant collection: {exc}") from exc
+
+    def collection_metadata(self) -> dict[str, Any]:
+        """Return the current collection metadata if available."""
+        try:
+            info = self.client.get_collection(self.collection_name)
+        except Exception as exc:  # pragma: no cover - defensive wrapper
+            raise VectorStoreError(f"Failed to inspect Qdrant collection: {exc}") from exc
+
+        config = getattr(info, "config", None)
+        metadata = getattr(config, "metadata", None)
+        if metadata is None:
+            return {}
+        if isinstance(metadata, dict):
+            return metadata
+        if hasattr(metadata, "model_dump"):
+            return metadata.model_dump()
+        return dict(metadata)
+
+    def _assert_collection_metadata(self, expected: dict[str, Any]) -> None:
+        actual = self.collection_metadata()
+        for key, value in expected.items():
+            if actual.get(key) != value:
+                raise VectorStoreError(
+                    f"Qdrant collection metadata mismatch for {key}: expected {value!r}, got {actual.get(key)!r}"
+                )
 
     def upsert_chunks(self, chunks: Sequence[Chunk]) -> None:
         """Upsert embedded chunks into Qdrant."""
