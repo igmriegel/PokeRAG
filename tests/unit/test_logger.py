@@ -4,16 +4,12 @@ TASK-005 — TEST-014, TEST-015
 Unit tests for structured JSON logging via structlog.
 """
 
-import io
 import json
-import logging
-import pytest
 
-import structlog
+import pytest
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.monitoring.logger import get_logger, setup_logging
-
 
 # ─────────────────────────────────────────────
 # TEST-014  JSON output from setup_logging

@@ -11,7 +11,6 @@ import sys
 from typing import Any
 
 import structlog
-from structlog.types import WrappedLogger, EventDict
 
 from pokemon_tcg_rag.config.settings import get_settings
 
