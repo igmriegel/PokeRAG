@@ -4,6 +4,7 @@ End-to-end RAG chain.
 
 from __future__ import annotations
 
+import re
 import time
 
 from pokemon_tcg_rag.config.settings import get_settings
@@ -50,6 +51,8 @@ class RAGChain:
 
         prompt = self.prompt_manager.build_prompt(query=raw_query, chunks=chunks)
         answer = self.llm_client.generate_answer(prompt).strip() or "I don't know."
+        if self._contains_invalid_citations(answer, len(chunks)):
+            answer = "I don't know."
         latency = time.time() - start
         citations: list[DocumentMetadata] = [item.chunk.metadata for item in chunks]
 
@@ -62,3 +65,9 @@ class RAGChain:
             model_name=self.llm_client.model_name,
             latency_seconds=round(latency, 3),
         )
+
+    def _contains_invalid_citations(self, answer: str, max_index: int) -> bool:
+        citation_indexes = [int(match) for match in re.findall(r"\[(\d+)\]", answer)]
+        if not citation_indexes:
+            return False
+        return any(index < 1 or index > max_index for index in citation_indexes)
