@@ -1,5 +1,5 @@
 """
-TASK-010 — TEST-029, TEST-030, TEST-031
+TASK-010 / TASK-016 — TEST-029, TEST-030, TEST-031, TEST-052, TEST-053, TEST-054
 
 Integration tests for the ingestion orchestrator.
 """
@@ -179,3 +179,160 @@ def test_processed_persistence_written(tmp_path: Path, monkeypatch: pytest.Monke
 
     assert (tmp_path / "processed" / "documents.jsonl").exists()
     assert (tmp_path / "processed" / "documents.parquet").exists()
+
+
+@pytest.mark.integration
+def test_pipeline_produces_chunks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """TEST-052: pipeline must normalize and chunk all ingested documents."""
+
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.PokegymCrawler.fetch_all_rulings",
+        lambda self: [
+            _build_document(
+                "pokegym_1",
+                "Question: Can I use Rare Candy?\nAnswer: Yes.",
+                DocumentSource.POKEGYM,
+                RuleType.RULING,
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.HTMLPageScraper.fetch_all_html_pages",
+        lambda self: [
+            _build_document("html_ban", "Ban list content", DocumentSource.BAN_LIST_HTML, RuleType.BAN_STATUS),
+            _build_document(
+                "html_promo",
+                "Promo legality content",
+                DocumentSource.PROMO_LEGALITY_HTML,
+                RuleType.PROMO_STATUS,
+            ),
+            _build_document("html_mega", "Mega rules content", DocumentSource.MEGA_RULES_HTML, RuleType.MECHANIC_RULE),
+        ],
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.IngestionPipeline._download_pdf",
+        lambda self, url: tmp_path / "raw" / "pdfs" / "dummy.pdf",
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.PDFParser.parse_pdf_file",
+        lambda self, file_path, source, rule_type: [
+            _build_document(
+                f"{source.value}_1",
+                f"{source.value} content",
+                source,
+                rule_type,
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.seed_chunks",
+        lambda chunks: len(chunks),
+    )
+
+    pipeline = IngestionPipeline(
+        raw_data_dir=tmp_path / "raw",
+        processed_dir=tmp_path / "processed",
+        chunks_dir=tmp_path / "chunks",
+    )
+    chunks = pipeline.run(index=True)
+
+    assert len(chunks) == 9
+    assert {chunk.metadata.source for chunk in chunks} == {
+        DocumentSource.POKEGYM,
+        DocumentSource.BAN_LIST_HTML,
+        DocumentSource.PROMO_LEGALITY_HTML,
+        DocumentSource.MEGA_RULES_HTML,
+        DocumentSource.RULEBOOK_PDF,
+        DocumentSource.TOURNAMENT_HANDBOOK_PDF,
+        DocumentSource.ALT_PLAY_HANDBOOK_PDF,
+        DocumentSource.ERRATA_PDF,
+        DocumentSource.DECK_LIST_GUIDE_PDF,
+    }
+
+
+@pytest.mark.integration
+def test_chunks_parquet_written(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """TEST-053: chunk parquet artifact must be written to the chunks directory."""
+
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.PokegymCrawler.fetch_all_rulings",
+        lambda self: [
+            _build_document(
+                "pokegym_1",
+                "Question: Can I use Rare Candy?\nAnswer: Yes.",
+                DocumentSource.POKEGYM,
+                RuleType.RULING,
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.HTMLPageScraper.fetch_all_html_pages",
+        lambda self: [],
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.IngestionPipeline._download_pdf",
+        lambda self, url: tmp_path / "raw" / "pdfs" / "dummy.pdf",
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.PDFParser.parse_pdf_file",
+        lambda self, file_path, source, rule_type: [],
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.seed_chunks",
+        lambda chunks: len(chunks),
+    )
+
+    pipeline = IngestionPipeline(
+        raw_data_dir=tmp_path / "raw",
+        processed_dir=tmp_path / "processed",
+        chunks_dir=tmp_path / "chunks",
+    )
+    pipeline.run()
+
+    assert (tmp_path / "chunks" / "chunks.parquet").exists()
+
+
+@pytest.mark.integration
+def test_end_to_end_counts_consistent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """TEST-054: document, chunk, and indexed point counts must remain consistent."""
+
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.PokegymCrawler.fetch_all_rulings",
+        lambda self: [
+            _build_document(
+                "pokegym_1",
+                "Question: Can I use Rare Candy?\nAnswer: Yes.",
+                DocumentSource.POKEGYM,
+                RuleType.RULING,
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.HTMLPageScraper.fetch_all_html_pages",
+        lambda self: [],
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.IngestionPipeline._download_pdf",
+        lambda self, url: tmp_path / "raw" / "pdfs" / "dummy.pdf",
+    )
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.PDFParser.parse_pdf_file",
+        lambda self, file_path, source, rule_type: [],
+    )
+    indexed_counts: list[int] = []
+
+    def fake_seed_chunks(chunks: list[object]) -> int:
+        indexed_counts.append(len(chunks))
+        return len(chunks)
+
+    monkeypatch.setattr("pokemon_tcg_rag.ingestion.pipeline.seed_chunks", fake_seed_chunks)
+
+    pipeline = IngestionPipeline(
+        raw_data_dir=tmp_path / "raw",
+        processed_dir=tmp_path / "processed",
+        chunks_dir=tmp_path / "chunks",
+    )
+    chunks = pipeline.run(index=True)
+
+    assert len(chunks) == 1
+    assert indexed_counts == [1]

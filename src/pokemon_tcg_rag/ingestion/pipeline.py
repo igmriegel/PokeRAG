@@ -2,7 +2,7 @@
 Ingestion pipeline coordinator.
 
 Downloads the official source PDFs, runs the Pokegym crawler, HTML scraper, and PDF parser,
-then persists a processed Document corpus for downstream normalization/chunking tasks.
+then persists processed documents and chunks for downstream normalization/chunking/indexing tasks.
 """
 
 from __future__ import annotations
@@ -19,11 +19,14 @@ import requests
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import IngestionError
-from pokemon_tcg_rag.domain.models import Document
+from pokemon_tcg_rag.domain.models import Chunk, Document
+from pokemon_tcg_rag.ingestion.chunker import DocumentChunker
 from pokemon_tcg_rag.ingestion.crawler_pokegym import PokegymCrawler
 from pokemon_tcg_rag.ingestion.html_scraper import HTMLPageScraper
+from pokemon_tcg_rag.ingestion.normalizer import DocumentNormalizer
 from pokemon_tcg_rag.ingestion.pdf_parser import PDFParser
 from pokemon_tcg_rag.monitoring.logger import get_logger
+from pokemon_tcg_rag.storage.indexing import seed_chunks
 
 LOGGER = get_logger(__name__)
 
@@ -35,16 +38,27 @@ class IngestionPipeline:
         self,
         raw_data_dir: str | Path | None = None,
         processed_dir: str | Path | None = None,
+        chunks_dir: str | Path | None = None,
     ) -> None:
         settings = get_settings()
         self.raw_data_dir = Path(raw_data_dir or settings.DATA_RAW_DIR)
         self.processed_dir = Path(processed_dir or settings.DATA_PROCESSED_DIR)
+        self.chunks_dir = Path(chunks_dir or settings.DATA_CHUNKS_DIR)
         self.pdf_dir = self.raw_data_dir / "pdfs"
-        self.crawler = PokegymCrawler(raw_html_dir=self.raw_data_dir / "html", raw_json_dir=self.raw_data_dir / "json")
+        self.crawler = PokegymCrawler(
+            raw_html_dir=self.raw_data_dir / "html",
+            raw_json_dir=self.raw_data_dir / "json",
+        )
         self.html_scraper = HTMLPageScraper(raw_output_dir=self.raw_data_dir / "html")
         self.pdf_parser = PDFParser()
+        self.normalizer = DocumentNormalizer()
+        self.chunker = DocumentChunker()
 
-    def run(self, sources: Iterable[str] | None = None) -> list[Document]:
+    def run(
+        self,
+        sources: Iterable[str] | None = None,
+        index: bool = False,
+    ) -> list[Document] | list[Chunk]:
         """
         Run the configured ingestion sources and persist processed artifacts.
 
@@ -75,14 +89,23 @@ class IngestionPipeline:
             except IngestionError as exc:
                 errors.append(str(exc))
 
-        self._persist_processed_documents(documents)
-        self._log_source_counts(documents)
-
         if errors:
             raise IngestionError("; ".join(errors))
 
-        LOGGER.info("ingestion_finished", documents=len(documents))
-        return documents
+        normalized_documents = [self.normalizer.normalize(document) for document in documents]
+        chunks = self._chunk_documents(normalized_documents)
+
+        self._persist_processed_documents(normalized_documents)
+        self._persist_chunk_documents(chunks)
+        self._log_source_counts(normalized_documents)
+
+        if index:
+            seed_chunks(chunks)
+            LOGGER.info("ingestion_finished", documents=len(normalized_documents), chunks=len(chunks), indexed=True)
+            return chunks
+
+        LOGGER.info("ingestion_finished", documents=len(normalized_documents), chunks=len(chunks), indexed=False)
+        return normalized_documents
 
     def _normalize_sources(self, sources: Iterable[str] | None) -> set[str]:
         if not sources:
@@ -134,7 +157,19 @@ class IngestionPipeline:
 
         parquet_path = self.processed_dir / "documents.parquet"
         flattened_records = [self._flatten_document(document) for document in documents]
-        pd.DataFrame(flattened_records).to_parquet(parquet_path, index=False)
+        if flattened_records:
+            pd.DataFrame(flattened_records).to_parquet(parquet_path, index=False)
+        else:
+            pd.DataFrame(columns=self._document_columns()).to_parquet(parquet_path, index=False)
+
+    def _persist_chunk_documents(self, chunks: list[Chunk]) -> None:
+        self.chunks_dir.mkdir(parents=True, exist_ok=True)
+        parquet_path = self.chunks_dir / "chunks.parquet"
+        flattened_records = [self._flatten_chunk(chunk) for chunk in chunks]
+        if flattened_records:
+            pd.DataFrame(flattened_records).to_parquet(parquet_path, index=False)
+        else:
+            pd.DataFrame(columns=self._chunk_columns()).to_parquet(parquet_path, index=False)
 
     def _flatten_document(self, document: Document) -> dict[str, object]:
         return {
@@ -152,6 +187,62 @@ class IngestionPipeline:
             "checksum": document.metadata.checksum,
         }
 
+    def _flatten_chunk(self, chunk: Chunk) -> dict[str, object]:
+        return {
+            "chunk_id": chunk.chunk_id,
+            "doc_id": chunk.doc_id,
+            "text": chunk.text,
+            "token_count": chunk.token_count,
+            "source": chunk.metadata.source.value,
+            "document_title": chunk.metadata.document_title,
+            "page_number": chunk.metadata.page_number,
+            "section_title": chunk.metadata.section_title,
+            "card_name": chunk.metadata.card_name,
+            "rule_type": chunk.metadata.rule_type.value,
+            "publication_date": chunk.metadata.publication_date,
+            "source_url": chunk.metadata.source_url,
+            "checksum": chunk.metadata.checksum,
+        }
+
+    def _document_columns(self) -> list[str]:
+        return [
+            "doc_id",
+            "content",
+            "created_at",
+            "source",
+            "document_title",
+            "page_number",
+            "section_title",
+            "card_name",
+            "rule_type",
+            "publication_date",
+            "source_url",
+            "checksum",
+        ]
+
+    def _chunk_columns(self) -> list[str]:
+        return [
+            "chunk_id",
+            "doc_id",
+            "text",
+            "token_count",
+            "source",
+            "document_title",
+            "page_number",
+            "section_title",
+            "card_name",
+            "rule_type",
+            "publication_date",
+            "source_url",
+            "checksum",
+        ]
+
     def _log_source_counts(self, documents: list[Document]) -> None:
         counts = Counter(document.metadata.source.value for document in documents)
         LOGGER.info("ingestion_document_counts", **dict(counts), total=len(documents))
+
+    def _chunk_documents(self, documents: list[Document]) -> list[Chunk]:
+        chunks: list[Chunk] = []
+        for document in documents:
+            chunks.extend(self.chunker.chunk_document(document))
+        return chunks

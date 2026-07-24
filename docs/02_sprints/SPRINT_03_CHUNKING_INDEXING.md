@@ -68,15 +68,15 @@ Chunking experiments (fixed vs semantic; 256/512/1024 tokens) are *set up* here 
 
 ## Checklist
 
-- [ ] Normalizer is unicode-safe and idempotent.
-- [ ] Chunker respects configured chunk size/overlap; every `Chunk` has a unique `chunk_id` and correct `token_count`.
-- [ ] Pokegym Q&A becomes a single chunk (question + answer together, per plan Fase 2).
-- [ ] Metadata fully propagated from `Document` → `Chunk` (source, page, section, card, rule_type, date, url, checksum).
-- [ ] Qdrant collection created with dim **1024**, cosine distance, on first run (idempotent).
-- [ ] Payload stores all `DocumentMetadata` fields to enable metadata filtering downstream.
-- [ ] Upsert is idempotent by `chunk_id`; re-indexing does not duplicate.
-- [ ] Chunks persisted to `data/chunks/` as JSONL/Parquet.
-- [ ] Embedding dimension asserted == `EMBEDDING_DIMENSION`.
+- [x] Normalizer is unicode-safe and idempotent.
+- [x] Chunker respects configured chunk size/overlap; every `Chunk` has a unique `chunk_id` and correct `token_count`.
+- [x] Pokegym Q&A becomes a single chunk (question + answer together, per plan Fase 2).
+- [x] Metadata fully propagated from `Document` → `Chunk` (source, page, section, card, rule_type, date, url, checksum).
+- [x] Qdrant collection created with dim **1024**, cosine distance, on first run (idempotent).
+- [x] Payload stores all `DocumentMetadata` fields to enable metadata filtering downstream.
+- [x] Upsert is idempotent by `chunk_id`; re-indexing does not duplicate.
+- [x] Chunks persisted to `data/chunks/` as JSONL/Parquet.
+- [x] Embedding dimension asserted == `EMBEDDING_DIMENSION`.
 
 ## Acceptance Criteria (measurable)
 

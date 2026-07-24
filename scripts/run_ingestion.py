@@ -27,6 +27,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Override the processed output directory",
     )
+    parser.add_argument(
+        "--index",
+        action="store_true",
+        help="Normalize, chunk, and index the ingestion output",
+    )
     return parser
 
 
@@ -45,8 +50,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     pipeline = IngestionPipeline(processed_dir=args.out_dir)
-    documents = pipeline.run(sources=_flatten_sources(args.sources))
-    print(f"Ingestion successful. Generated {len(documents)} documents.")
+    result = pipeline.run(sources=_flatten_sources(args.sources), index=args.index)
+    unit = "chunks" if args.index else "documents"
+    print(f"Ingestion successful. Generated {len(result)} {unit}.")
     return 0
 
 
