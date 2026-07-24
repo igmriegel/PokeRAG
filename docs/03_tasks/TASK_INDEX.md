@@ -63,7 +63,7 @@ executable by an AI Code Agent, and traceable to a requirement
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | TASK-017 | Dense retriever (`retrieval/dense.py`) | REQ-006 | TASK-014 | Done |
-| TASK-018 | BM25 lexical retriever (`retrieval/bm25.py`) | REQ-007 | TASK-013 | Pending |
+| TASK-018 | BM25 lexical retriever (`retrieval/bm25.py`) | REQ-007 | TASK-013 | Done |
 | TASK-019 | Hybrid retriever — RRF k=60 (`retrieval/hybrid.py`) | REQ-008 | TASK-017, TASK-018 | Pending |
 | TASK-020 | Cross-encoder reranker (`retrieval/reranker.py`) | REQ-009 | TASK-019 | Pending |
 | TASK-021 | LLM client — OpenAI-compatible (`llm/client.py`) | REQ-011 | TASK-002 | Pending |
