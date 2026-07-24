@@ -72,10 +72,10 @@ Also: metadata filtering across strategies. Query rewriting is in [SPRINT_05](./
 
 ## Checklist
 
-- [ ] Dense retriever returns `RETRIEVAL_TOP_K_DENSE` chunks with `retrieval_method="dense"`.
-- [ ] BM25 retriever returns `RETRIEVAL_TOP_K_BM25` chunks with `retrieval_method="bm25"`.
-- [ ] Hybrid applies RRF with `RETRIEVAL_HYBRID_RRF_K=60`; `retrieval_method="hybrid"`.
-- [ ] Reranker consumes fused candidates → `RETRIEVAL_FINAL_TOP_K=5`; `retrieval_method="reranked"`.
+- [x] Dense retriever returns `RETRIEVAL_TOP_K_DENSE` chunks with `retrieval_method="dense"`.
+- [x] BM25 retriever returns `RETRIEVAL_TOP_K_BM25` chunks with `retrieval_method="bm25"`.
+- [x] Hybrid applies RRF with `RETRIEVAL_HYBRID_RRF_K=60`; `retrieval_method="hybrid_rrf"`.
+- [x] Reranker consumes fused candidates → `RETRIEVAL_FINAL_TOP_K=5`; `retrieval_method="bge_reranked"`.
 - [ ] `pipeline.py` selects any of the 4 strategies via a single parameter.
 - [ ] Metadata filters (`source`, `rule_type`, `card_name`) pushed to Qdrant / applied to BM25 candidates.
 - [ ] Scores populated and monotonic per method; ties broken deterministically.
