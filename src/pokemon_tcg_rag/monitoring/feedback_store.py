@@ -27,13 +27,16 @@ class FeedbackStore:
         latency: float,
     ) -> FeedbackRecord:
         """Build and persist a feedback record."""
+        normalized_comment = comment.strip() if comment else None
+        if normalized_comment:
+            normalized_comment = normalized_comment[:1000]
         record = FeedbackRecord(
             feedback_id=f"fb_{uuid.uuid4().hex[:10]}",
             query_id=query_id,
             query=query,
             answer=answer,
             rating=rating,
-            comment=comment,
+            comment=normalized_comment,
             model_name=model_name,
             latency_seconds=latency,
         )
