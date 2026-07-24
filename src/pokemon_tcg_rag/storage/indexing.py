@@ -5,6 +5,7 @@ Chunk embedding and Qdrant seeding helpers.
 from __future__ import annotations
 
 import argparse
+import json
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -62,12 +63,19 @@ def load_chunks(chunks_dir: str | Path | None = None) -> list[Chunk]:
     if not directory.exists():
         return []
 
-    chunk_paths = sorted(directory.rglob("*.parquet"))
     chunks: list[Chunk] = []
-    for path in chunk_paths:
-        frame = pd.read_parquet(path)
-        for record in frame.to_dict(orient="records"):
-            chunks.append(_record_to_chunk(record))
+    for path in sorted(directory.rglob("*")):
+        if path.suffix.lower() == ".parquet":
+            frame = pd.read_parquet(path)
+            for record in frame.to_dict(orient="records"):
+                chunks.append(_record_to_chunk(record))
+        elif path.suffix.lower() in {".jsonl", ".ndjson"}:
+            with path.open("r", encoding="utf-8") as fh:
+                for line in fh:
+                    stripped = line.strip()
+                    if not stripped:
+                        continue
+                    chunks.append(_record_to_chunk(json.loads(stripped)))
     return chunks
 
 

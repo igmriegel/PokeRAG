@@ -24,6 +24,7 @@ from pokemon_tcg_rag.domain.models import (
     RetrievedChunk,
     RuleType,
 )
+from pokemon_tcg_rag.storage.indexing import load_chunks
 
 
 def _answer_response() -> AnswerResponse:
@@ -151,3 +152,29 @@ def test_build_runtime_container_requires_openai_in_production(monkeypatch) -> N
 
     with pytest.raises(ConfigurationError):
         api_runtime.build_runtime_container(Settings(ENVIRONMENT="production", OPENAI_API_KEY=""))
+
+
+def test_bootstrap_corpus_is_loadable() -> None:
+    """The bundled local corpus must be discoverable by the loader."""
+    chunks = load_chunks("data/chunks")
+
+    assert chunks
+    assert any(chunk.metadata.card_name == "Rare Candy" for chunk in chunks)
+
+
+def test_offline_answer_client_uses_context() -> None:
+    """The offline answer path should summarize retrieved context instead of abstaining."""
+    client = api_runtime.OfflineAnswerClient()
+    prompt = (
+        "Você é um Juiz Certificado Oficial do Pokémon Trading Card Game (TCG).\n"
+        "Contexto:\n"
+        "[1] Demo Rulebook Reference — p. 12\n"
+        "Rare Candy lets you evolve a Basic Pokémon directly into a Stage 2 Pokémon.\n\n"
+        "Pergunta:\n"
+        "Posso usar Rare Candy?"
+    )
+
+    answer = client.generate_answer(prompt)
+
+    assert answer != "I don't know."
+    assert "Rare Candy" in answer

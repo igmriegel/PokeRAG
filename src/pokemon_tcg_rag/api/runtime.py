@@ -60,12 +60,37 @@ class OfflineQueryRewriterClient:
 
 
 class OfflineAnswerClient:
-    """Local fallback that returns a safe abstention when OpenAI is unavailable."""
+    """Local fallback that summarizes retrieved context when OpenAI is unavailable."""
 
     model_name = "offline-llm"
 
-    def generate_answer(self, prompt: str) -> str:  # pragma: no cover - trivial fallback
-        return "I don't know."
+    def generate_answer(self, prompt: str) -> str:
+        """Return a short grounded answer derived from the retrieved context."""
+        context = self._extract_context(prompt)
+        if not context:
+            return "I don't know."
+
+        first_block = context.split("\n\n", 1)[0].strip()
+        lines = [line.strip() for line in first_block.splitlines() if line.strip()]
+        if len(lines) < 2:
+            fallback = lines[0] if lines else "I don't know."
+            return f"Com base no contexto recuperado: {fallback}"
+
+        source_line = lines[0]
+        text = " ".join(lines[1:]).strip()
+        if "." in text:
+            text = text.split(".", 1)[0].strip() + "."
+        return f"Com base em {source_line}, {text}"
+
+    def _extract_context(self, prompt: str) -> str:
+        start_marker = "Contexto:"
+        end_marker = "\n\nPergunta:"
+        if start_marker not in prompt:
+            return ""
+        remainder = prompt.split(start_marker, 1)[1]
+        if end_marker not in remainder:
+            return remainder.strip()
+        return remainder.split(end_marker, 1)[0].strip()
 
 
 class OfflineVectorDatabase(VectorDatabase):
