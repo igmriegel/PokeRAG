@@ -21,4 +21,4 @@ COPY config/ config/
 
 RUN pip install --no-cache-dir -e .
 
-CMD ["python", "scripts/run_ingestion.py"]
+CMD ["python3", "scripts/run_ingestion.py"]

@@ -55,7 +55,7 @@ eval:
 quality: lint typecheck test
 
 ingest:
-	python scripts/run_ingestion.py
+	python3 scripts/run_ingestion.py
 
 seed-db:
 	python scripts/seed_db.py

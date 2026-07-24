@@ -71,15 +71,15 @@ Out of scope: normalization, chunking, embeddings, Qdrant (see [SPRINT_03](./SPR
 
 ## Checklist
 
-- [ ] Pokegym crawler saves raw HTML and emits one record per ruling with all 6 fields.
-- [ ] Crawler is resumable / idempotent (re-runs do not duplicate records).
-- [ ] All PDF sources download to `data/raw_data/pdfs/` with checksums recorded.
-- [ ] PDF parser preserves `page_number` and section titles into `DocumentMetadata`.
-- [ ] HTML scraper handles the 3 dynamic pages; captures `publication_date`/`source_url`.
-- [ ] Each `Document` carries correct `source` (`DocumentSource`) and `rule_type` (`RuleType`).
-- [ ] Orchestrator writes JSONL/Parquet to `data/raw_data/json/` and prints an ingestion report.
-- [ ] Network calls are retried with backoff and time out gracefully.
-- [ ] Unit tests use recorded HTML/PDF fixtures (no live network in CI).
+- [x] Pokegym crawler saves raw HTML and emits one record per ruling with all 6 fields.
+- [x] Crawler is resumable / idempotent (re-runs do not duplicate records).
+- [x] All PDF sources download to `data/raw_data/pdfs/` with checksums recorded.
+- [x] PDF parser preserves `page_number` and section titles into `DocumentMetadata`.
+- [x] HTML scraper handles the 3 dynamic pages; captures `publication_date`/`source_url`.
+- [x] Each `Document` carries correct `source` (`DocumentSource`) and `rule_type` (`RuleType`).
+- [x] Orchestrator writes JSONL/Parquet to `data/raw_data/json/` and prints an ingestion report.
+- [x] Network calls are retried with backoff and time out gracefully.
+- [x] Unit tests use recorded HTML/PDF fixtures (no live network in CI).
 
 ## Acceptance Criteria (measurable)
 

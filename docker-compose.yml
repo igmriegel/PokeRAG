@@ -50,6 +50,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.ingestion
     container_name: pokemon_ingestion
+    command: ["python3", "scripts/run_ingestion.py"]
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - QDRANT_HOST=qdrant
