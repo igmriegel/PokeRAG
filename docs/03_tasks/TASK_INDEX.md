@@ -52,7 +52,7 @@ executable by an AI Code Agent, and traceable to a requirement
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-012 | Document normalizer (`ingestion/normalizer.py`) | REQ-004 | TASK-003, TASK-010 | Pending |
+| TASK-012 | Document normalizer (`ingestion/normalizer.py`) | REQ-004 | TASK-003, TASK-010 | Done |
 | TASK-013 | Document chunker (`ingestion/chunker.py`) | REQ-004 | TASK-012 | Pending |
 | TASK-014 | Qdrant vector store client (`storage/vector_db.py`) | REQ-005 | TASK-002, TASK-003 | Pending |
 | TASK-015 | Embedding & indexing job (`scripts/seed_db.py`) | REQ-005 | TASK-013, TASK-014 | Pending |
