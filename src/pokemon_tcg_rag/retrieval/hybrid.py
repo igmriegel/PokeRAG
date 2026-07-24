@@ -1,57 +1,56 @@
 """
-Hybrid Search Retriever combining Dense Vector and BM25 Lexical search via Reciprocal Rank Fusion (RRF).
+Hybrid search retriever combining dense and BM25 rankings with Reciprocal Rank Fusion.
 """
 
-import logging
+from __future__ import annotations
+
+from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.models import RetrievedChunk
 from pokemon_tcg_rag.retrieval.bm25 import BM25Retriever
 from pokemon_tcg_rag.retrieval.dense import DenseRetriever
 
-logger = logging.getLogger(__name__)
-
 
 class HybridRetriever:
-    """Hybrid Search Coordinator combining Dense vector search and BM25 lexical search with RRF."""
+    """Combine dense and lexical retrieval using RRF."""
 
-    def __init__(self, dense_retriever: DenseRetriever, bm25_retriever: BM25Retriever, rrf_k: int = 60) -> None:
+    def __init__(
+        self,
+        dense_retriever: DenseRetriever,
+        bm25_retriever: BM25Retriever,
+        rrf_k: int | None = None,
+    ) -> None:
+        settings = get_settings()
         self.dense_retriever = dense_retriever
         self.bm25_retriever = bm25_retriever
-        self.rrf_k = rrf_k
+        self.rrf_k = rrf_k if rrf_k is not None else settings.RETRIEVAL_HYBRID_RRF_K
 
     def retrieve(self, query: str, top_k: int = 10) -> list[RetrievedChunk]:
-        """Execute hybrid search using Reciprocal Rank Fusion (RRF)."""
-        dense_results = self.dense_retriever.retrieve(query=query, top_k=top_k * 2)
-        bm25_results = self.bm25_retriever.retrieve(query=query, top_k=top_k * 2)
+        """Retrieve via both strategies and fuse rankings with RRF."""
+        dense_results = self.dense_retriever.retrieve(query=query, top_k=top_k)
+        bm25_results = self.bm25_retriever.retrieve(query=query, top_k=top_k)
 
-        # RRF Fusion Score Calculation: RRF_score = sum(1 / (k + rank))
-        rrf_scores: dict[str, float] = {}
+        fused_scores: dict[str, float] = {}
         chunk_map: dict[str, RetrievedChunk] = {}
 
-        # 1. Rank dense results
-        for rank, res in enumerate(dense_results, start=1):
-            cid = res.chunk.chunk_id
-            rrf_scores[cid] = rrf_scores.get(cid, 0.0) + (1.0 / (self.rrf_k + rank))
-            chunk_map[cid] = res
+        for rank, result in enumerate(dense_results, start=1):
+            chunk_id = result.chunk.chunk_id
+            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(rank)
+            chunk_map[chunk_id] = result
 
-        # 2. Rank BM25 results
-        for rank, res in enumerate(bm25_results, start=1):
-            cid = res.chunk.chunk_id
-            rrf_scores[cid] = rrf_scores.get(cid, 0.0) + (1.0 / (self.rrf_k + rank))
-            if cid not in chunk_map:
-                chunk_map[cid] = res
+        for rank, result in enumerate(bm25_results, start=1):
+            chunk_id = result.chunk.chunk_id
+            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(rank)
+            chunk_map.setdefault(chunk_id, result)
 
-        # Sort combined results by RRF score
-        sorted_chunk_ids = sorted(rrf_scores.keys(), key=lambda cid: rrf_scores[cid], reverse=True)[:top_k]
-
-        hybrid_results: list[RetrievedChunk] = []
-        for cid in sorted_chunk_ids:
-            base_item = chunk_map[cid]
-            hybrid_results.append(
-                RetrievedChunk(
-                    chunk=base_item.chunk,
-                    score=rrf_scores[cid],
-                    retrieval_method="hybrid_rrf"
-                )
+        ordered_ids = sorted(fused_scores, key=lambda chunk_id: fused_scores[chunk_id], reverse=True)[:top_k]
+        return [
+            RetrievedChunk(
+                chunk=chunk_map[chunk_id].chunk,
+                score=fused_scores[chunk_id],
+                retrieval_method="hybrid_rrf",
             )
+            for chunk_id in ordered_ids
+        ]
 
-        return hybrid_results
+    def _rrf_score(self, rank: int) -> float:
+        return 1.0 / (self.rrf_k + rank)
