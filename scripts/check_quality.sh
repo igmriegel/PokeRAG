@@ -8,7 +8,10 @@ ruff check src/ tests/
 echo "2. Checking Static Types with MyPy..."
 mypy src/
 
-echo "3. Executing Test Suite with 90% Coverage Enforcement..."
+echo "3. Checking Harness Documentation Consistency..."
+python scripts/check_harness_consistency.py
+
+echo "4. Executing Test Suite with 90% Coverage Enforcement..."
 pytest tests/
 
 echo "=== All Quality Gates Passed Successfully! ==="

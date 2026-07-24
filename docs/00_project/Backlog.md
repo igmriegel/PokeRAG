@@ -37,56 +37,56 @@ pie title Backlog by MoSCoW
 
 | ID | Title | Description | Priority | Linked REQ | Target Sprint | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **BL-001** | Repo scaffold & config | Clean Architecture package layout, `Settings`, tooling (ruff/mypy/pytest), compose shell. | Must | REQ-016, REQ-017 | SPRINT_01 | Todo |
-| **BL-002** | Infra services up | Qdrant, Postgres, Prometheus, Grafana healthy in compose with provisioning. | Must | REQ-005, REQ-015, REQ-016 | SPRINT_01 | Todo |
-| **BL-003** | Domain models | Finalize enums + models in `domain/models.py` as shared contract. | Must | REQ-004, REQ-012 | SPRINT_01 | Todo |
-| **BL-004** | Pokegym crawler | Scrape all rulings; extract date/set/card/question/answer/url; save raw HTML + JSONL/Parquet. | Must | REQ-001 | SPRINT_02 | Todo |
-| **BL-005** | PDF downloader + extractor | Auto-download 5 official PDFs; extract with PyMuPDF/pymupdf4llm preserving structure. | Must | REQ-002 | SPRINT_02 | Todo |
-| **BL-006** | HTML legality scrapers | Scrape Ban List, Promo Legality, Mega Rules pages. | Must | REQ-003 | SPRINT_02 | Todo |
-| **BL-007** | Normalization & chunking | Normalize docs; fixed-size chunking (Pokegym = 1 chunk/ruling); metadata enrichment + stable IDs. | Must | REQ-004 | SPRINT_03 | Todo |
-| **BL-008** | Embed & index into Qdrant | Embed chunks with `bge-large-en-v1.5` (1024-d); index into `pokemon_tcg_rules`. | Must | REQ-005 | SPRINT_03 | Todo |
-| **BL-009** | Dense retrieval | Dense vector search, top-10. | Must | REQ-006 | SPRINT_04 | Todo |
-| **BL-010** | BM25 retrieval | Lexical retrieval via `rank-bm25`, top-10. | Must | REQ-007 | SPRINT_04 | Todo |
-| **BL-011** | Hybrid search (RRF) | Fuse Dense + BM25 via Reciprocal Rank Fusion (k=60). | Must | REQ-008 | SPRINT_04 | Todo |
-| **BL-012** | Cross-encoder rerank | Re-rank fused candidates with `bge-reranker-large`; final top-5. | Must | REQ-009 | SPRINT_04 | Todo |
-| **BL-013** | Query rewriting | LLM rewrite of user query before retrieval. | Must | REQ-010 | SPRINT_05 | Todo |
-| **BL-014** | Prompt builder + LLM chain | Certified-Judge prompt, context assembly, citations, "I don't know" guardrail. | Must | REQ-011, REQ-012 | SPRINT_05 | Todo |
-| **BL-015** | FastAPI endpoints | `/query`, `/feedback`, `/health` with typed request/response. | Must | REQ-013, REQ-014 | SPRINT_05 | Todo |
-| **BL-016** | Streamlit UI + feedback | Answer/sources/chunks view, latency/model/#docs, 👍/👎 + comment → Postgres. | Must | REQ-013, REQ-014 | SPRINT_06 | Todo |
-| **BL-017** | Evaluation benchmark (100 Q) | Author/label 100 questions with expected sources. | Should | REQ-018, REQ-019 | SPRINT_07 | Todo |
-| **BL-018** | Retrieval evaluation | Recall@5/@10, MRR, Hit Rate across 4 strategies; pick best. | Should | REQ-018 | SPRINT_07 | Todo |
-| **BL-019** | LLM evaluation (RAGAS/DeepEval) | Faithfulness/Correctness/Citation/Completeness; Prompt A/B × model A/B. | Should | REQ-019 | SPRINT_07 | Todo |
-| **BL-020** | Grafana dashboard (≥5 charts) | Questions/day, mean latency, #docs retrieved, 👍/👎, source distribution, top questions. | Must | REQ-015 | SPRINT_08 | Todo |
-| **BL-021** | Full compose deploy | All 7 services up with `docker compose up`; startup < 60 s (warm). | Must | REQ-016 | SPRINT_08 | Todo |
-| **BL-022** | Prometheus metrics exporter | Instrument query count, latency, retrieval size, feedback counters. | Must | REQ-015 | SPRINT_08 | Todo |
-| **BL-023** | ≥90% test coverage + CI gates | Unit/integration/smoke/e2e/regression; ruff + mypy + coverage in CI. | Must | REQ-017 | SPRINT_07 | Todo |
-| **BL-024** | Final docs + demo video | README/setup/architecture/evaluation; reproducibility validation; demo video. | Should | REQ-016 | SPRINT_08 | Todo |
+| **BL-001** | Repo scaffold & config | Clean Architecture package layout, `Settings`, tooling (ruff/mypy/pytest), compose shell. | Must | REQ-016, REQ-017 | SPRINT_01 | Done |
+| **BL-002** | Infra services up | Qdrant, Postgres, Prometheus, Grafana healthy in compose with provisioning. | Must | REQ-005, REQ-015, REQ-016 | SPRINT_01 | Done |
+| **BL-003** | Domain models | Finalize enums + models in `domain/models.py` as shared contract. | Must | REQ-004, REQ-012 | SPRINT_01 | Done |
+| **BL-004** | Pokegym crawler | Scrape all rulings; extract date/set/card/question/answer/url; save raw HTML + JSONL/Parquet. | Must | REQ-001 | SPRINT_02 | Done |
+| **BL-005** | PDF downloader + extractor | Auto-download 5 official PDFs; extract with PyMuPDF/pymupdf4llm preserving structure. | Must | REQ-002 | SPRINT_02 | Done |
+| **BL-006** | HTML legality scrapers | Scrape Ban List, Promo Legality, Mega Rules pages. | Must | REQ-003 | SPRINT_02 | Done |
+| **BL-007** | Normalization & chunking | Normalize docs; fixed-size chunking (Pokegym = 1 chunk/ruling); metadata enrichment + stable IDs. | Must | REQ-004 | SPRINT_03 | Done |
+| **BL-008** | Embed & index into Qdrant | Embed chunks with `bge-large-en-v1.5` (1024-d); index into `pokemon_tcg_rules`. | Must | REQ-005 | SPRINT_03 | Done |
+| **BL-009** | Dense retrieval | Dense vector search, top-10. | Must | REQ-006 | SPRINT_04 | Done |
+| **BL-010** | BM25 retrieval | Lexical retrieval via `rank-bm25`, top-10. | Must | REQ-007 | SPRINT_04 | Done |
+| **BL-011** | Hybrid search (RRF) | Fuse Dense + BM25 via Reciprocal Rank Fusion (k=60). | Must | REQ-008 | SPRINT_04 | Done |
+| **BL-012** | Cross-encoder rerank | Re-rank fused candidates with `bge-reranker-large`; final top-5. | Must | REQ-009 | SPRINT_04 | Done |
+| **BL-013** | Query rewriting | LLM rewrite of user query before retrieval. | Must | REQ-010 | SPRINT_05 | Done |
+| **BL-014** | Prompt builder + LLM chain | Certified-Judge prompt, context assembly, citations, "I don't know" guardrail. | Must | REQ-011, REQ-012 | SPRINT_05 | Done |
+| **BL-015** | FastAPI endpoints | `/query`, `/feedback`, `/health` with typed request/response. | Must | REQ-013, REQ-014 | SPRINT_05 | Done |
+| **BL-016** | Streamlit UI + feedback | Answer/sources/chunks view, latency/model/#docs, 👍/👎 + comment → Postgres. | Must | REQ-013, REQ-014 | SPRINT_06 | Done |
+| **BL-017** | Evaluation benchmark (100 Q) | Author/label 100 questions with expected sources. | Should | REQ-018, REQ-019 | SPRINT_07 | Done |
+| **BL-018** | Retrieval evaluation | Recall@5/@10, MRR, Hit Rate across 4 strategies; pick best. | Should | REQ-018 | SPRINT_07 | Done |
+| **BL-019** | LLM evaluation (RAGAS/DeepEval) | Faithfulness/Correctness/Citation/Completeness; Prompt A/B × model A/B. | Should | REQ-019 | SPRINT_07 | Done |
+| **BL-020** | Grafana dashboard (≥5 charts) | Questions/day, mean latency, #docs retrieved, 👍/👎, source distribution, top questions. | Must | REQ-015 | SPRINT_08 | Done |
+| **BL-021** | Full compose deploy | Always-on services up with `docker compose up`; ingestion runs only with the `ingestion` profile; startup < 60 s (warm). | Must | REQ-016 | SPRINT_08 | Done |
+| **BL-022** | Prometheus metrics exporter | Instrument query count, latency, retrieval size, feedback counters. | Must | REQ-015 | SPRINT_08 | Done |
+| **BL-023** | ≥90% test coverage + CI gates | Unit/integration/smoke/e2e/regression; ruff + mypy + coverage in CI. | Must | REQ-017 | SPRINT_07 | Done |
+| **BL-024** | Final docs + demo video | README/setup/architecture/evaluation; reproducibility validation; demo video. | Should | REQ-016 | SPRINT_08 | Done |
 | **BL-025** | Cloud deploy (bonus) | Deploy to Render/Railway/AWS; public reachable URL + `/health`. | Could | REQ-020 | SPRINT_08 | Deferred |
 | **BL-026** | Second embedding model comparison | Benchmark `text-embedding-3-small` vs `bge-large-en-v1.5`; document winner. | Could | REQ-018 | SPRINT_07 | Deferred |
 | **BL-027** | Semantic chunking experiment | Compare semantic vs fixed-size chunking on Recall@10. | Could | REQ-004, REQ-018 | SPRINT_07 | Deferred |
 | **BL-028** | Chunk-size ablation | 256 × 512 × 1024 token comparison to fix the default. | Could | REQ-004, REQ-018 | SPRINT_07 | Deferred |
 | **BL-029** | Cohere Rerank alternative | Evaluate Cohere Rerank vs `bge-reranker-large`. | Could | REQ-009, REQ-018 | SPRINT_07 | Deferred |
 | **BL-030** | IaC / K8s manifests | Deployment manifests for cloud hosting. | Won't (this iter) | REQ-020 | SPRINT_08 | Deferred |
-| **BL-031** | Secure dependency graph | Resolve conflicts/CVEs; commit hashed locks and SBOM. | Must | REQ-021 | SPRINT_09 | Todo |
-| **BL-032** | Activate security CI | Discoverable least-privilege workflow with baseline blocking checks. | Must | REQ-030 | SPRINT_09 | Todo |
-| **BL-033** | Isolate compose services | Remove public data ports and default credentials. | Must | REQ-028 | SPRINT_09 | Todo |
-| **BL-034** | Block UI SSRF | Trusted backend destination plus redirect/IP/timeout defense. | Must | REQ-024 | SPRINT_09 | Todo |
-| **BL-035** | Scope service secrets | Explicit minimum configuration and secret injection per component. | Must | REQ-028 | SPRINT_09 | Todo |
-| **BL-036** | API identity and authorization | Token verification, scopes, route/object access matrix. | Must | REQ-022 | SPRINT_10 | Todo |
-| **BL-037** | API abuse/cost controls | Payload, rate, concurrency, timeout, retry and LLM-budget limits. | Must | REQ-023 | SPRINT_10 | Todo |
-| **BL-038** | Prompt/citation integrity | Untrusted-context isolation and verified retrieved citations. | Must | REQ-025 | SPRINT_10 | Todo |
-| **BL-039** | Safe API disclosure | Stable errors, redacted logs, protected diagnostics, CORS/headers. | Must | REQ-026 | SPRINT_10 | Todo |
-| **BL-040** | Feedback and data governance | Owner-bound feedback, replay protection, retention and response minimization. | Must | REQ-026 | SPRINT_10 | Todo |
-| **BL-041** | PostgreSQL least privilege | Separate migration/runtime roles and revoke administrative access. | Must | REQ-028 | SPRINT_11 | Todo |
-| **BL-042** | Rootless minimal images | Multi-stage digest-pinned non-root runtime images. | Must | REQ-027 | SPRINT_11 | Todo |
-| **BL-043** | Restricted K8s workloads | Security contexts, resource bounds, probes and service accounts. | Must | REQ-027 | SPRINT_11 | Todo |
-| **BL-044** | Network/TLS hardening | Default-deny policy, required flows only, private observability. | Must | REQ-024, REQ-028 | SPRINT_11 | Todo |
-| **BL-045** | Immutable canonical IaC | Remove duplicate manifests; digest/signature/provenance enforcement. | Must | REQ-021, REQ-027 | SPRINT_11 | Todo |
-| **BL-046** | Secure ingestion boundary | Source allowlist, parser limits, provenance and quarantine. | Must | REQ-029 | SPRINT_12 | Todo |
-| **BL-047** | Truthful runtime readiness | Real dependency wiring and fail-closed readiness lifecycle. | Must | REQ-023, REQ-028, REQ-030 | SPRINT_12 | Todo |
-| **BL-048** | Automated security gates | Secret/SAST/SCA/IaC/container scans, SBOM and policy. | Must | REQ-021, REQ-030 | SPRINT_12 | Todo |
-| **BL-049** | DAST and adversarial regression | Authenticated API DAST plus SSRF and LLM attack corpus. | Must | REQ-022, REQ-024, REQ-025, REQ-026, REQ-030 | SPRINT_12 | Todo |
-| **BL-050** | Security release closure | Re-test SEC-01..17, runbooks, residual-risk approval and go/no-go. | Must | REQ-030 | SPRINT_12 | Todo |
+| **BL-031** | Secure dependency graph | Resolve conflicts/CVEs; commit hashed locks and SBOM. | Must | REQ-021 | SPRINT_09 | Done |
+| **BL-032** | Activate security CI | Discoverable least-privilege workflow with baseline blocking checks. | Must | REQ-030 | SPRINT_09 | Done |
+| **BL-033** | Isolate compose services | Remove public data ports and default credentials. | Must | REQ-028 | SPRINT_09 | Done |
+| **BL-034** | Block UI SSRF | Trusted backend destination plus redirect/IP/timeout defense. | Must | REQ-024 | SPRINT_09 | Done |
+| **BL-035** | Scope service secrets | Explicit minimum configuration and secret injection per component. | Must | REQ-028 | SPRINT_09 | Done |
+| **BL-036** | API identity and authorization | Token verification, scopes, route/object access matrix. | Must | REQ-022 | SPRINT_10 | Done |
+| **BL-037** | API abuse/cost controls | Payload, rate, concurrency, timeout, retry and LLM-budget limits. | Must | REQ-023 | SPRINT_10 | Done |
+| **BL-038** | Prompt/citation integrity | Untrusted-context isolation and verified retrieved citations. | Must | REQ-025 | SPRINT_10 | Done |
+| **BL-039** | Safe API disclosure | Stable errors, redacted logs, protected diagnostics, CORS/headers. | Must | REQ-026 | SPRINT_10 | Done |
+| **BL-040** | Feedback and data governance | Owner-bound feedback, replay protection, retention and response minimization. | Must | REQ-026 | SPRINT_10 | Done |
+| **BL-041** | PostgreSQL least privilege | Separate migration/runtime roles and revoke administrative access. | Must | REQ-028 | SPRINT_11 | Done |
+| **BL-042** | Rootless minimal images | Multi-stage digest-pinned non-root runtime images. | Must | REQ-027 | SPRINT_11 | Done |
+| **BL-043** | Restricted K8s workloads | Security contexts, resource bounds, probes and service accounts. | Must | REQ-027 | SPRINT_11 | Done |
+| **BL-044** | Network/TLS hardening | Default-deny policy, required flows only, private observability. | Must | REQ-024, REQ-028 | SPRINT_11 | Done |
+| **BL-045** | Immutable canonical IaC | Remove duplicate manifests; digest/signature/provenance enforcement. | Must | REQ-021, REQ-027 | SPRINT_11 | Done |
+| **BL-046** | Secure ingestion boundary | Source allowlist, parser limits, provenance and quarantine. | Must | REQ-029 | SPRINT_12 | Done |
+| **BL-047** | Truthful runtime readiness | Real dependency wiring and fail-closed readiness lifecycle. | Must | REQ-023, REQ-028, REQ-030 | SPRINT_12 | Done |
+| **BL-048** | Automated security gates | Secret/SAST/SCA/IaC/container scans, SBOM and policy. | Must | REQ-021, REQ-030 | SPRINT_12 | Done |
+| **BL-049** | DAST and adversarial regression | Authenticated API DAST plus SSRF and LLM attack corpus. | Must | REQ-022, REQ-024, REQ-025, REQ-026, REQ-030 | SPRINT_12 | Done |
+| **BL-050** | Security release closure | Re-test SEC-01..17, runbooks, residual-risk approval and go/no-go. | Must | REQ-030 | SPRINT_12 | Done |
 
 ---
 

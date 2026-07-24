@@ -20,6 +20,7 @@ def test_readme_uses_current_repo_and_commands() -> None:
     assert "make quality" in content
     assert "make seed" in content
     assert "docker compose up --build -d" in content
+    assert "docker compose --profile ingestion run --rm ingestion" in content
 
 
 @pytest.mark.smoke

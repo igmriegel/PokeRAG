@@ -55,7 +55,7 @@ graph TD
 - ✏️ **User Query Rewriting**: Expands ambiguous user phrasing into domain-specific Pokemon TCG queries.
 - 📊 **Evaluations Suite**: Measures `Recall@5`, `Recall@10`, `MRR`, `Hit Rate`, and `Faithfulness` across retrieval strategies on a 100-question ground truth dataset.
 - 📈 **Monitoring & Observability**: Integrated Prometheus metrics export and pre-configured Grafana dashboards displaying 6 key operational metrics.
-- 🚀 **Full Containerization**: Entire environment (API, UI, Ingestion, Qdrant, Postgres, Prometheus, Grafana) orchestrates cleanly with a single command: `docker compose up --build -d`.
+- 🚀 **Full Containerization**: The always-on stack (API, UI, Qdrant, Postgres, Prometheus, Grafana) starts with `docker compose up --build -d`; the ingestion worker is an opt-in Compose profile.
 
 ---
 
@@ -90,11 +90,11 @@ cp .env.example .env
 Edit `.env` and provide your `OPENAI_API_KEY`.
 
 ### Step 2: Run via Docker Compose (Recommended)
-Launch all services in isolated containers:
+Launch the always-on services in isolated containers:
 ```bash
 docker compose up --build -d
 ```
-All services will start up automatically:
+This starts the API, UI, Qdrant, Postgres, Prometheus, Grafana, and the one-shot migration job. The ingestion worker is intentionally not started by default so that a normal `up` does not re-crawl the corpus on every boot.
 - 🌐 **Streamlit UI**: [http://localhost:8501](http://localhost:8501)
 - 🔌 **FastAPI REST API**: [http://localhost:8000/docs](http://localhost:8000/docs)
 - 📊 **Grafana Dashboard**: [http://localhost:3000](http://localhost:3000) (User: `admin` / Pass: `admin`)
@@ -104,8 +104,9 @@ All services will start up automatically:
 ### Step 3: Execute Automated Ingestion Pipeline
 To scrape Pokegym, extract official PDFs, chunk documents, generate embeddings, and seed Qdrant:
 ```bash
-docker compose run ingestion
+docker compose --profile ingestion run --rm ingestion
 ```
+If you prefer to keep the worker attached to the Compose lifecycle, `docker compose --profile ingestion up ingestion` uses the same profile gate.
 
 ---
 

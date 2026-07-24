@@ -10,6 +10,15 @@ criteria (linked to [`SUCCESS_CRITERIA.md`](./SUCCESS_CRITERIA.md)), and key ris
 to [`Risks.md`](./Risks.md)). This is the "what/when/in-what-order"; sprint files carry the
 task-level detail.
 
+Current repository state:
+
+- core product, retrieval, evaluation, security, reproducibility, observability and release
+  plumbing are implemented and tracked as `Done` in the harness docs;
+- the ingestion worker is intentionally gated behind the `ingestion` Compose profile so a
+  normal `docker compose up` does not re-crawl the corpus;
+- public cloud deployment proof remains external to the repo, so the bonus cloud criterion
+  stays pending until a live URL and remote `/health` evidence are recorded.
+
 ## Scope
 
 - **In scope:** ordering, dependencies, and gating between the twenty-one named phases.
@@ -215,9 +224,10 @@ gantt
 - **Risks:** [RISK-009](./Risks.md) ground-truth labeling effort.
 
 ### P11 — Deploy & Hardening
-- **Objective:** Finalize `docker compose up` for the full stack (streamlit, api, qdrant,
-  postgres, prometheus, grafana, ingestion), Grafana dashboard (≥5 charts), docs, and
-  optional cloud deploy (Render/Railway/AWS).
+- **Objective:** Finalize `docker compose up` for the always-on stack (streamlit, api,
+  qdrant, postgres, prometheus, grafana), keep ingestion behind the opt-in profile,
+  complete the Grafana dashboard (≥5 charts), docs, and optional cloud deploy
+  (Render/Railway/AWS).
 - **Dependencies:** P10.
 - **Artifacts:** finalized compose + dashboards, README/setup/architecture/evaluation docs,
   optional IaC (REQ-020), demo video.

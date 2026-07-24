@@ -50,6 +50,9 @@ jobs:
       - name: Run Repository Secret Scan
         run: python scripts/scan_secrets.py
 
+      - name: Check Harness Consistency
+        run: python scripts/check_harness_consistency.py
+
   dependency-scan:
     name: Dependency Vulnerability Scan
     runs-on: ubuntu-latest

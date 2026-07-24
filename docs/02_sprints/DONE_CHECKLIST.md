@@ -44,18 +44,18 @@ flowchart LR
 
 | Rubric Line | Max pts | Evidence | Sprint | Done |
 | :--- | :--- | :--- | :--- | :--- |
-| Problem description | 2 | [PROJECT.md](../00_project/PROJECT.md) §2 clearly states the domain problem. | — | [ ] |
-| Retrieval flow (KB + LLM) | 2 | `rag_chain` uses Qdrant KB + LLM; [SC-021](../00_project/SUCCESS_CRITERIA.md). | [S5](./SPRINT_05_RAG_LLM.md) | [ ] |
-| Retrieval evaluation (multi, best) | 2 | 4 strategies benchmarked, best selected; [SC-005](../00_project/SUCCESS_CRITERIA.md). | [S7](./SPRINT_07_EVALUATION.md) | [ ] |
-| LLM evaluation (multi, best) | 2 | ≥2 prompts + ≥2 models; [SC-010](../00_project/SUCCESS_CRITERIA.md). | [S7](./SPRINT_07_EVALUATION.md) | [ ] |
-| Interface (UI/API) | 2 | Streamlit UI + FastAPI; [SC-021](../00_project/SUCCESS_CRITERIA.md). | [S6](./SPRINT_06_UI_FEEDBACK.md) | [ ] |
-| Ingestion pipeline (automated) | 2 | Automated crawler + PDF + HTML orchestrator; [SC-015](../00_project/SUCCESS_CRITERIA.md). | [S2](./SPRINT_02_INGESTION.md) | [ ] |
-| Monitoring (feedback + dashboard ≥5 charts) | 2 | Feedback → Postgres + Grafana ≥6 charts; [SC-017](../00_project/SUCCESS_CRITERIA.md)/018. | [S6](./SPRINT_06_UI_FEEDBACK.md), [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [ ] |
-| Containerization (all in compose) | 2 | 7 services in one `docker-compose.yml`; [SC-024](../00_project/SUCCESS_CRITERIA.md). | [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [ ] |
-| Reproducibility (pinned deps) | 2 | Clean-clone `up`; pinned versions; [SC-014](../00_project/SUCCESS_CRITERIA.md)/019/024. | [S1](./SPRINT_01_FOUNDATION.md), [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [ ] |
-| Best practice: Hybrid search | +1 | RRF hybrid implemented + ablated; [SC-022](../00_project/SUCCESS_CRITERIA.md). | [S4](./SPRINT_04_RETRIEVAL.md), [S7](./SPRINT_07_EVALUATION.md) | [ ] |
-| Best practice: Re-ranking | +1 | `bge-reranker-large` + ablated; [SC-022](../00_project/SUCCESS_CRITERIA.md). | [S4](./SPRINT_04_RETRIEVAL.md), [S7](./SPRINT_07_EVALUATION.md) | [ ] |
-| Best practice: Query rewriting | +1 | LLM rewrite + ablated; [SC-022](../00_project/SUCCESS_CRITERIA.md). | [S5](./SPRINT_05_RAG_LLM.md), [S7](./SPRINT_07_EVALUATION.md) | [ ] |
+| Problem description | 2 | [PROJECT.md](../00_project/PROJECT.md) §2 clearly states the domain problem. | — | [x] |
+| Retrieval flow (KB + LLM) | 2 | `rag_chain` uses Qdrant KB + LLM; [SC-021](../00_project/SUCCESS_CRITERIA.md). | [S5](./SPRINT_05_RAG_LLM.md) | [x] |
+| Retrieval evaluation (multi, best) | 2 | 4 strategies benchmarked, best selected; [SC-005](../00_project/SUCCESS_CRITERIA.md). | [S7](./SPRINT_07_EVALUATION.md) | [x] |
+| LLM evaluation (multi, best) | 2 | ≥2 prompts + ≥2 models; [SC-010](../00_project/SUCCESS_CRITERIA.md). | [S7](./SPRINT_07_EVALUATION.md) | [x] |
+| Interface (UI/API) | 2 | Streamlit UI + FastAPI; [SC-021](../00_project/SUCCESS_CRITERIA.md). | [S6](./SPRINT_06_UI_FEEDBACK.md) | [x] |
+| Ingestion pipeline (automated) | 2 | Automated crawler + PDF + HTML orchestrator; [SC-015](../00_project/SUCCESS_CRITERIA.md). | [S2](./SPRINT_02_INGESTION.md) | [x] |
+| Monitoring (feedback + dashboard ≥5 charts) | 2 | Feedback → Postgres + Grafana ≥6 charts; [SC-017](../00_project/SUCCESS_CRITERIA.md)/018. | [S6](./SPRINT_06_UI_FEEDBACK.md), [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [x] |
+| Containerization (all in compose) | 2 | 7 services in one `docker-compose.yml`; [SC-024](../00_project/SUCCESS_CRITERIA.md). | [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [x] |
+| Reproducibility (pinned deps) | 2 | Clean-clone `up`; pinned versions; [SC-014](../00_project/SUCCESS_CRITERIA.md)/019/024. | [S1](./SPRINT_01_FOUNDATION.md), [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [x] |
+| Best practice: Hybrid search | +1 | RRF hybrid implemented + ablated; [SC-022](../00_project/SUCCESS_CRITERIA.md). | [S4](./SPRINT_04_RETRIEVAL.md), [S7](./SPRINT_07_EVALUATION.md) | [x] |
+| Best practice: Re-ranking | +1 | `bge-reranker-large` + ablated; [SC-022](../00_project/SUCCESS_CRITERIA.md). | [S4](./SPRINT_04_RETRIEVAL.md), [S7](./SPRINT_07_EVALUATION.md) | [x] |
+| Best practice: Query rewriting | +1 | LLM rewrite + ablated; [SC-022](../00_project/SUCCESS_CRITERIA.md). | [S5](./SPRINT_05_RAG_LLM.md), [S7](./SPRINT_07_EVALUATION.md) | [x] |
 | Bonus: Cloud deploy | +2 | Public URL `/health` 200; [SC-023](../00_project/SUCCESS_CRITERIA.md) (non-blocking). | [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [ ] |
 
 ---
@@ -64,48 +64,48 @@ flowchart LR
 
 | REQ | Requirement | Sprint | SC / Test evidence | Done |
 | :--- | :--- | :--- | :--- | :--- |
-| [REQ-001](../00_project/REQUIREMENTS.md) | Pokegym rulings scraped → JSON | [S2](./SPRINT_02_INGESTION.md) | [SC-015](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-002](../00_project/REQUIREMENTS.md) | PDFs downloaded + parsed (PyMuPDF) | [S2](./SPRINT_02_INGESTION.md) | [SC-015](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-003](../00_project/REQUIREMENTS.md) | Ban/promo/mega HTML scraped | [S2](./SPRINT_02_INGESTION.md) | [SC-015](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-004](../00_project/REQUIREMENTS.md) | Normalize + chunk + metadata | [S3](./SPRINT_03_CHUNKING_INDEXING.md) | [SC-015](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-005](../00_project/REQUIREMENTS.md) | Index embeddings into Qdrant | [S3](./SPRINT_03_CHUNKING_INDEXING.md) | [SC-015](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-006](../00_project/REQUIREMENTS.md) | Dense retrieval (BGE) | [S4](./SPRINT_04_RETRIEVAL.md) | [SC-005](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-007](../00_project/REQUIREMENTS.md) | BM25 retrieval | [S4](./SPRINT_04_RETRIEVAL.md) | [SC-005](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-008](../00_project/REQUIREMENTS.md) | Hybrid RRF | [S4](./SPRINT_04_RETRIEVAL.md) | [SC-005](../00_project/SUCCESS_CRITERIA.md)/022 | [ ] |
-| [REQ-009](../00_project/REQUIREMENTS.md) | Cross-encoder rerank | [S4](./SPRINT_04_RETRIEVAL.md) | [SC-022](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-010](../00_project/REQUIREMENTS.md) | LLM query rewriting | [S5](./SPRINT_05_RAG_LLM.md) | [SC-022](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-011](../00_project/REQUIREMENTS.md) | Certified-Judge grounding | [S5](./SPRINT_05_RAG_LLM.md) | [SC-006](../00_project/SUCCESS_CRITERIA.md)/011 | [ ] |
-| [REQ-012](../00_project/REQUIREMENTS.md) | Mandatory citations | [S5](./SPRINT_05_RAG_LLM.md) | [SC-008](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-013](../00_project/REQUIREMENTS.md) | Streamlit UI | [S6](./SPRINT_06_UI_FEEDBACK.md) | [SC-021](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-014](../00_project/REQUIREMENTS.md) | Feedback → Postgres | [S6](./SPRINT_06_UI_FEEDBACK.md) | [SC-018](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-015](../00_project/REQUIREMENTS.md) | Prometheus + Grafana ≥5 charts | [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [SC-017](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-016](../00_project/REQUIREMENTS.md) | All services in Docker Compose | [S1](./SPRINT_01_FOUNDATION.md)*, [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [SC-014](../00_project/SUCCESS_CRITERIA.md)/024 | [ ] |
-| [REQ-017](../00_project/REQUIREMENTS.md) | ≥90% coverage, CI-enforced | [S1](./SPRINT_01_FOUNDATION.md)* (all sprints) | [SC-016](../00_project/SUCCESS_CRITERIA.md)/020 | [ ] |
-| [REQ-018](../00_project/REQUIREMENTS.md) | Retrieval eval (Recall@K, MRR) | [S7](./SPRINT_07_EVALUATION.md) | [SC-001](../00_project/SUCCESS_CRITERIA.md)–005 | [ ] |
-| [REQ-019](../00_project/REQUIREMENTS.md) | LLM eval (Faithfulness, Correctness) | [S7](./SPRINT_07_EVALUATION.md) | [SC-006](../00_project/SUCCESS_CRITERIA.md)–010 | [ ] |
+| [REQ-001](../00_project/REQUIREMENTS.md) | Pokegym rulings scraped → JSON | [S2](./SPRINT_02_INGESTION.md) | [SC-015](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-002](../00_project/REQUIREMENTS.md) | PDFs downloaded + parsed (PyMuPDF) | [S2](./SPRINT_02_INGESTION.md) | [SC-015](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-003](../00_project/REQUIREMENTS.md) | Ban/promo/mega HTML scraped | [S2](./SPRINT_02_INGESTION.md) | [SC-015](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-004](../00_project/REQUIREMENTS.md) | Normalize + chunk + metadata | [S3](./SPRINT_03_CHUNKING_INDEXING.md) | [SC-015](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-005](../00_project/REQUIREMENTS.md) | Index embeddings into Qdrant | [S3](./SPRINT_03_CHUNKING_INDEXING.md) | [SC-015](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-006](../00_project/REQUIREMENTS.md) | Dense retrieval (BGE) | [S4](./SPRINT_04_RETRIEVAL.md) | [SC-005](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-007](../00_project/REQUIREMENTS.md) | BM25 retrieval | [S4](./SPRINT_04_RETRIEVAL.md) | [SC-005](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-008](../00_project/REQUIREMENTS.md) | Hybrid RRF | [S4](./SPRINT_04_RETRIEVAL.md) | [SC-005](../00_project/SUCCESS_CRITERIA.md)/022 | [x] |
+| [REQ-009](../00_project/REQUIREMENTS.md) | Cross-encoder rerank | [S4](./SPRINT_04_RETRIEVAL.md) | [SC-022](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-010](../00_project/REQUIREMENTS.md) | LLM query rewriting | [S5](./SPRINT_05_RAG_LLM.md) | [SC-022](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-011](../00_project/REQUIREMENTS.md) | Certified-Judge grounding | [S5](./SPRINT_05_RAG_LLM.md) | [SC-006](../00_project/SUCCESS_CRITERIA.md)/011 | [x] |
+| [REQ-012](../00_project/REQUIREMENTS.md) | Mandatory citations | [S5](./SPRINT_05_RAG_LLM.md) | [SC-008](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-013](../00_project/REQUIREMENTS.md) | Streamlit UI | [S6](./SPRINT_06_UI_FEEDBACK.md) | [SC-021](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-014](../00_project/REQUIREMENTS.md) | Feedback → Postgres | [S6](./SPRINT_06_UI_FEEDBACK.md) | [SC-018](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-015](../00_project/REQUIREMENTS.md) | Prometheus + Grafana ≥5 charts | [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [SC-017](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-016](../00_project/REQUIREMENTS.md) | All services in Docker Compose | [S1](./SPRINT_01_FOUNDATION.md)*, [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [SC-014](../00_project/SUCCESS_CRITERIA.md)/024 | [x] |
+| [REQ-017](../00_project/REQUIREMENTS.md) | ≥90% coverage, CI-enforced | [S1](./SPRINT_01_FOUNDATION.md)* (all sprints) | [SC-016](../00_project/SUCCESS_CRITERIA.md)/020 | [x] |
+| [REQ-018](../00_project/REQUIREMENTS.md) | Retrieval eval (Recall@K, MRR) | [S7](./SPRINT_07_EVALUATION.md) | [SC-001](../00_project/SUCCESS_CRITERIA.md)–005 | [x] |
+| [REQ-019](../00_project/REQUIREMENTS.md) | LLM eval (Faithfulness, Correctness) | [S7](./SPRINT_07_EVALUATION.md) | [SC-006](../00_project/SUCCESS_CRITERIA.md)–010 | [x] |
 | [REQ-020](../00_project/REQUIREMENTS.md) | Cloud/IaC deploy (bonus) | [S8](./SPRINT_08_MONITORING_DEPLOY.md) | [SC-023](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-021](../00_project/REQUIREMENTS.md) | Reproducible/verifiable supply chain | [S9](./SPRINT_09_SECURITY_CONTAINMENT.md), [S11](./SPRINT_11_PLATFORM_HARDENING.md), [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-025](../00_project/SUCCESS_CRITERIA.md)/034 | [ ] |
-| [REQ-022](../00_project/REQUIREMENTS.md) | API authentication and authorization | [S10](./SPRINT_10_API_LLM_SECURITY.md), [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-027](../00_project/SUCCESS_CRITERIA.md)/034 | [ ] |
-| [REQ-023](../00_project/REQUIREMENTS.md) | Resource and cost controls | [S10](./SPRINT_10_API_LLM_SECURITY.md), [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-028](../00_project/SUCCESS_CRITERIA.md)/033 | [ ] |
-| [REQ-024](../00_project/REQUIREMENTS.md) | SSRF/network destination controls | [S9](./SPRINT_09_SECURITY_CONTAINMENT.md), [S11](./SPRINT_11_PLATFORM_HARDENING.md) | [SC-026](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-025](../00_project/REQUIREMENTS.md) | Prompt/citation integrity | [S10](./SPRINT_10_API_LLM_SECURITY.md), [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-029](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-026](../00_project/REQUIREMENTS.md) | Privacy, feedback integrity, safe disclosure | [S10](./SPRINT_10_API_LLM_SECURITY.md) | [SC-032](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-027](../00_project/REQUIREMENTS.md) | Container/Kubernetes hardening | [S11](./SPRINT_11_PLATFORM_HARDENING.md) | [SC-031](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-028](../00_project/REQUIREMENTS.md) | Secrets/network/database least privilege | [S9](./SPRINT_09_SECURITY_CONTAINMENT.md), [S11](./SPRINT_11_PLATFORM_HARDENING.md) | [SC-030](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-029](../00_project/REQUIREMENTS.md) | Hardened ingestion boundary | [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-033](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-030](../00_project/REQUIREMENTS.md) | Continuous assurance/release gate | [S9](./SPRINT_09_SECURITY_CONTAINMENT.md), [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-034](../00_project/SUCCESS_CRITERIA.md) | [ ] |
-| [REQ-031](../00_project/REQUIREMENTS.md) | Production composition and query/feedback lifecycle | [S13](./SPRINT_13_RUNTIME_STABILIZATION.md) | [SC-035](../00_project/SUCCESS_CRITERIA.md), TEST-149/150/152/153 | [ ] |
-| [REQ-032](../00_project/REQUIREMENTS.md) | Deterministic corpus and index lifecycle | [S13](./SPRINT_13_RUNTIME_STABILIZATION.md), [S15](./SPRINT_15_RETRIEVAL_QUALITY.md) | [SC-036](../00_project/SUCCESS_CRITERIA.md), TEST-149/151/162 | [ ] |
-| [REQ-033](../00_project/REQUIREMENTS.md) | Quality and real test pyramid | [S14](./SPRINT_14_QUALITY_REPRODUCIBILITY.md) | [SC-037](../00_project/SUCCESS_CRITERIA.md)/038, TEST-154..157 | [ ] |
-| [REQ-034](../00_project/REQUIREMENTS.md) | Clean-clone/evidence-backed docs | [S14](./SPRINT_14_QUALITY_REPRODUCIBILITY.md) | [SC-038](../00_project/SUCCESS_CRITERIA.md), TEST-155/157/158 | [ ] |
-| [REQ-035](../00_project/REQUIREMENTS.md) | Reviewed benchmark | [S15](./SPRINT_15_RETRIEVAL_QUALITY.md) | [SC-039](../00_project/SUCCESS_CRITERIA.md), TEST-159 | [ ] |
-| [REQ-036](../00_project/REQUIREMENTS.md) | Real retrieval evaluation/regression | [S15](./SPRINT_15_RETRIEVAL_QUALITY.md) | [SC-040](../00_project/SUCCESS_CRITERIA.md), TEST-160..163 | [ ] |
-| [REQ-037](../00_project/REQUIREMENTS.md) | Real LLM evaluation/grounding | [S16](./SPRINT_16_LLM_QUALITY.md) | [SC-041](../00_project/SUCCESS_CRITERIA.md)/042, TEST-164..168 | [ ] |
-| [REQ-038](../00_project/REQUIREMENTS.md) | Observability/SLO/FinOps | [S17](./SPRINT_17_OBSERVABILITY_UX.md) | [SC-043](../00_project/SUCCESS_CRITERIA.md), TEST-169..171/173 | [ ] |
-| [REQ-039](../00_project/REQUIREMENTS.md) | Complete product experience | [S17](./SPRINT_17_OBSERVABILITY_UX.md) | [SC-044](../00_project/SUCCESS_CRITERIA.md), TEST-171..173 | [ ] |
-| [REQ-040](../00_project/REQUIREMENTS.md) | Cache/performance/scalability | [S18](./SPRINT_18_PRODUCTION_QUALIFICATION.md) | [SC-045](../00_project/SUCCESS_CRITERIA.md), TEST-174/175 | [ ] |
-| [REQ-041](../00_project/REQUIREMENTS.md) | Cloud staging/recovery | [S18](./SPRINT_18_PRODUCTION_QUALIFICATION.md) | [SC-046](../00_project/SUCCESS_CRITERIA.md)/047, TEST-176/177 | [ ] |
-| [REQ-042](../00_project/REQUIREMENTS.md) | Production qualification | [S18](./SPRINT_18_PRODUCTION_QUALIFICATION.md) | [SC-048](../00_project/SUCCESS_CRITERIA.md), TEST-178 | [ ] |
+| [REQ-021](../00_project/REQUIREMENTS.md) | Reproducible/verifiable supply chain | [S9](./SPRINT_09_SECURITY_CONTAINMENT.md), [S11](./SPRINT_11_PLATFORM_HARDENING.md), [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-025](../00_project/SUCCESS_CRITERIA.md)/034 | [x] |
+| [REQ-022](../00_project/REQUIREMENTS.md) | API authentication and authorization | [S10](./SPRINT_10_API_LLM_SECURITY.md), [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-027](../00_project/SUCCESS_CRITERIA.md)/034 | [x] |
+| [REQ-023](../00_project/REQUIREMENTS.md) | Resource and cost controls | [S10](./SPRINT_10_API_LLM_SECURITY.md), [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-028](../00_project/SUCCESS_CRITERIA.md)/033 | [x] |
+| [REQ-024](../00_project/REQUIREMENTS.md) | SSRF/network destination controls | [S9](./SPRINT_09_SECURITY_CONTAINMENT.md), [S11](./SPRINT_11_PLATFORM_HARDENING.md) | [SC-026](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-025](../00_project/REQUIREMENTS.md) | Prompt/citation integrity | [S10](./SPRINT_10_API_LLM_SECURITY.md), [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-029](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-026](../00_project/REQUIREMENTS.md) | Privacy, feedback integrity, safe disclosure | [S10](./SPRINT_10_API_LLM_SECURITY.md) | [SC-032](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-027](../00_project/REQUIREMENTS.md) | Container/Kubernetes hardening | [S11](./SPRINT_11_PLATFORM_HARDENING.md) | [SC-031](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-028](../00_project/REQUIREMENTS.md) | Secrets/network/database least privilege | [S9](./SPRINT_09_SECURITY_CONTAINMENT.md), [S11](./SPRINT_11_PLATFORM_HARDENING.md) | [SC-030](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-029](../00_project/REQUIREMENTS.md) | Hardened ingestion boundary | [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-033](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-030](../00_project/REQUIREMENTS.md) | Continuous assurance/release gate | [S9](./SPRINT_09_SECURITY_CONTAINMENT.md), [S12](./SPRINT_12_SECURITY_ASSURANCE.md) | [SC-034](../00_project/SUCCESS_CRITERIA.md) | [x] |
+| [REQ-031](../00_project/REQUIREMENTS.md) | Production composition and query/feedback lifecycle | [S13](./SPRINT_13_RUNTIME_STABILIZATION.md) | [SC-035](../00_project/SUCCESS_CRITERIA.md), TEST-149/150/152/153 | [x] |
+| [REQ-032](../00_project/REQUIREMENTS.md) | Deterministic corpus and index lifecycle | [S13](./SPRINT_13_RUNTIME_STABILIZATION.md), [S15](./SPRINT_15_RETRIEVAL_QUALITY.md) | [SC-036](../00_project/SUCCESS_CRITERIA.md), TEST-149/151/162 | [x] |
+| [REQ-033](../00_project/REQUIREMENTS.md) | Quality and real test pyramid | [S14](./SPRINT_14_QUALITY_REPRODUCIBILITY.md) | [SC-037](../00_project/SUCCESS_CRITERIA.md)/038, TEST-154..157 | [x] |
+| [REQ-034](../00_project/REQUIREMENTS.md) | Clean-clone/evidence-backed docs | [S14](./SPRINT_14_QUALITY_REPRODUCIBILITY.md) | [SC-038](../00_project/SUCCESS_CRITERIA.md), TEST-155/157/158 | [x] |
+| [REQ-035](../00_project/REQUIREMENTS.md) | Reviewed benchmark | [S15](./SPRINT_15_RETRIEVAL_QUALITY.md) | [SC-039](../00_project/SUCCESS_CRITERIA.md), TEST-159 | [x] |
+| [REQ-036](../00_project/REQUIREMENTS.md) | Real retrieval evaluation/regression | [S15](./SPRINT_15_RETRIEVAL_QUALITY.md) | [SC-040](../00_project/SUCCESS_CRITERIA.md), TEST-160..163 | [x] |
+| [REQ-037](../00_project/REQUIREMENTS.md) | Real LLM evaluation/grounding | [S16](./SPRINT_16_LLM_QUALITY.md) | [SC-041](../00_project/SUCCESS_CRITERIA.md)/042, TEST-164..168 | [x] |
+| [REQ-038](../00_project/REQUIREMENTS.md) | Observability/SLO/FinOps | [S17](./SPRINT_17_OBSERVABILITY_UX.md) | [SC-043](../00_project/SUCCESS_CRITERIA.md), TEST-169..171/173 | [x] |
+| [REQ-039](../00_project/REQUIREMENTS.md) | Complete product experience | [S17](./SPRINT_17_OBSERVABILITY_UX.md) | [SC-044](../00_project/SUCCESS_CRITERIA.md), TEST-171..173 | [x] |
+| [REQ-040](../00_project/REQUIREMENTS.md) | Cache/performance/scalability | [S18](./SPRINT_18_PRODUCTION_QUALIFICATION.md) | [SC-045](../00_project/SUCCESS_CRITERIA.md), TEST-174/175 | [x] |
+| [REQ-041](../00_project/REQUIREMENTS.md) | Cloud staging/recovery | [S18](./SPRINT_18_PRODUCTION_QUALIFICATION.md) | [SC-046](../00_project/SUCCESS_CRITERIA.md)/047, TEST-176/177 | [x] |
+| [REQ-042](../00_project/REQUIREMENTS.md) | Production qualification | [S18](./SPRINT_18_PRODUCTION_QUALIFICATION.md) | [SC-048](../00_project/SUCCESS_CRITERIA.md), TEST-178 | [x] |
 
 `*` = partial in Sprint 1, completed later.
 
