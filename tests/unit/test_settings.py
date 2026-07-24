@@ -60,11 +60,13 @@ def test_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LOG_LEVEL", "DEBUG")
     monkeypatch.setenv("ENVIRONMENT", "test")
 
-    s = Settings()
+    get_settings.cache_clear()
+    s = get_settings()
     assert s.OPENAI_MODEL_NAME == "gpt-4o"
     assert s.RETRIEVAL_FINAL_TOP_K == 8
     assert s.LOG_LEVEL == "DEBUG"
     assert s.ENVIRONMENT == "test"
+    get_settings.cache_clear()
 
 
 @pytest.mark.unit

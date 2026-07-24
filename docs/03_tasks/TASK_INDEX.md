@@ -32,7 +32,7 @@ executable by an AI Code Agent, and traceable to a requirement
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | TASK-001 | Project scaffold, dependency pinning & tooling | REQ-016, REQ-017 | — | Done |
-| TASK-002 | Application settings module (`config/settings.py`) | REQ-016 | TASK-001 | Pending |
+| TASK-002 | Application settings module (`config/settings.py`) | REQ-016 | TASK-001 | Done |
 | TASK-003 | Domain models & enums (`domain/models.py`) | REQ-004, REQ-012 | TASK-001 | Pending |
 | TASK-004 | Domain exceptions (`domain/exceptions.py`) | REQ-017 | TASK-001 | Pending |
 | TASK-005 | Structured JSON logging (`monitoring/logger.py`) | REQ-015 | TASK-002 | Pending |
