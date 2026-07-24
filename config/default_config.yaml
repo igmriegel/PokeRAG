@@ -1,0 +1,30 @@
+app:
+  name: "Pokemon TCG RAG Expert System"
+  version: "0.1.0"
+  environment: "development"
+
+retrieval:
+  top_k_dense: 10
+  top_k_bm25: 10
+  hybrid_rrf_k: 60
+  final_top_k: 5
+  reranker_model: "BAAI/bge-reranker-large"
+
+embeddings:
+  primary_model: "BAAI/bge-large-en-v1.5"
+  secondary_model: "text-embedding-3-small"
+  dimension: 1024
+
+chunking:
+  strategy: "fixed_with_overlap"
+  chunk_size: 512
+  chunk_overlap: 64
+
+llm:
+  provider: "openai"
+  model: "gpt-4o-mini"
+  temperature: 0.0
+
+monitoring:
+  prometheus_port: 9090
+  enable_feedback_collection: true

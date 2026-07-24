@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokemon-rag-app
+  labels:
+    app: pokemon-rag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pokemon-rag
+  template:
+    metadata:
+      labels:
+        app: pokemon-rag
+    spec:
+      containers:
+        - name: app
+          image: pokemon-rag-app:latest
+          ports:
+            - containerPort: 8000
+            - containerPort: 8501
+          envFrom:
+            - configMapRef:
+                name: pokemon-rag-config
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pokemon-rag-service
+spec:
+  type: LoadBalancer
+  ports:
+    - name: api
+      port: 8000
+      targetPort: 8000
+    - name: ui
+      port: 8501
+      targetPort: 8501
+  selector:
+    app: pokemon-rag

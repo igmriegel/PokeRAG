@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pokemon-tcg-rag"
+version = "0.1.0"
+description = "Official Pokemon TCG Rules & Rulings Expert Assistant powered by Hybrid RAG"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Pokemon TCG RAG Engineering Team", email = "engineering@pokemontcg.rag" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "pydantic==2.13.4",
+    "pydantic-settings==2.14.2",
+    "qdrant-client==1.14.3",
+    "rank-bm25==0.2.2",
+    "sentence-transformers==3.3.1",
+    "torch==2.5.1",
+    "transformers==4.47.1",
+    "openai==1.65.0",
+    "pymupdf==1.25.3",
+    "pymupdf4llm==0.0.22",
+    "beautifulsoup4==4.12.3",
+    "requests==2.32.3",
+    "httpx==0.28.1",
+    "pandas==2.2.3",
+    "pyarrow==18.1.0",
+    "fastapi==0.115.7",
+    "uvicorn==0.34.0",
+    "streamlit==1.41.1",
+    "psycopg2-binary==2.9.10",
+    "sqlalchemy==2.0.36",
+    "alembic==1.14.0",
+    "prometheus-client==0.21.1",
+    "python-dotenv==1.2.2",
+    "pyyaml==6.0.2",
+    "structlog==26.1.0",
+    "tenacity==9.0.0",
+    "ragas==0.2.15",
+    "deepeval==2.7.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "pytest-asyncio==0.25.3",
+    "pytest-mock==3.15.1",
+    "ruff==0.16.0",
+    "mypy==2.3.0",
+    "black==24.10.0",
+    "isort==5.13.2",
+    "types-requests==2.32.0.20241016",
+    "types-pyyaml==6.0.12.20241230",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+pythonpath = ["src"]
+addopts = "--strict-markers --cov=pokemon_tcg_rag --cov-report=term-missing --cov-report=html --cov-fail-under=90"
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "smoke: Smoke tests",
+    "e2e: End-to-end scenario tests",
+    "evaluation: RAG and LLM evaluation tests",
+    "performance: Performance & benchmark tests",
+]

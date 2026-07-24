@@ -1,0 +1,76 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Perguntas Processadas Por Dia / Status",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(pokemon_rag_queries_total[5m])", "legendFormat": "{{status}}" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "title": "Tempo Médio de Latência (Segundos)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(pokemon_rag_query_latency_seconds_sum[5m]) / rate(pokemon_rag_query_latency_seconds_count[5m])", "legendFormat": "Latência Média (s)" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "id": 3,
+      "title": "Distribuição de Documentos Recuperados",
+      "type": "histogram",
+      "targets": [
+        { "expr": "pokemon_rag_retrieved_docs_count_bucket", "legendFormat": "Docs" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "id": 4,
+      "title": "Feedback de Usuários (Positivos vs Negativos)",
+      "type": "piechart",
+      "targets": [
+        { "expr": "pokemon_rag_user_feedback_total", "legendFormat": "{{rating_type}}" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "id": 5,
+      "title": "Distribuição por Modelo de LLM",
+      "type": "piechart",
+      "targets": [
+        { "expr": "sum(pokemon_rag_queries_total) by (model)", "legendFormat": "{{model}}" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 6,
+      "title": "Latência P95 e P99",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(pokemon_rag_query_latency_seconds_bucket[5m])) by (le))", "legendFormat": "P95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(pokemon_rag_query_latency_seconds_bucket[5m])) by (le))", "legendFormat": "P99" }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["pokemon", "rag", "monitoring"],
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Pokemon TCG RAG Expert - Monitoring Dashboard",
+  "uid": "pokemon_rag_dash",
+  "version": 1
+}

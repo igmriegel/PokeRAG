@@ -1,0 +1,74 @@
+# Environment variables
+.env
+.env.local
+
+# Python cache & build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# IDE & Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing & Coverage
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py:gcov
+.hypothesis/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Project Data (ignore heavy raw files, keep structure via README)
+data/
+data/raw_data/pdfs/*.pdf
+data/raw_data/html/*.html
+data/raw_data/json/*.json
+data/processed/*.parquet
+data/chunks/*.parquet
+
+# Databases & Local persistence
+*.sqlite
+*.db
+qdrant_storage/
+postgres_data/
+
+# Logs
+*.log
+logs/
