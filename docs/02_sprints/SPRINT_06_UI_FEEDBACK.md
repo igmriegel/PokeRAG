@@ -68,14 +68,14 @@ Also delivers the FastAPI interface (`/query`, `/feedback`, `/health`) satisfyin
 
 ## Checklist
 
-- [ ] UI input box → calls `/query`; renders answer, citations (sources), and used chunks.
-- [ ] UI displays latency (`latency_seconds`), model (`model_name`), and number of retrieved documents.
-- [ ] UI shows expandable raw chunk text for inspectability.
-- [ ] 👍/👎 buttons + optional comment submit to `/feedback`.
-- [ ] `/query` returns `AnswerResponse`-shaped payload; `/feedback` accepts `FeedbackRecord` fields; `/health` returns 200.
-- [ ] `feedback` table created (idempotent); `rating` in {1, -1}; stores query/answer/model/latency/comment/timestamp.
-- [ ] Feedback writes are transactional; failures surface, not swallowed.
-- [ ] API schemas validate input and reject malformed requests (422).
+- [x] UI input box → calls `/query`; renders answer, citations (sources), and used chunks.
+- [x] UI displays latency (`latency_seconds`), model (`model_name`), and number of retrieved documents.
+- [x] UI shows expandable raw chunk text for inspectability.
+- [x] 👍/👎 buttons + optional comment submit to `/feedback`.
+- [x] `/query` returns `AnswerResponse`-shaped payload; `/feedback` accepts `FeedbackRecord` fields; `/health` returns 200.
+- [x] `feedback` table created (idempotent); `rating` in {1, -1}; stores query/answer/model/latency/comment/timestamp.
+- [x] Feedback writes are transactional; failures surface, not swallowed.
+- [x] API schemas validate input and reject malformed requests (422).
 
 ## Acceptance Criteria (measurable)
 
