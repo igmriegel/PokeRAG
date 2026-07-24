@@ -4,6 +4,7 @@ Runtime composition helpers for the FastAPI application.
 
 from __future__ import annotations
 
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -13,7 +14,7 @@ from fastapi import FastAPI
 from pokemon_tcg_rag.api.routes import set_dependencies
 from pokemon_tcg_rag.config.settings import Settings, get_settings
 from pokemon_tcg_rag.domain.exceptions import ConfigurationError
-from pokemon_tcg_rag.domain.models import Chunk
+from pokemon_tcg_rag.domain.models import Chunk, FeedbackRecord, RetrievedChunk
 from pokemon_tcg_rag.llm.client import LLMClient
 from pokemon_tcg_rag.llm.rag_chain import RAGChain
 from pokemon_tcg_rag.monitoring.feedback_store import FeedbackStore
@@ -67,14 +68,68 @@ class OfflineAnswerClient:
         return "I don't know."
 
 
+class OfflineVectorDatabase(VectorDatabase):
+    """Local fallback vector store used when Qdrant is unavailable in development."""
+
+    def __init__(self, collection_name: str) -> None:
+        self.collection_name = collection_name
+
+    def init_collection(self) -> None:
+        """No-op for local degraded startup."""
+
+    def search_dense(
+        self,
+        query_vector: list[float],
+        top_k: int = 10,
+        filters: dict[str, str] | None = None,
+    ) -> list[RetrievedChunk]:
+        """Return no dense matches when the vector store is unavailable."""
+        return []
+
+    def upsert_chunks(self, chunks: list[Chunk]) -> None:
+        """Ignore writes in degraded mode."""
+
+
+class OfflineFeedbackStore(FeedbackStore):
+    """Local fallback feedback store that keeps submissions in memory."""
+
+    def __init__(self) -> None:
+        self.records: list[FeedbackRecord] = []
+
+    def submit_feedback(
+        self,
+        query: str,
+        answer: str,
+        rating: int,
+        comment: str | None,
+        model_name: str,
+        latency: float,
+    ) -> FeedbackRecord:
+        record = FeedbackRecord(
+            feedback_id=f"fb_{uuid.uuid4().hex[:10]}",
+            query=query,
+            answer=answer,
+            rating=rating,
+            comment=comment,
+            model_name=model_name,
+            latency_seconds=latency,
+        )
+        self.records.append(record)
+        return record
+
+    def close(self) -> None:
+        """No-op for in-memory storage."""
+        return None
+
+
 def build_runtime_container(settings: Settings | None = None) -> RuntimeContainer:
     """Build the real dependency graph used by the API and UI."""
     active_settings = settings or get_settings()
-    vector_db = VectorDatabase()
     relational_db = RelationalDatabase()
 
     chunks: list[Chunk] = load_chunks(active_settings.DATA_CHUNKS_DIR)
     bm25_retriever = BM25Retriever(chunks)
+    vector_db: VectorDatabase | OfflineVectorDatabase = VectorDatabase()
     dense_retriever = DenseRetriever(vector_db)
 
     query_rewriter_client: LLMClient | OfflineQueryRewriterClient
@@ -89,16 +144,29 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
         llm_client = OfflineAnswerClient()
         query_rewriter_client = OfflineQueryRewriterClient()
 
+    try:
+        vector_db.init_collection()
+    except Exception as exc:
+        if active_settings.ENVIRONMENT == "production":
+            raise ConfigurationError(f"Qdrant initialization failed: {exc}") from exc
+        vector_db = OfflineVectorDatabase(active_settings.QDRANT_COLLECTION_NAME)
+        dense_retriever = DenseRetriever(vector_db)
+
+    relational_db = RelationalDatabase()
+    try:
+        relational_db.init_db()
+        feedback_store: FeedbackStore | OfflineFeedbackStore = FeedbackStore(relational_db)
+    except Exception as exc:
+        if active_settings.ENVIRONMENT == "production":
+            raise ConfigurationError(f"PostgreSQL initialization failed: {exc}") from exc
+        feedback_store = OfflineFeedbackStore()
+
     retrieval_pipeline = RetrievalPipeline(
         dense_retriever=dense_retriever,
         bm25_retriever=bm25_retriever,
         query_rewriter=QueryRewriter(client=query_rewriter_client),
     )
-    feedback_store = FeedbackStore(relational_db)
     rag_chain = RAGChain(retrieval_pipeline=retrieval_pipeline, llm_client=llm_client)
-
-    vector_db.init_collection()
-    relational_db.init_db()
 
     return RuntimeContainer(
         settings=active_settings,

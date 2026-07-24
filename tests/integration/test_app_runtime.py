@@ -110,9 +110,15 @@ def test_lifespan_bootstraps_real_dependencies(monkeypatch) -> None:
 
 
 def test_build_runtime_container_uses_offline_fallback_without_openai(monkeypatch) -> None:
-    """Development startup must not fail when OpenAI credentials are absent."""
-    monkeypatch.setattr(api_runtime.VectorDatabase, "init_collection", lambda self: None)
-    monkeypatch.setattr(api_runtime.RelationalDatabase, "init_db", lambda self: None)
+    """Development startup must degrade when OpenAI, Qdrant and Postgres are unavailable."""
+    def fail_qdrant(self) -> None:
+        raise RuntimeError("qdrant down")
+
+    def fail_postgres(self) -> None:
+        raise RuntimeError("postgres down")
+
+    monkeypatch.setattr(api_runtime.VectorDatabase, "init_collection", fail_qdrant)
+    monkeypatch.setattr(api_runtime.RelationalDatabase, "init_db", fail_postgres)
     monkeypatch.setattr(api_runtime, "load_chunks", lambda *_args, **_kwargs: [])
 
     container = api_runtime.build_runtime_container(
@@ -121,6 +127,18 @@ def test_build_runtime_container_uses_offline_fallback_without_openai(monkeypatc
     try:
         assert container.rag_chain.llm_client.model_name == "offline-llm"
         assert container.retrieval_pipeline.query_rewriter.client.model_name == "offline-query-rewriter"
+        assert isinstance(container.vector_db, api_runtime.OfflineVectorDatabase)
+        assert isinstance(container.feedback_store, api_runtime.OfflineFeedbackStore)
+        feedback = container.feedback_store.submit_feedback(
+            query="q",
+            answer="a",
+            rating=1,
+            comment=None,
+            model_name="offline-llm",
+            latency=0.1,
+        )
+        assert feedback.feedback_id.startswith("fb_")
+        assert len(container.feedback_store.records) == 1
     finally:
         container.close()
 
