@@ -43,6 +43,25 @@ SAMPLE_HTML = """
 </html>
 """
 
+CURRENT_HTML = """
+<section class="cpdm-rulings">
+  <div class="entry-summary">
+    <div class="ruling-2377">
+      <div class="ruling-categories">
+        <a href="/category/5-trainers/">Trainers</a>
+        <a href="/category/5-trainers/roto-stick/">Roto-Stick</a>
+      </div>
+      <dl class="q-and-a">
+        <dt>Must I shuffle after revealing four Supporters?</dt>
+        <dd>No, you do not shuffle.</dd>
+      </dl>
+      <div id="source">Source: TPCi Rules Team (2026-06-04)</div>
+      <a href="/ruling/2377/">View relevant cards</a>
+    </div>
+  </div>
+</section>
+"""
+
 
 @pytest.mark.unit
 def test_parse_ruling_row_fields() -> None:
@@ -69,6 +88,24 @@ def test_missing_field_handled() -> None:
 
     assert len(rows) == 1
     assert rows[0]["card"] == ""
+
+
+@pytest.mark.unit
+def test_parse_current_definition_list_layout() -> None:
+    crawler = PokegymCrawler()
+
+    rows = crawler._parse_rulings(CURRENT_HTML)
+
+    assert rows == [
+        {
+            "date": "2026-06-04",
+            "set": "",
+            "card": "Roto-Stick",
+            "question": "Must I shuffle after revealing four Supporters?",
+            "answer": "No, you do not shuffle.",
+            "url": "https://compendium.pokegym.net/ruling/2377/",
+        }
+    ]
 
 
 @pytest.mark.unit

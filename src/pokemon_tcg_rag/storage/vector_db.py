@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
-from typing import Any, cast
+from typing import Any
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qmodels
@@ -25,6 +25,10 @@ from pokemon_tcg_rag.domain.models import (
 class VectorDatabase:
     """Qdrant vector-store wrapper for dense retrieval."""
 
+    COLLECTION_METADATA_POINT_ID = str(
+        uuid.uuid5(uuid.NAMESPACE_URL, "pokemon-tcg-rag:collection-metadata")
+    )
+
     def __init__(self, client: QdrantClient | None = None) -> None:
         settings = get_settings()
         self.client = client or QdrantClient(
@@ -32,6 +36,7 @@ class VectorDatabase:
             port=settings.QDRANT_PORT,
             grpc_port=settings.QDRANT_GRPC_PORT,
             api_key=settings.QDRANT_API_KEY or None,
+            timeout=60,
         )
         self.collection_name = settings.QDRANT_COLLECTION_NAME
         self.vector_dim = settings.EMBEDDING_DIMENSION
@@ -53,29 +58,46 @@ class VectorDatabase:
                     size=self.vector_dim,
                     distance=qmodels.Distance.COSINE,
                 ),
-                metadata=metadata,
             )
             if metadata is not None:
-                self._assert_collection_metadata(metadata)
+                self._write_collection_metadata(metadata)
         except Exception as exc:  # pragma: no cover - defensive wrapper
             raise VectorStoreError(f"Failed to initialize Qdrant collection: {exc}") from exc
 
     def collection_metadata(self) -> dict[str, Any]:
         """Return the current collection metadata if available."""
         try:
-            info = self.client.get_collection(self.collection_name)
+            points = self.client.retrieve(
+                collection_name=self.collection_name,
+                ids=[self.COLLECTION_METADATA_POINT_ID],
+                with_payload=True,
+                with_vectors=False,
+            )
         except Exception as exc:  # pragma: no cover - defensive wrapper
             raise VectorStoreError(f"Failed to inspect Qdrant collection: {exc}") from exc
 
-        config = getattr(info, "config", None)
-        metadata = getattr(config, "metadata", None)
-        if metadata is None:
+        if not points:
             return {}
+        payload = points[0].payload or {}
+        metadata = payload.get("metadata")
         if isinstance(metadata, dict):
             return metadata
-        if hasattr(metadata, "model_dump"):
-            return cast(dict[str, Any], metadata.model_dump())
-        return dict(metadata)
+        return {}
+
+    def _write_collection_metadata(self, metadata: dict[str, Any]) -> None:
+        self.client.upsert(
+            collection_name=self.collection_name,
+            points=[
+                qmodels.PointStruct(
+                    id=self.COLLECTION_METADATA_POINT_ID,
+                    vector=[0.0] * self.vector_dim,
+                    payload={
+                        "_record_type": "collection_metadata",
+                        "metadata": metadata,
+                    },
+                )
+            ],
+        )
 
     def _assert_collection_metadata(self, expected: dict[str, Any]) -> None:
         actual = self.collection_metadata()
@@ -85,8 +107,10 @@ class VectorDatabase:
                     f"Qdrant collection metadata mismatch for {key}: expected {value!r}, got {actual.get(key)!r}"
                 )
 
-    def upsert_chunks(self, chunks: Sequence[Chunk]) -> None:
+    def upsert_chunks(self, chunks: Sequence[Chunk], batch_size: int = 64) -> None:
         """Upsert embedded chunks into Qdrant."""
+        if batch_size < 1:
+            raise ValueError("batch_size must be at least 1")
         try:
             points: list[qmodels.PointStruct] = []
             for chunk in chunks:
@@ -100,8 +124,11 @@ class VectorDatabase:
                     )
                 )
 
-            if points:
-                self.client.upsert(collection_name=self.collection_name, points=points)
+            for start in range(0, len(points), batch_size):
+                self.client.upsert(
+                    collection_name=self.collection_name,
+                    points=points[start : start + batch_size],
+                )
         except Exception as exc:  # pragma: no cover - defensive wrapper
             raise VectorStoreError(f"Failed to upsert Qdrant points: {exc}") from exc
 
@@ -143,16 +170,20 @@ class VectorDatabase:
         }
 
     def _build_filter(self, filters: dict[str, str] | None) -> qmodels.Filter | None:
-        if not filters:
-            return None
         return qmodels.Filter(
             must=[
                 qmodels.FieldCondition(
                     key=key,
                     match=qmodels.MatchValue(value=value),
                 )
-                for key, value in filters.items()
-            ]
+                for key, value in (filters or {}).items()
+            ],
+            must_not=[
+                qmodels.FieldCondition(
+                    key="_record_type",
+                    match=qmodels.MatchValue(value="collection_metadata"),
+                )
+            ],
         )
 
     def _point_to_retrieved_chunk(self, point: Any) -> RetrievedChunk:

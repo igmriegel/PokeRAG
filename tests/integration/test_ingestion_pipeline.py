@@ -12,7 +12,9 @@ from pathlib import Path
 import pytest
 
 from pokemon_tcg_rag.domain.models import Document, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.ingestion.pdf_parser import PDFParser
 from pokemon_tcg_rag.ingestion.pipeline import IngestionPipeline
+from pokemon_tcg_rag.ingestion.trust_boundary import validate_source_url
 
 
 def _build_document(
@@ -124,6 +126,17 @@ def test_pipeline_aggregates_all_sources(tmp_path: Path, monkeypatch: pytest.Mon
 
 
 @pytest.mark.integration
+def test_official_pdf_sources_use_approved_live_cdn_hosts() -> None:
+    urls = [source[0] for source in PDFParser.PDF_SOURCES.values()]
+
+    assert len(urls) == 5
+    assert any(url.endswith("/rulebook/par_rulebook_en.pdf") for url in urls)
+    for url in urls:
+        validate_source_url(url)
+        assert "www.pokemon.com/static-assets" not in url
+
+
+@pytest.mark.integration
 def test_download_dedup_by_checksum(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-030: downloading the same PDF bytes twice should deduplicate by checksum."""
 
@@ -142,7 +155,7 @@ def test_download_dedup_by_checksum(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     pipeline = IngestionPipeline(
         raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed"
     )
-    pdf_url = "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/trading-card-game/rulebook/cri_rulebook_en.pdf"
+    pdf_url = PDFParser.PDF_SOURCES["rulebook"][0]
 
     first_path = pipeline._download_pdf(pdf_url)
     second_path = pipeline._download_pdf(pdf_url)

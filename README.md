@@ -97,15 +97,20 @@ docker compose up --build -d
 This starts the API, UI, Qdrant, Postgres, Prometheus, Grafana, and the one-shot migration job. The ingestion worker is intentionally not started by default so that a normal `up` does not re-crawl the corpus on every boot.
 - 🌐 **Streamlit UI**: [http://localhost:8501](http://localhost:8501)
 - 🔌 **FastAPI REST API**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- 📊 **Grafana Dashboard**: [http://localhost:3000](http://localhost:3000) (User: `admin` / Pass: `admin`)
-- 🎯 **Qdrant Vector DB**: [http://localhost:6333/dashboard](http://localhost:6333/dashboard)
-- 📈 **Prometheus Metrics**: [http://localhost:9090](http://localhost:9090) (`/metrics` on the API at [http://localhost:8000/metrics](http://localhost:8000/metrics))
+- 📈 **API Metrics**: [http://localhost:8000/metrics](http://localhost:8000/metrics)
+
+Grafana, Prometheus, Qdrant, and Postgres are reachable only inside the Compose network by
+default; their ports are not published on the host.
 
 ### Step 3: Execute Automated Ingestion Pipeline
 To scrape Pokegym, extract official PDFs, chunk documents, generate embeddings, and seed Qdrant:
 ```bash
 docker compose --profile ingestion run --rm ingestion
 ```
+On Linux, `LOCAL_UID` and `LOCAL_GID` in `.env` must match `id -u` and `id -g` so the
+rootless container can write to the bind-mounted `data/` directory. Both default to `1000`,
+and model downloads are cached under `data/model_cache/`.
+
 If you prefer to keep the worker attached to the Compose lifecycle, `docker compose --profile ingestion up ingestion` uses the same profile gate.
 
 ---

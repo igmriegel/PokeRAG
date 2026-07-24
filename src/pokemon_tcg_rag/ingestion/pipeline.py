@@ -155,7 +155,7 @@ class IngestionPipeline:
         self.pdf_dir.mkdir(parents=True, exist_ok=True)
         content, _ = download_trusted_bytes(
             url,
-            max_bytes=25_000_000,
+            max_bytes=100_000_000,
             timeout=60,
             user_agent="PokemonTCGRAG/1.0 (+https://github.com/igmriegel/PokeRAG)",
             allowed_content_types=("application/pdf", "application/octet-stream"),

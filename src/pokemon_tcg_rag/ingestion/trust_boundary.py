@@ -14,7 +14,9 @@ import requests
 from pokemon_tcg_rag.domain.exceptions import IngestionError
 
 ALLOWED_SOURCE_HOSTS = {
+    "assets.pokemon.com",
     "compendium.pokegym.net",
+    "mcdn.pokemon.com",
     "www.pokemon.com",
     "pokemon.com",
 }

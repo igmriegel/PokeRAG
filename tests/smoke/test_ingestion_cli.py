@@ -73,9 +73,12 @@ def test_ingestion_service_in_compose() -> None:
 
     ingestion = config["services"]["ingestion"]
     assert ingestion["build"]["dockerfile"] == "docker/Dockerfile.ingestion"
-    assert ingestion["command"] == ["python3", "scripts/run_ingestion.py"]
+    assert ingestion["command"] == ["python3", "scripts/run_ingestion.py", "--index"]
+    assert ingestion["user"] == "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
     assert ingestion.get("volumes") == ["./data:/app/data", "./config:/app/config"]
     environment = ingestion.get("environment", {})
+    assert environment["HOME"] == "/tmp"
+    assert environment["HF_HOME"] == "/app/data/model_cache/huggingface"
     assert environment["QDRANT_HOST"] == "qdrant"
     assert environment["QDRANT_PORT"] == 6333
     assert "env_file" not in ingestion

@@ -60,7 +60,7 @@ Grounded field-for-field in [`docker-compose.yml`](../../docker-compose.yml).
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **qdrant** | `qdrant/qdrant:v1.14.1` | `6333`, `6334` | `qdrant_storage:/qdrant/storage` | — | Bash TCP probe on `127.0.0.1:6333` (10s/5s×5) |
 | **postgres** | `postgres:16-alpine` | `5432` | `postgres_data:/var/lib/postgresql/data` | — | `pg_isready -U $POSTGRES_USER -d $POSTGRES_DB` (5s/5s×5) |
-| **ingestion** | build `docker/Dockerfile.ingestion` | — | `./data:/app/data`, `./config:/app/config` | qdrant (healthy), postgres (healthy) | — (batch job, `profiles: [ingestion]`) |
+| **ingestion** | build `docker/Dockerfile.ingestion` | — | `./data:/app/data`, `./config:/app/config` | qdrant (healthy), postgres (healthy) | — (indexing batch job, `profiles: [ingestion]`, host UID/GID) |
 | **api** | build `docker/Dockerfile.app` | `8000` | `./data:/app/data`, `./config:/app/config` | qdrant (healthy), postgres (healthy) | Python HTTP probe on `/health` (10s/5s×5) |
 | **ui** | build `docker/Dockerfile.app` | `8501` | `./data:/app/data`, `./config:/app/config` | api (healthy) | Python HTTP probe on `/_stcore/health` (10s/5s×5) |
 | **prometheus** | `prom/prometheus:v2.48.1` | `9090` | `./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml`, `prometheus_data:/prometheus` | api (healthy) | — |

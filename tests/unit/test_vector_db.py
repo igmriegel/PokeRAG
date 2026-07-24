@@ -20,6 +20,7 @@ class DummyClient:
         self.created = False
         self.created_kwargs: dict[str, object] | None = None
         self.upserted = None
+        self.upsert_calls: list[dict[str, object]] = []
         self.query_filter = None
         self.collection_metadata: dict[str, object] = {}
         self.points = [
@@ -60,7 +61,23 @@ class DummyClient:
 
     def upsert(self, *args, **kwargs) -> SimpleNamespace:
         self.upserted = kwargs
+        self.upsert_calls.append(kwargs)
+        for point in kwargs.get("points", []):
+            if point.payload.get("_record_type") == "collection_metadata":
+                self.collection_metadata = point.payload["metadata"]
         return SimpleNamespace()
+
+    def retrieve(self, *args, **kwargs) -> list[SimpleNamespace]:
+        if not self.collection_metadata:
+            return []
+        return [
+            SimpleNamespace(
+                payload={
+                    "_record_type": "collection_metadata",
+                    "metadata": self.collection_metadata,
+                }
+            )
+        ]
 
     def query_points(self, *args, **kwargs) -> SimpleNamespace:
         self.query_filter = kwargs.get("query_filter")
@@ -98,7 +115,7 @@ def test_init_collection_dim_1024() -> None:
 
     assert client.created is True
     assert client.created_kwargs is not None
-    assert client.created_kwargs["metadata"] is None
+    assert "metadata" not in client.created_kwargs
 
 
 @pytest.mark.unit
@@ -116,7 +133,7 @@ def test_init_collection_validates_manifest_metadata() -> None:
 
     db.init_collection(metadata=metadata)
 
-    assert client.collection_metadata["corpus_id"] == "bootstrap-demo-corpus"
+    assert db.collection_metadata()["corpus_id"] == "bootstrap-demo-corpus"
 
 
 @pytest.mark.unit
@@ -154,6 +171,22 @@ def test_upsert_maps_payload() -> None:
     assert points[0].payload["source"] == DocumentSource.RULEBOOK_PDF.value
     assert points[0].payload["rule_type"] == RuleType.GENERAL_RULE.value
     assert points[0].payload["page_number"] == 10
+
+
+@pytest.mark.unit
+def test_upsert_splits_large_corpora_into_batches() -> None:
+    client = DummyClient()
+    db = VectorDatabase(client=client)  # type: ignore[arg-type]
+    chunks = [
+        _make_chunk(embedding=[0.1] * 1024).model_copy(
+            update={"chunk_id": f"chunk-{index}"}
+        )
+        for index in range(130)
+    ]
+
+    db.upsert_chunks(chunks, batch_size=64)
+
+    assert [len(call["points"]) for call in client.upsert_calls] == [64, 64, 2]
 
 
 @pytest.mark.unit

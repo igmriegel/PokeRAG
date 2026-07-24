@@ -78,9 +78,15 @@ services:
       context: .
       dockerfile: docker/Dockerfile.ingestion
     container_name: pokemon_ingestion
-    command: ["python3", "scripts/run_ingestion.py"]
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    command: ["python3", "scripts/run_ingestion.py", "--index"]
     environment:
       ENVIRONMENT: ${ENVIRONMENT:-development}
+      HOME: /tmp
+      TMPDIR: /tmp
+      HF_HOME: /app/data/model_cache/huggingface
+      SENTENCE_TRANSFORMERS_HOME: /app/data/model_cache/sentence_transformers
+      TORCH_HOME: /app/data/model_cache/torch
       QDRANT_HOST: qdrant
       QDRANT_PORT: 6333
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}

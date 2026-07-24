@@ -8,6 +8,7 @@ JSONL artifacts, and emits domain ``Document`` objects for downstream ingestion.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any, cast
 from urllib.parse import urljoin
@@ -51,7 +52,7 @@ class PokegymCrawler:
         try:
             html_bytes, _ = download_trusted_bytes(
                 self.BASE_URL,
-                max_bytes=3_000_000,
+                max_bytes=6_000_000,
                 timeout=30,
                 user_agent="PokemonTCGRAG/1.0 (+https://github.com/igmriegel/PokeRAG)",
                 allowed_content_types=("text/html", "application/xhtml+xml"),
@@ -137,6 +138,10 @@ class PokegymCrawler:
         if records:
             return records
 
+        records = self._parse_definition_rows(soup)
+        if records:
+            return records
+
         records = self._parse_block_rows(soup)
         if records:
             return records
@@ -158,6 +163,54 @@ class PokegymCrawler:
                 row = self._row_from_cells(headers, cells, tr)
                 if row:
                     records.append(row)
+        return records
+
+    def _parse_definition_rows(self, soup: BeautifulSoup) -> list[dict[str, str]]:
+        """Parse the current Pokegym ``dl.q-and-a`` ruling layout."""
+        records: list[dict[str, str]] = []
+        for qa in soup.select("dl.q-and-a"):
+            question = qa.find("dt")
+            answers = qa.find_all("dd")
+            if question is None or not answers:
+                continue
+
+            container = qa.parent if isinstance(qa.parent, Tag) else qa
+            category_links = container.select(".ruling-categories a[href]")
+            specific_categories = [
+                link.get_text(" ", strip=True)
+                for link in category_links
+                if len(
+                    [
+                        part
+                        for part in cast(str, link.get("href", "")).split("/category/", 1)[-1].split("/")
+                        if part
+                    ]
+                )
+                >= 2
+            ]
+            source = container.find(id="source")
+            source_text = source.get_text(" ", strip=True) if source else ""
+            date_match = re.search(r"\((\d{4}-\d{2}-\d{2})\)", source_text)
+            ruling_link = container.find("a", href=lambda href: href and "/ruling/" in href)
+
+            records.append(
+                self._canonicalize_row(
+                    {
+                        "date": date_match.group(1) if date_match else "",
+                        "card": specific_categories[0] if specific_categories else "",
+                        "question": question.get_text(" ", strip=True),
+                        "answer": " ".join(
+                            answer.get_text(" ", strip=True) for answer in answers
+                        ),
+                        "url": urljoin(
+                            self.BASE_URL,
+                            cast(str, ruling_link.get("href"))
+                            if ruling_link is not None
+                            else self.BASE_URL,
+                        ),
+                    }
+                )
+            )
         return records
 
     def _parse_block_rows(self, soup: BeautifulSoup) -> list[dict[str, str]]:

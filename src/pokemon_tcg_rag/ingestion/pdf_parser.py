@@ -29,27 +29,27 @@ class PDFParser:
 
     PDF_SOURCES = {
         "rulebook": (
-            "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/trading-card-game/rulebook/cri_rulebook_en.pdf",
+            "https://mcdn.pokemon.com/pokemon-prod/raw/upload/v1/live/static-assets/content-assets/cms2/pdf/trading-card-game/rulebook/par_rulebook_en.pdf",
             DocumentSource.RULEBOOK_PDF,
             RuleType.GENERAL_RULE,
         ),
         "tournament_handbook": (
-            "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/play-pokemon/rules/play-pokemon-tcg-tournament-handbook-en.pdf",
+            "https://mcdn.pokemon.com/pokemon-prod/raw/upload/v1/live/static-assets/content-assets/cms2/pdf/play-pokemon/rules/play-pokemon-tcg-tournament-handbook-en.pdf",
             DocumentSource.TOURNAMENT_HANDBOOK_PDF,
             RuleType.TOURNAMENT_RULE,
         ),
         "alt_play": (
-            "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/trading-card-game/tcg-alternative-play-handbook-en.pdf",
+            "https://assets.pokemon.com/assets/cms2/pdf/trading-card-game/tcg-alternative-play-handbook-en.pdf",
             DocumentSource.ALT_PLAY_HANDBOOK_PDF,
             RuleType.GENERAL_RULE,
         ),
         "errata": (
-            "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/trading-card-game/tcg_errata.pdf",
+            "https://mcdn.pokemon.com/pokemon-prod/raw/upload/v1/live/static-assets/content-assets/cms2/pdf/trading-card-game/tcg_errata.pdf",
             DocumentSource.ERRATA_PDF,
             RuleType.ERRATA,
         ),
         "deck_list_guide": (
-            "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/play-pokemon/rules/play-pokemon-deck-list-85x11.pdf",
+            "https://mcdn.pokemon.com/pokemon-prod/raw/upload/v1/live/static-assets/content-assets/cms2/pdf/play-pokemon/rules/play-pokemon-deck-list-85x11-tef.pdf",
             DocumentSource.DECK_LIST_GUIDE_PDF,
             RuleType.TOURNAMENT_RULE,
         ),
