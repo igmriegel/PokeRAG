@@ -42,7 +42,7 @@ executable by an AI Code Agent, and traceable to a requirement
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-007 | Pokegym rulings crawler (`ingestion/crawler_pokegym.py`) | REQ-001 | TASK-003, TASK-005 | Pending |
+| TASK-007 | Pokegym rulings crawler (`ingestion/crawler_pokegym.py`) | REQ-001 | TASK-003, TASK-005 | Done |
 | TASK-008 | HTML pages scraper — Ban/Promo/Mega (`ingestion/html_scraper.py`) | REQ-003 | TASK-003, TASK-005 | Pending |
 | TASK-009 | PDF & Rulebook parser (`ingestion/pdf_parser.py`) | REQ-002 | TASK-003, TASK-005 | Pending |
 | TASK-010 | Ingestion orchestrator: download & raw persistence (`ingestion/pipeline.py`) | REQ-001, REQ-002, REQ-003 | TASK-007, TASK-008, TASK-009 | Pending |
