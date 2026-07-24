@@ -1,0 +1,133 @@
+"""
+TASK-014 — TEST-044, TEST-045, TEST-046, TEST-047
+
+Unit tests for the Qdrant vector database client.
+"""
+
+from __future__ import annotations
+
+from types import SimpleNamespace
+
+import pytest
+
+from pokemon_tcg_rag.domain.exceptions import VectorStoreError
+from pokemon_tcg_rag.domain.models import Chunk, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.storage.vector_db import VectorDatabase
+
+
+class DummyClient:
+    def __init__(self) -> None:
+        self.created = False
+        self.upserted = None
+        self.query_filter = None
+        self.points = [
+            SimpleNamespace(
+                id="chunk-1",
+                score=0.99,
+                payload={
+                    "doc_id": "doc-1",
+                    "text": "Rare Candy lets you evolve faster.",
+                    "source": DocumentSource.RULEBOOK_PDF.value,
+                    "document_title": "Rulebook",
+                    "page_number": 10,
+                    "section_title": "Setup",
+                    "rule_type": RuleType.GENERAL_RULE.value,
+                    "card_name": "Rare Candy",
+                    "publication_date": "2026-07-24",
+                    "source_url": "https://example.com/rulebook.pdf",
+                    "checksum": "abc",
+                },
+            )
+        ]
+
+    def collection_exists(self, name: str) -> bool:
+        return self.created
+
+    def create_collection(self, *args, **kwargs) -> bool:
+        self.created = True
+        return True
+
+    def upsert(self, *args, **kwargs) -> SimpleNamespace:
+        self.upserted = kwargs
+        return SimpleNamespace()
+
+    def query_points(self, *args, **kwargs) -> SimpleNamespace:
+        self.query_filter = kwargs.get("query_filter")
+        return SimpleNamespace(points=self.points)
+
+
+def _make_chunk(embedding: list[float] | None = None) -> Chunk:
+    return Chunk(
+        chunk_id="chunk-1",
+        doc_id="doc-1",
+        text="Rare Candy lets you evolve faster.",
+        token_count=6,
+        metadata=DocumentMetadata(
+            source=DocumentSource.RULEBOOK_PDF,
+            document_title="Rulebook",
+            page_number=10,
+            section_title="Setup",
+            card_name="Rare Candy",
+            rule_type=RuleType.GENERAL_RULE,
+            publication_date="2026-07-24",
+            source_url="https://example.com/rulebook.pdf",
+            checksum="abc",
+        ),
+        embedding=embedding,
+    )
+
+
+@pytest.mark.unit
+def test_init_collection_dim_1024() -> None:
+    """TEST-044: collection must be initialized with the configured size and cosine distance."""
+    client = DummyClient()
+    db = VectorDatabase(client=client)  # type: ignore[arg-type]
+
+    db.init_collection()
+
+    assert client.created is True
+
+
+@pytest.mark.unit
+def test_upsert_maps_payload() -> None:
+    """TEST-045: chunk fields must be mapped into the Qdrant payload."""
+    client = DummyClient()
+    db = VectorDatabase(client=client)  # type: ignore[arg-type]
+    chunk = _make_chunk(embedding=[0.1] * 1024)
+
+    db.upsert_chunks([chunk])
+
+    assert client.upserted is not None
+    points = client.upserted["points"]
+    assert points[0].payload["chunk_id"] == "chunk-1"
+    assert points[0].payload["source"] == DocumentSource.RULEBOOK_PDF.value
+    assert points[0].payload["rule_type"] == RuleType.GENERAL_RULE.value
+    assert points[0].payload["page_number"] == 10
+
+
+@pytest.mark.unit
+def test_search_returns_retrieved_chunks() -> None:
+    """TEST-046: query results must be mapped back into RetrievedChunk objects."""
+    client = DummyClient()
+    db = VectorDatabase(client=client)  # type: ignore[arg-type]
+
+    results = db.search_dense([0.1] * 1024, top_k=1)
+
+    assert len(results) == 1
+    assert results[0].chunk.chunk_id == "chunk-1"
+    assert results[0].chunk.metadata.source == DocumentSource.RULEBOOK_PDF
+    assert results[0].score == pytest.approx(0.99)
+
+
+@pytest.mark.unit
+def test_search_error_raises() -> None:
+    """TEST-047: client failures must raise VectorStoreError."""
+
+    class BrokenClient(DummyClient):
+        def query_points(self, *args, **kwargs) -> SimpleNamespace:
+            raise RuntimeError("boom")
+
+    db = VectorDatabase(client=BrokenClient())  # type: ignore[arg-type]
+
+    with pytest.raises(VectorStoreError):
+        db.search_dense([0.1] * 1024, top_k=1)
