@@ -5,6 +5,7 @@ Query rewriting helper for retrieval-optimized Pokemon TCG searches.
 from __future__ import annotations
 
 from pokemon_tcg_rag.llm.client import LLMClient, SupportsGeneration
+from pokemon_tcg_rag.monitoring.tracing import traced_span
 
 
 class QueryRewriter:
@@ -15,12 +16,16 @@ class QueryRewriter:
 
     def rewrite_query(self, original_query: str) -> str:
         """Rewrite a vague query or safely fall back to the original."""
-        prompt = self._build_prompt(original_query)
-        rewrite = self.client.generate_answer(prompt).strip()
-        rewrite = self._sanitize(rewrite)
-        if not rewrite or self._normalized(rewrite) == self._normalized(original_query):
-            return original_query
-        return rewrite
+        with traced_span(
+            "retrieval.query_rewrite",
+            attributes={"query.length": len(original_query.strip())},
+        ):
+            prompt = self._build_prompt(original_query)
+            rewrite = self.client.generate_answer(prompt).strip()
+            rewrite = self._sanitize(rewrite)
+            if not rewrite or self._normalized(rewrite) == self._normalized(original_query):
+                return original_query
+            return rewrite
 
     def _build_prompt(self, original_query: str) -> str:
         return (

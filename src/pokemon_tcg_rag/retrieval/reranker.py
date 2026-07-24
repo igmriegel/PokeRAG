@@ -12,6 +12,7 @@ from sentence_transformers import CrossEncoder
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.models import RetrievedChunk
 from pokemon_tcg_rag.monitoring.logger import get_logger
+from pokemon_tcg_rag.monitoring.tracing import traced_span
 
 LOGGER = get_logger(__name__)
 
@@ -50,24 +51,28 @@ class BGEReranker:
             return []
 
         limit = top_k or self.default_top_k
-        if self._disabled_reason is not None:
-            ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
-            return list(ordered[:limit])
+        with traced_span(
+            "retrieval.rerank",
+            attributes={"retrieval.top_k": limit, "candidate_count": len(candidate_chunks)},
+        ):
+            if self._disabled_reason is not None:
+                ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
+                return list(ordered[:limit])
 
-        pairs = [(query, item.chunk.text) for item in candidate_chunks]
-        try:
-            scores = list(cast(Any, self.model.predict)(pairs, convert_to_numpy=True))
-        except Exception:
-            ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
-            return list(ordered[:limit])
+            pairs = [(query, item.chunk.text) for item in candidate_chunks]
+            try:
+                scores = list(cast(Any, self.model.predict)(pairs, convert_to_numpy=True))
+            except Exception:
+                ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
+                return list(ordered[:limit])
 
-        reranked = [
-            RetrievedChunk(
-                chunk=item.chunk,
-                score=float(score),
-                retrieval_method="bge_reranked",
-            )
-            for item, score in zip(candidate_chunks, scores, strict=False)
-        ]
-        reranked.sort(key=lambda item: item.score, reverse=True)
-        return reranked[:limit]
+            reranked = [
+                RetrievedChunk(
+                    chunk=item.chunk,
+                    score=float(score),
+                    retrieval_method="bge_reranked",
+                )
+                for item, score in zip(candidate_chunks, scores, strict=False)
+            ]
+            reranked.sort(key=lambda item: item.score, reverse=True)
+            return reranked[:limit]

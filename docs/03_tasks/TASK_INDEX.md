@@ -131,21 +131,21 @@ executable by an AI Code Agent, and traceable to a requirement
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-051 | PostgreSQL least-privilege roles and migrations | REQ-028 | TASK-045, TASK-026 | Pending |
-| TASK-052 | Rootless minimal runtime images | REQ-027 | TASK-041, TASK-043 | Pending |
-| TASK-053 | Restricted Kubernetes workloads | REQ-027 | TASK-052, TASK-040 | Pending |
-| TASK-054 | Network segmentation, TLS and protected observability | REQ-024, REQ-028 | TASK-043, TASK-044, TASK-053 | Pending |
-| TASK-055 | Consolidated immutable IaC and artifact provenance | REQ-021, REQ-027 | TASK-041, TASK-053, TASK-054 | Pending |
+| TASK-051 | PostgreSQL least-privilege roles and migrations | REQ-028 | TASK-045, TASK-026 | Done |
+| TASK-052 | Rootless minimal runtime images | REQ-027 | TASK-041, TASK-043 | Done |
+| TASK-053 | Restricted Kubernetes workloads | REQ-027 | TASK-052, TASK-040 | Done |
+| TASK-054 | Network segmentation, TLS and protected observability | REQ-024, REQ-028 | TASK-043, TASK-044, TASK-053 | Done |
+| TASK-055 | Consolidated immutable IaC and artifact provenance | REQ-021, REQ-027 | TASK-041, TASK-053, TASK-054 | Done |
 
 ## Sprint 12 — Security Assurance & Release Gate (`SPRINT_12_SECURITY_ASSURANCE`)
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-056 | Harden the ingestion trust boundary | REQ-029 | TASK-041, TASK-010 | Pending |
-| TASK-057 | Production wiring and truthful readiness | REQ-023, REQ-028, REQ-030 | TASK-047, TASK-050, TASK-051, TASK-054 | Pending |
-| TASK-058 | Automated security scans, SBOM and policy gates | REQ-021, REQ-030 | TASK-042, TASK-055, TASK-056 | Pending |
-| TASK-059 | DAST and adversarial security regression suite | REQ-022, REQ-024, REQ-025, REQ-026, REQ-030 | TASK-048, TASK-049, TASK-057, TASK-058 | Pending |
-| TASK-060 | Security closure and release gate | REQ-030 | TASK-041..TASK-059 | Pending |
+| TASK-056 | Harden the ingestion trust boundary | REQ-029 | TASK-041, TASK-010 | Done |
+| TASK-057 | Production wiring and truthful readiness | REQ-023, REQ-028, REQ-030 | TASK-047, TASK-050, TASK-051, TASK-054 | Done |
+| TASK-058 | Automated security scans, SBOM and policy gates | REQ-021, REQ-030 | TASK-042, TASK-055, TASK-056 | Done |
+| TASK-059 | DAST and adversarial security regression suite | REQ-022, REQ-024, REQ-025, REQ-026, REQ-030 | TASK-048, TASK-049, TASK-057, TASK-058 | Done |
+| TASK-060 | Security closure and release gate | REQ-030 | TASK-041..TASK-059 | Done |
 
 ## Sprint 13 — Runtime Stabilization (`SPRINT_13_RUNTIME_STABILIZATION`)
 
@@ -162,50 +162,50 @@ executable by an AI Code Agent, and traceable to a requirement
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | TASK-066 | Repair static quality gates | REQ-033 | TASK-042 | Done |
-| TASK-067 | Enforce 90% coverage and clean-clone CI | REQ-033, REQ-034 | TASK-041, TASK-042, TASK-066 | Pending |
-| TASK-068 | Build a real infrastructure integration layer | REQ-033 | TASK-063, TASK-064, TASK-065, TASK-067 | Pending |
-| TASK-069 | Add full compose and browser/API end-to-end test | REQ-033, REQ-034 | TASK-068 | Pending |
-| TASK-070 | Reconcile documentation with executable evidence | REQ-034 | TASK-067, TASK-069 | Pending |
+| TASK-067 | Enforce 90% coverage and clean-clone CI | REQ-033, REQ-034 | TASK-041, TASK-042, TASK-066 | Done |
+| TASK-068 | Build a real infrastructure integration layer | REQ-033 | TASK-063, TASK-064, TASK-065, TASK-067 | Done |
+| TASK-069 | Add full compose and browser/API end-to-end test | REQ-033, REQ-034 | TASK-068 | Done |
+| TASK-070 | Reconcile documentation with executable evidence | REQ-034 | TASK-067, TASK-069 | Done |
 
 ## Sprint 15 — Retrieval Quality (`SPRINT_15_RETRIEVAL_QUALITY`)
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-071 | Build a reviewed, versioned benchmark | REQ-035 | TASK-063 | Pending |
-| TASK-072 | Use production retrieval implementations in evaluation | REQ-036 | TASK-061, TASK-071 | Pending |
-| TASK-073 | Execute retrieval ablations | REQ-036 | TASK-072 | Pending |
-| TASK-074 | Implement incremental manifest-driven ingestion | REQ-032, REQ-036 | TASK-056, TASK-063 | Pending |
-| TASK-075 | Publish retrieval baseline and regression gate | REQ-036 | TASK-072, TASK-073, TASK-074 | Pending |
+| TASK-071 | Build a reviewed, versioned benchmark | REQ-035 | TASK-063 | Done |
+| TASK-072 | Use production retrieval implementations in evaluation | REQ-036 | TASK-061, TASK-071 | Done |
+| TASK-073 | Execute retrieval ablations | REQ-036 | TASK-072 | Done |
+| TASK-074 | Implement incremental manifest-driven ingestion | REQ-032, REQ-036 | TASK-056, TASK-063 | Done |
+| TASK-075 | Publish retrieval baseline and regression gate | REQ-036 | TASK-072, TASK-073, TASK-074 | Done |
 
 ## Sprint 16 — LLM Quality & Guardrails (`SPRINT_16_LLM_QUALITY`)
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-076 | Implement a real prompt/model evaluation runner | REQ-037 | TASK-057, TASK-071 | Pending |
-| TASK-077 | Add RAGAS/DeepEval automatic scoring | REQ-037 | TASK-076 | Pending |
-| TASK-078 | Establish human evaluation and error taxonomy | REQ-037 | TASK-076 | Pending |
-| TASK-079 | Validate structured claims and citation entailment | REQ-025, REQ-037 | TASK-048, TASK-076 | Pending |
-| TASK-080 | Publish LLM selection report and regression gate | REQ-037 | TASK-077, TASK-078, TASK-079 | Pending |
+| TASK-076 | Implement a real prompt/model evaluation runner | REQ-037 | TASK-057, TASK-071 | Done |
+| TASK-077 | Add RAGAS/DeepEval automatic scoring | REQ-037 | TASK-076 | Done |
+| TASK-078 | Establish human evaluation and error taxonomy | REQ-037 | TASK-076 | Done |
+| TASK-079 | Validate structured claims and citation entailment | REQ-025, REQ-037 | TASK-048, TASK-076 | Done |
+| TASK-080 | Publish LLM selection report and regression gate | REQ-037 | TASK-077, TASK-078, TASK-079 | Done |
 
 ## Sprint 17 — Observability & Product UX (`SPRINT_17_OBSERVABILITY_UX`)
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-081 | Add OpenTelemetry tracing and correlation | REQ-038 | TASK-049, TASK-057 | Pending |
-| TASK-082 | Define SLO, token, cost and alert controls | REQ-038 | TASK-047, TASK-081 | Pending |
-| TASK-083 | Populate dashboards and feedback telemetry | REQ-038, REQ-039 | TASK-065, TASK-081, TASK-082 | Pending |
-| TASK-084 | Complete the user workflow UX | REQ-039 | TASK-044, TASK-050, TASK-065 | Pending |
-| TASK-085 | Publish operational analytics and runbooks | REQ-038, REQ-039 | TASK-049, TASK-083, TASK-084 | Pending |
+| TASK-081 | Add OpenTelemetry tracing and correlation | REQ-038 | TASK-049, TASK-057 | Done |
+| TASK-082 | Define SLO, token, cost and alert controls | REQ-038 | TASK-047, TASK-081 | Done |
+| TASK-083 | Populate dashboards and feedback telemetry | REQ-038, REQ-039 | TASK-065, TASK-081, TASK-082 | Done |
+| TASK-084 | Complete the user workflow UX | REQ-039 | TASK-044, TASK-050, TASK-065 | Done |
+| TASK-085 | Publish operational analytics and runbooks | REQ-038, REQ-039 | TASK-049, TASK-083, TASK-084 | Done |
 
 ## Sprint 18 — Scale, Cloud & Production Qualification (`SPRINT_18_PRODUCTION_QUALIFICATION`)
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-086 | Add safe cache, metadata filtering and MMR policy | REQ-040 | TASK-073, TASK-075 | Pending |
-| TASK-087 | Qualify warm-up, batching, concurrency and cost | REQ-040 | TASK-047, TASK-080, TASK-082, TASK-086 | Pending |
-| TASK-088 | Deploy immutable artifacts to cloud staging | REQ-041 | TASK-055, TASK-058, TASK-069, TASK-083, TASK-087 | Pending |
-| TASK-089 | Exercise backup, restore, rollback and DORA metrics | REQ-041 | TASK-051, TASK-055, TASK-083, TASK-088 | Pending |
-| TASK-090 | Execute final production scorecard and release gate | REQ-042 | TASK-060, TASK-070, TASK-075, TASK-080, TASK-085, TASK-087..089 | Pending |
+| TASK-086 | Add safe cache, metadata filtering and MMR policy | REQ-040 | TASK-073, TASK-075 | Done |
+| TASK-087 | Qualify warm-up, batching, concurrency and cost | REQ-040 | TASK-047, TASK-080, TASK-082, TASK-086 | Done |
+| TASK-088 | Deploy immutable artifacts to cloud staging | REQ-041 | TASK-055, TASK-058, TASK-069, TASK-083, TASK-087 | Done |
+| TASK-089 | Exercise backup, restore, rollback and DORA metrics | REQ-041 | TASK-051, TASK-055, TASK-083, TASK-088 | Done |
+| TASK-090 | Execute final production scorecard and release gate | REQ-042 | TASK-060, TASK-070, TASK-075, TASK-080, TASK-085, TASK-087..089 | Done |
 
 ---
 

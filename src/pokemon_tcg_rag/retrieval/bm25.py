@@ -9,6 +9,7 @@ import re
 from rank_bm25 import BM25Okapi
 
 from pokemon_tcg_rag.domain.models import Chunk, RetrievedChunk
+from pokemon_tcg_rag.monitoring.tracing import traced_span
 
 
 class BM25Retriever:
@@ -34,18 +35,24 @@ class BM25Retriever:
         if not query.strip() or not self.bm25 or not self.chunks:
             return []
 
-        scores = self.bm25.get_scores(self._tokenize(query))
-        ranked_indices = sorted(range(len(scores)), key=lambda index: scores[index], reverse=True)
-        results: list[RetrievedChunk] = []
-        for index in ranked_indices[:top_k]:
-            results.append(
-                RetrievedChunk(
-                    chunk=self.chunks[index],
-                    score=float(scores[index]),
-                    retrieval_method="bm25",
-                )
+        with traced_span(
+            "retrieval.bm25",
+            attributes={"retrieval.top_k": top_k, "query.length": len(query.strip())},
+        ):
+            scores = self.bm25.get_scores(self._tokenize(query))
+            ranked_indices = sorted(
+                range(len(scores)), key=lambda index: scores[index], reverse=True
             )
-        return results
+            results: list[RetrievedChunk] = []
+            for index in ranked_indices[:top_k]:
+                results.append(
+                    RetrievedChunk(
+                        chunk=self.chunks[index],
+                        score=float(scores[index]),
+                        retrieval_method="bm25",
+                    )
+                )
+            return results
 
     def _tokenize(self, text: str) -> list[str]:
         tokens = re.findall(r"[A-Za-z0-9]+", text.lower())
