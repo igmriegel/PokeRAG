@@ -8,7 +8,7 @@ Provide the **master traceability matrix** that links every requirement ([`REQ-#
 
 ## Scope
 
-- **In scope:** the full REQ-001 → REQ-020 mapping and the traceability-chain concept.
+- **In scope:** the full REQ-001 → REQ-042 mapping and the traceability-chain concept.
 - **Out of scope:** requirement text (see [`../00_project/REQUIREMENTS.md`](../00_project/REQUIREMENTS.md)), numeric targets (see [`../00_project/SUCCESS_CRITERIA.md`](../00_project/SUCCESS_CRITERIA.md)), and per-task detail (see [`../03_tasks/`](../03_tasks/)). `TASK-###`/`TEST-###` IDs below are the canonical links; their full definitions live in the task and test docs.
 
 > **⚠️ Living document — agents MUST keep this matrix updated.** Whenever you implement a task, add a test, or change a requirement's status, update the matching rows here **in the same PR** (closeout step 6, [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)). A stale matrix is a merge-blocking documentation failure ([PRINCIPLE-014](./PROJECT_CONSTITUTION.md), [GATE-009](./QUALITY_GATE_SPECIFICATION.md)).
@@ -31,7 +31,7 @@ Read it as: a requirement is scheduled into a sprint, decomposed into tasks, rea
 
 ---
 
-## 2. Master Traceability Matrix (REQ-001 → REQ-020)
+## 2. Master Traceability Matrix (REQ-001 → REQ-042)
 
 | REQ | Sprint | Task(s) | Test(s) | Acceptance Criterion | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -55,6 +55,28 @@ Read it as: a requirement is scheduled into a sprint, decomposed into tasks, rea
 | [REQ-018](../00_project/REQUIREMENTS.md) Eval retrieval strategies (Recall@K, MRR) | SPRINT_07 | TASK-032, TASK-033, TASK-034, TASK-036 | TEST-033 (unit: `metrics` Recall/MRR), TEST-034 (evaluation: 4-strategy benchmark) | [SC-001](../00_project/SUCCESS_CRITERIA.md)–[SC-005](../00_project/SUCCESS_CRITERIA.md) | Pending |
 | [REQ-019](../00_project/REQUIREMENTS.md) Eval LLM (Faithfulness, Correctness) | SPRINT_07 | TASK-035, TASK-036 | TEST-035 (evaluation: RAGAS faithfulness), TEST-036 (evaluation: 2 prompts × 2 models) | [SC-006](../00_project/SUCCESS_CRITERIA.md)–[SC-010](../00_project/SUCCESS_CRITERIA.md) | Pending |
 | [REQ-020](../00_project/REQUIREMENTS.md) Kubernetes / IaC manifests (cloud) | SPRINT_08 | TASK-040 | TEST-040 (smoke: manifest validity), TEST-040e (e2e: public `/health` 200) | [SC-023](../00_project/SUCCESS_CRITERIA.md) cloud deploy (bonus) | Pending |
+| [REQ-021](../00_project/REQUIREMENTS.md) Reproducible and verifiable supply chain | SPRINT_09, SPRINT_11, SPRINT_12 | TASK-041, TASK-055, TASK-058 | TEST-129, TEST-143, TEST-146 | [SC-025](../00_project/SUCCESS_CRITERIA.md), [SC-034](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-022](../00_project/REQUIREMENTS.md) API authentication and authorization | SPRINT_10, SPRINT_12 | TASK-046, TASK-059 | TEST-134, TEST-147 | [SC-027](../00_project/SUCCESS_CRITERIA.md), [SC-034](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-023](../00_project/REQUIREMENTS.md) Resource and LLM cost controls | SPRINT_10, SPRINT_12 | TASK-047, TASK-057 | TEST-135, TEST-145 | [SC-028](../00_project/SUCCESS_CRITERIA.md), [SC-033](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-024](../00_project/REQUIREMENTS.md) SSRF and network destination control | SPRINT_09, SPRINT_11, SPRINT_12 | TASK-044, TASK-054, TASK-059 | TEST-132, TEST-142, TEST-147 | [SC-026](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-025](../00_project/REQUIREMENTS.md) Prompt and citation integrity | SPRINT_10, SPRINT_12 | TASK-048, TASK-059 | TEST-136, TEST-147 | [SC-029](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-026](../00_project/REQUIREMENTS.md) Privacy, feedback integrity and safe disclosure | SPRINT_10, SPRINT_12 | TASK-049, TASK-050, TASK-059 | TEST-137, TEST-138, TEST-147 | [SC-032](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-027](../00_project/REQUIREMENTS.md) Container and Kubernetes hardening | SPRINT_11 | TASK-052, TASK-053, TASK-055 | TEST-140, TEST-141, TEST-143 | [SC-031](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-028](../00_project/REQUIREMENTS.md) Secrets, network and database least privilege | SPRINT_09, SPRINT_11, SPRINT_12 | TASK-043, TASK-045, TASK-051, TASK-054, TASK-057 | TEST-131, TEST-133, TEST-139, TEST-142, TEST-145 | [SC-030](../00_project/SUCCESS_CRITERIA.md), [SC-033](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-029](../00_project/REQUIREMENTS.md) Hardened ingestion trust boundary | SPRINT_12 | TASK-056 | TEST-144 | [SC-033](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-030](../00_project/REQUIREMENTS.md) Continuous security assurance and release gate | SPRINT_09, SPRINT_12 | TASK-042, TASK-057, TASK-058, TASK-059, TASK-060 | TEST-130, TEST-145, TEST-146, TEST-147, TEST-148 | [SC-034](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-031](../00_project/REQUIREMENTS.md) Production composition and operational query/feedback | SPRINT_13 | TASK-061, TASK-062, TASK-064, TASK-065 | TEST-149, TEST-150, TEST-152, TEST-153 | [SC-035](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-032](../00_project/REQUIREMENTS.md) Deterministic corpus and index lifecycle | SPRINT_13, SPRINT_15 | TASK-061, TASK-063, TASK-064, TASK-074 | TEST-149, TEST-151, TEST-152, TEST-162 | [SC-036](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-033](../00_project/REQUIREMENTS.md) Green quality gate and real test pyramid | SPRINT_14 | TASK-066, TASK-067, TASK-068, TASK-069 | TEST-154, TEST-155, TEST-156, TEST-157 | [SC-037](../00_project/SUCCESS_CRITERIA.md), [SC-038](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-034](../00_project/REQUIREMENTS.md) Clean-clone and evidence-backed documentation | SPRINT_14 | TASK-067, TASK-069, TASK-070 | TEST-155, TEST-157, TEST-158 | [SC-038](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-035](../00_project/REQUIREMENTS.md) Reviewed benchmark | SPRINT_15 | TASK-071 | TEST-159 | [SC-039](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-036](../00_project/REQUIREMENTS.md) Real retrieval evaluation and regression | SPRINT_15 | TASK-072, TASK-073, TASK-074, TASK-075 | TEST-160, TEST-161, TEST-162, TEST-163 | [SC-040](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-037](../00_project/REQUIREMENTS.md) Real LLM evaluation and grounding | SPRINT_16 | TASK-076, TASK-077, TASK-078, TASK-079, TASK-080 | TEST-164, TEST-165, TEST-166, TEST-167, TEST-168 | [SC-041](../00_project/SUCCESS_CRITERIA.md), [SC-042](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-038](../00_project/REQUIREMENTS.md) End-to-end observability and FinOps | SPRINT_17 | TASK-081, TASK-082, TASK-083, TASK-085 | TEST-169, TEST-170, TEST-171, TEST-173 | [SC-043](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-039](../00_project/REQUIREMENTS.md) Complete product workflow | SPRINT_17 | TASK-083, TASK-084, TASK-085 | TEST-171, TEST-172, TEST-173 | [SC-044](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-040](../00_project/REQUIREMENTS.md) Performance, cache and scalability | SPRINT_18 | TASK-086, TASK-087 | TEST-174, TEST-175 | [SC-045](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-041](../00_project/REQUIREMENTS.md) Cloud staging and operational resilience | SPRINT_18 | TASK-088, TASK-089 | TEST-176, TEST-177 | [SC-046](../00_project/SUCCESS_CRITERIA.md), [SC-047](../00_project/SUCCESS_CRITERIA.md) | Pending |
+| [REQ-042](../00_project/REQUIREMENTS.md) Production qualification | SPRINT_18 | TASK-090 | TEST-178 | [SC-048](../00_project/SUCCESS_CRITERIA.md) | Pending |
 
 **Status legend:** `Pending` → `In Progress` → `Done`. A REQ is `Done` only when all its tasks are `Done`, all its tests pass, and its acceptance criteria (`SC-###`) meet target in the evaluation/CI evidence.
 
@@ -66,6 +88,12 @@ Read it as: a requirement is scheduled into a sprint, decomposed into tasks, rea
 - **Every best-practice feature is ablated** ([REQ-008](../00_project/REQUIREMENTS.md)/[REQ-009](../00_project/REQUIREMENTS.md)/[REQ-010](../00_project/REQUIREMENTS.md) → [SC-022](../00_project/SUCCESS_CRITERIA.md)).
 - **Every public class has a test** ([PRINCIPLE-008](./PROJECT_CONSTITUTION.md)); the `TEST-###` unit rows above name the responsible tests per component in `src/pokemon_tcg_rag/`.
 - **Regression coverage:** any change to REQ-006–REQ-012 or REQ-018/REQ-019 areas triggers [GATE-010](./QUALITY_GATE_SPECIFICATION.md) against the [SUCCESS_CRITERIA.md](../00_project/SUCCESS_CRITERIA.md) baselines.
+- **Security closure:** every SEC-01..SEC-17 finding maps to at least one task and regression
+  test in [`SECURITY_REMEDIATION_PLAN.md`](./SECURITY_REMEDIATION_PLAN.md); TASK-060 verifies
+  the complete evidence chain before release.
+- **Technical closure:** every TECH-01..TECH-30 finding maps to at least one task and mandatory
+  test in [`TECHNICAL_AUDIT_FINDINGS.md`](./TECHNICAL_AUDIT_FINDINGS.md); TASK-090 verifies
+  freshness and completeness of the combined evidence chain.
 
 ---
 

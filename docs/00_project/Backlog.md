@@ -2,15 +2,19 @@
 
 ## Objective
 
-Maintain the **single prioritized backlog** for the Pokemon TCG Rules RAG Expert Assistant:
+Maintain the original product-level backlog for the Pokemon TCG Rules RAG Expert Assistant:
 every deliverable from the source plan plus stretch items, each with a MoSCoW priority, a
 link to the requirement it satisfies ([`REQUIREMENTS.md`](./REQUIREMENTS.md)), a target
 sprint (`docs/02_sprints/`), and a status. The backlog is the flat, sortable view; the
-[`ROADMAP.md`](./ROADMAP.md) provides the phased ordering.
+  [`ROADMAP.md`](./ROADMAP.md) provides the phased ordering. The authoritative audit-remediation
+  and production-evolution backlog—including origin, criticality, story points, effort,
+  dependencies, owner and DoD—is
+  [`CONSOLIDATED_BACKLOG.md`](../03_tasks/CONSOLIDATED_BACKLOG.md).
 
 ## Scope
 
-- **In scope:** all functional/non-functional work items and stretch experiments.
+- **In scope:** original functional/non-functional work items and stretch experiments through
+  Sprint 12. Sprints 13–18 are represented by TASK-061..090 in the consolidated backlog.
 - **Out of scope:** task-level breakdown (see `docs/03_tasks/`).
 
 **MoSCoW:** Must / Should / Could / Won't (this iteration).
@@ -22,7 +26,7 @@ sprint (`docs/02_sprints/`), and a status. The backlog is the flat, sortable vie
 
 ```mermaid
 pie title Backlog by MoSCoW
-    "Must" : 16
+    "Must" : 36
     "Should" : 4
     "Could" : 5
 ```
@@ -63,6 +67,26 @@ pie title Backlog by MoSCoW
 | **BL-028** | Chunk-size ablation | 256 × 512 × 1024 token comparison to fix the default. | Could | REQ-004, REQ-018 | SPRINT_07 | Deferred |
 | **BL-029** | Cohere Rerank alternative | Evaluate Cohere Rerank vs `bge-reranker-large`. | Could | REQ-009, REQ-018 | SPRINT_07 | Deferred |
 | **BL-030** | IaC / K8s manifests | Deployment manifests for cloud hosting. | Won't (this iter) | REQ-020 | SPRINT_08 | Deferred |
+| **BL-031** | Secure dependency graph | Resolve conflicts/CVEs; commit hashed locks and SBOM. | Must | REQ-021 | SPRINT_09 | Todo |
+| **BL-032** | Activate security CI | Discoverable least-privilege workflow with baseline blocking checks. | Must | REQ-030 | SPRINT_09 | Todo |
+| **BL-033** | Isolate compose services | Remove public data ports and default credentials. | Must | REQ-028 | SPRINT_09 | Todo |
+| **BL-034** | Block UI SSRF | Trusted backend destination plus redirect/IP/timeout defense. | Must | REQ-024 | SPRINT_09 | Todo |
+| **BL-035** | Scope service secrets | Explicit minimum configuration and secret injection per component. | Must | REQ-028 | SPRINT_09 | Todo |
+| **BL-036** | API identity and authorization | Token verification, scopes, route/object access matrix. | Must | REQ-022 | SPRINT_10 | Todo |
+| **BL-037** | API abuse/cost controls | Payload, rate, concurrency, timeout, retry and LLM-budget limits. | Must | REQ-023 | SPRINT_10 | Todo |
+| **BL-038** | Prompt/citation integrity | Untrusted-context isolation and verified retrieved citations. | Must | REQ-025 | SPRINT_10 | Todo |
+| **BL-039** | Safe API disclosure | Stable errors, redacted logs, protected diagnostics, CORS/headers. | Must | REQ-026 | SPRINT_10 | Todo |
+| **BL-040** | Feedback and data governance | Owner-bound feedback, replay protection, retention and response minimization. | Must | REQ-026 | SPRINT_10 | Todo |
+| **BL-041** | PostgreSQL least privilege | Separate migration/runtime roles and revoke administrative access. | Must | REQ-028 | SPRINT_11 | Todo |
+| **BL-042** | Rootless minimal images | Multi-stage digest-pinned non-root runtime images. | Must | REQ-027 | SPRINT_11 | Todo |
+| **BL-043** | Restricted K8s workloads | Security contexts, resource bounds, probes and service accounts. | Must | REQ-027 | SPRINT_11 | Todo |
+| **BL-044** | Network/TLS hardening | Default-deny policy, required flows only, private observability. | Must | REQ-024, REQ-028 | SPRINT_11 | Todo |
+| **BL-045** | Immutable canonical IaC | Remove duplicate manifests; digest/signature/provenance enforcement. | Must | REQ-021, REQ-027 | SPRINT_11 | Todo |
+| **BL-046** | Secure ingestion boundary | Source allowlist, parser limits, provenance and quarantine. | Must | REQ-029 | SPRINT_12 | Todo |
+| **BL-047** | Truthful runtime readiness | Real dependency wiring and fail-closed readiness lifecycle. | Must | REQ-023, REQ-028, REQ-030 | SPRINT_12 | Todo |
+| **BL-048** | Automated security gates | Secret/SAST/SCA/IaC/container scans, SBOM and policy. | Must | REQ-021, REQ-030 | SPRINT_12 | Todo |
+| **BL-049** | DAST and adversarial regression | Authenticated API DAST plus SSRF and LLM attack corpus. | Must | REQ-022, REQ-024, REQ-025, REQ-026, REQ-030 | SPRINT_12 | Todo |
+| **BL-050** | Security release closure | Re-test SEC-01..17, runbooks, residual-risk approval and go/no-go. | Must | REQ-030 | SPRINT_12 | Todo |
 
 ---
 
@@ -79,6 +103,9 @@ pie title Backlog by MoSCoW
   [`Assumptions.md`](./Assumptions.md) (ASSUMPTION-004/005 via BL-027/BL-028).
 - **Won't (this iteration)**: full IaC/K8s (BL-030) is beyond the compose-first delivery;
   revisit if cloud deploy (BL-025) is pursued seriously.
+- **Security Must items (BL-031..BL-050)** implement the audit remediation plan. Critical
+  containment precedes access/data controls, then platform hardening, with assurance and
+  evidence last; an unaccepted Critical/High finding blocks release.
 
 ---
 

@@ -54,6 +54,30 @@ artifact or command that produces the evidence.
 | **SC-022** | **Best-practice features present** | Hybrid search + Reranking + Query rewriting all implemented **and** ablated | Eval report shows on/off comparison for each of the 3. | [REQ-008](./REQUIREMENTS.md), [REQ-009](./REQUIREMENTS.md), [REQ-010](./REQUIREMENTS.md) | Best practices (3 pts) |
 | **SC-023** | **Cloud deploy (bonus)** | Public reachable URL on Render/Railway/AWS | Live URL + `/health` 200 from public internet. See [ASSUMPTION-009](./Assumptions.md). | [REQ-020](./REQUIREMENTS.md) | Bonus (2 pts) |
 | **SC-024** | **Reproducible from clean clone** | Fresh clone → `.env` → `docker compose up` → answered query, no manual patching | Documented in README; validated on a clean machine/CI. | [REQ-016](./REQUIREMENTS.md) | Reproducibility (2 pts) |
+| **SC-025** | **Supply-chain risk** | Clean hashed-lock install; SBOM generated; **0 unaccepted Critical/High** runtime dependency or image findings | Clean-environment install plus SCA/image scan against the resolved graph and exception register. | [REQ-021](./REQUIREMENTS.md) | Security release gate |
+| **SC-026** | **SSRF and destination control** | **100%** private, loopback, link-local, metadata, encoded-IP and cross-origin redirect probes blocked before connection | TEST-132/TEST-142 adversarial destination corpus with network capture. | [REQ-024](./REQUIREMENTS.md) | OWASP SSRF |
+| **SC-027** | **API access control** | **100%** protected-route and object-access matrix enforced; malformed/expired/under-scoped tokens denied | OpenAPI policy check plus TEST-134 positive/negative authorization matrix. | [REQ-022](./REQUIREMENTS.md) | OWASP API1/API2 |
+| **SC-028** | **Resource and cost abuse controls** | **100%** configured payload/rate/concurrency/timeout limits enforced; no unbounded retry path | TEST-135 boundary and load suite with deterministic 4xx/429/timeout behavior. | [REQ-023](./REQUIREMENTS.md) | OWASP API4 |
+| **SC-029** | **LLM trust-boundary integrity** | **100%** release adversarial cases either grounded with valid retrieved citations or safely abstained | Versioned prompt-injection, poisoned-document, exfiltration and forged-citation corpus. | [REQ-025](./REQUIREMENTS.md) | OWASP LLM01/LLM08 |
+| **SC-030** | **Secrets and data-plane least privilege** | 0 usable default credentials; 0 unintended public internal-service ports; service-specific secrets; API DB role cannot perform admin/DDL | Rendered compose/K8s inspection, network probes, secret-boundary tests and DB privilege matrix. | [REQ-028](./REQUIREMENTS.md) | Security configuration |
+| **SC-031** | **Container and Kubernetes posture** | 100% workloads non-root and compliant with restricted policy; 0 unaccepted Critical/High image/IaC findings | TEST-140/TEST-141 policy-as-code and runtime assertions. | [REQ-027](./REQUIREMENTS.md) | Platform security |
+| **SC-032** | **Privacy and data minimization** | 100% feedback bound to its authenticated query owner; documented retention/deletion; 0 full internal chunks or sensitive error/log fields in normal flows | TEST-137/TEST-138 privacy, replay, enumeration and leakage suite. | [REQ-026](./REQUIREMENTS.md) | Privacy / OWASP API3 |
+| **SC-033** | **Trusted ingestion and truthful readiness** | 100% unapproved/oversized/malformed sources rejected or quarantined; readiness is false for every required unavailable dependency | TEST-144 source/parser corpus plus TEST-145 degraded-stack matrix. | [REQ-029](./REQUIREMENTS.md), [REQ-030](./REQUIREMENTS.md) | Secure operations |
+| **SC-034** | **Security verification and release** | SAST/SCA/secret/IaC/container/DAST/adversarial gates pass with **0 unaccepted Critical/High** findings; SEC-01..SEC-17 have evidence | CI reports and TEST-148 signed-off evidence bundle. | [REQ-030](./REQUIREMENTS.md) | DevSecOps release gate |
+| **SC-035** | **Operational RAG journey** | Authenticated clean-stack `/query` returns a grounded answer and exactly one owned `/feedback` record persists; readiness is truthful | TEST-152/153 against fresh real dependencies. | [REQ-031](./REQUIREMENTS.md) | Runtime architecture |
+| **SC-036** | **Deterministic corpus parity** | Clean clone obtains a non-empty verified corpus; Qdrant and BM25 expose identical manifest/hash/chunk IDs | TEST-149/151 plus parity report. | [REQ-032](./REQUIREMENTS.md) | Data reproducibility |
+| **SC-037** | **Green code-quality gate** | Ruff, Black and strict mypy: 0 errors; application line coverage **≥90%** on every supported Python runtime | TEST-154/155 active CI artifacts. | [REQ-033](./REQUIREMENTS.md) | Quality |
+| **SC-038** | **Real test pyramid** | 100% of critical persistence/retrieval/provider and user journeys cross real infrastructure/process boundaries without hidden local state | TEST-156/157 evidence and fixture classification. | [REQ-033](./REQUIREMENTS.md), [REQ-034](./REQUIREMENTS.md) | Reproducibility |
+| **SC-039** | **Reviewed benchmark** | ≥100 unique source-resolvable questions; fixed split/corpus hash; reviewer evidence and dataset card complete | TEST-159 dataset validation and review artifact. | [REQ-035](./REQUIREMENTS.md) | Evaluation data |
+| **SC-040** | **Retrieval quality gate** | Recall@10 **>0.90**, MRR **≥0.75**, real strategy/ablation evidence; no matched-baseline quality regression >2% | TEST-160..163 and versioned report/raw ranks. | [REQ-036](./REQUIREMENTS.md) | Retrieval quality |
+| **SC-041** | **LLM quality gate** | Real-output Faithfulness **>0.85** with calibrated automatic/human evaluation and documented latency/cost budget | TEST-164..166/168 and versioned report. | [REQ-037](./REQUIREMENTS.md) | LLM quality |
+| **SC-042** | **Claim/citation validity** | **≥0.95** material claims reference existing retrieved evidence; unsupported claims safely abstain/qualify | TEST-167 adversarial and release benchmark results. | [REQ-025](./REQUIREMENTS.md), [REQ-037](./REQUIREMENTS.md) | LLM guardrails |
+| **SC-043** | **Telemetry and SLO completeness** | 100% test requests metered for stage latency/token/cost; critical journey traceable; alert fixtures fire/resolve; 0 forbidden sensitive attributes | TEST-169..171 and populated dashboard evidence. | [REQ-038](./REQUIREMENTS.md) | Observability |
+| **SC-044** | **Usable feedback workflow** | Browser history/citation/comment/degraded/accessibility journeys pass; positive feedback target **≥80% over ≥100 production-like ratings** once sample exists | TEST-172 plus feedback dashboard/sample metadata. | [REQ-039](./REQUIREMENTS.md) | Product UX |
+| **SC-045** | **Performance and cost** | Warm query P50 **<2s**, P95 **<4s**, overload remains bounded and 100% requests respect the approved cost budget | TEST-174/175 and reproducible load report. | [REQ-040](./REQUIREMENTS.md) | Performance |
+| **SC-046** | **Cloud staging proof** | Reachable TLS staging URL runs approved image digest and completes authenticated remote query/feedback smoke | TEST-176 plus deployment/digest evidence. | [REQ-041](./REQUIREMENTS.md) | Cloud deployment |
+| **SC-047** | **Recovery and delivery operations** | Restore/rollback drill meets approved RPO/RTO; lead time, deployment frequency, change failure rate and MTTR derive from auditable events | TEST-177 and timed drill report. | [REQ-041](./REQUIREMENTS.md) | Resilience / DORA |
+| **SC-048** | **Production qualification** | SEC-01..17 and TECH-01..30 are evidenced closed or expiry-bound accepted; every blocking criterion passes against released hashes | TEST-178 final scorecard and approvals. | [REQ-042](./REQUIREMENTS.md) | Release governance |
 
 ---
 
@@ -98,9 +122,14 @@ has no numeric threshold. `R2` (Retrieval flow: KB + LLM both used) is proven by
 | Gate | When | Criteria enforced | Blocking? |
 | :--- | :--- | :--- | :--- |
 | **Per-PR quality gate** | Every pull request | SC-016, SC-019, SC-020 | Yes |
+| **Per-PR security gate** | Every pull request after TASK-058 | SC-025, SC-027, SC-030, SC-031, SC-034 (applicable automated checks) | Yes |
 | **Smoke gate** | Every PR / nightly | SC-014, SC-021 (basic) | Yes |
 | **Retrieval regression** | After any retrieval/chunking change | SC-001–SC-005 | Yes — must not regress vs baseline |
 | **LLM regression** | After any prompt/model change | SC-006–SC-011 | Yes — must not regress vs baseline |
+| **Adversarial security regression** | After any API, prompt, ingestion or network-policy change | SC-026–SC-029, SC-032, SC-033 | Yes |
+| **Clean-stack runtime gate** | Every merge after Sprint 14 | SC-035–SC-038 | Yes |
+| **Measured RAG gate** | Retrieval/prompt/model/corpus change | SC-039–SC-042 | Yes |
+| **Operational qualification** | Nightly staging / before release | SC-043–SC-047 | Yes |
 | **Release / demo gate** | Before final submission | All SC-### | Yes |
 | **Bonus gate** | Optional | SC-023 | No |
 

@@ -2,7 +2,7 @@
 
 ## Objective
 
-Single authoritative index of every granular engineering task (`TASK-001` … `TASK-040`)
+Single authoritative index of every granular engineering task (`TASK-001` … `TASK-090`)
 for the **Pokemon TCG Rules RAG Expert Assistant**. Each task is small, independently
 executable by an AI Code Agent, and traceable to a requirement
 ([`REQUIREMENTS.md`](../00_project/REQUIREMENTS.md)) and a sprint
@@ -12,7 +12,7 @@ executable by an AI Code Agent, and traceable to a requirement
 
 - **In scope:** IDs, titles, sprint, covered `REQ-###`, dependency edges, and live status.
 - **Out of scope:** full task bodies — those live in the per-sprint files
-  [`TASKS_SPRINT_01.md`](./TASKS_SPRINT_01.md) … [`TASKS_SPRINT_08.md`](./TASKS_SPRINT_08.md);
+  [`TASKS_SPRINT_01.md`](./TASKS_SPRINT_01.md) … [`TASKS_SPRINT_18.md`](./TASKS_SPRINT_18.md);
   the visual dependency graph and parallel waves live in
   [`TASK_DEPENDENCY_GRAPH.md`](./TASK_DEPENDENCY_GRAPH.md).
 
@@ -107,6 +107,106 @@ executable by an AI Code Agent, and traceable to a requirement
 | TASK-039 | Full Docker Compose integration + smoke tests | REQ-016 | TASK-011, TASK-029, TASK-030, TASK-038 | Done |
 | TASK-040 | Cloud deployment IaC (Kubernetes / Render) | REQ-020 | TASK-039 | Done |
 
+## Sprint 9 — Security Containment & Supply Chain (`SPRINT_09_SECURITY_CONTAINMENT`)
+
+| ID | Title | REQ | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-041 | Reproducible and vulnerability-managed dependency graph | REQ-021 | TASK-001 | Pending |
+| TASK-042 | Activate CI and baseline security jobs | REQ-030 | TASK-041 | Pending |
+| TASK-043 | Isolate infrastructure services and remove default credentials | REQ-028 | TASK-039 | Pending |
+| TASK-044 | Eliminate user-controlled Streamlit SSRF | REQ-024 | TASK-030 | Pending |
+| TASK-045 | Scope configuration and secrets per service | REQ-028 | TASK-043 | Pending |
+
+## Sprint 10 — API, LLM & Data Security (`SPRINT_10_API_LLM_SECURITY`)
+
+| ID | Title | REQ | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-046 | API authentication and authorization | REQ-022 | TASK-029, TASK-042 | Pending |
+| TASK-047 | API resource, payload and cost controls | REQ-023 | TASK-046 | Pending |
+| TASK-048 | Prompt-injection resistance and citation integrity | REQ-025 | TASK-025, TASK-041 | Pending |
+| TASK-049 | Safe errors, diagnostics and HTTP headers | REQ-026 | TASK-047 | Pending |
+| TASK-050 | Feedback integrity, privacy and response minimization | REQ-026 | TASK-046, TASK-027 | Pending |
+
+## Sprint 11 — Platform Hardening (`SPRINT_11_PLATFORM_HARDENING`)
+
+| ID | Title | REQ | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-051 | PostgreSQL least-privilege roles and migrations | REQ-028 | TASK-045, TASK-026 | Pending |
+| TASK-052 | Rootless minimal runtime images | REQ-027 | TASK-041, TASK-043 | Pending |
+| TASK-053 | Restricted Kubernetes workloads | REQ-027 | TASK-052, TASK-040 | Pending |
+| TASK-054 | Network segmentation, TLS and protected observability | REQ-024, REQ-028 | TASK-043, TASK-044, TASK-053 | Pending |
+| TASK-055 | Consolidated immutable IaC and artifact provenance | REQ-021, REQ-027 | TASK-041, TASK-053, TASK-054 | Pending |
+
+## Sprint 12 — Security Assurance & Release Gate (`SPRINT_12_SECURITY_ASSURANCE`)
+
+| ID | Title | REQ | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-056 | Harden the ingestion trust boundary | REQ-029 | TASK-041, TASK-010 | Pending |
+| TASK-057 | Production wiring and truthful readiness | REQ-023, REQ-028, REQ-030 | TASK-047, TASK-050, TASK-051, TASK-054 | Pending |
+| TASK-058 | Automated security scans, SBOM and policy gates | REQ-021, REQ-030 | TASK-042, TASK-055, TASK-056 | Pending |
+| TASK-059 | DAST and adversarial security regression suite | REQ-022, REQ-024, REQ-025, REQ-026, REQ-030 | TASK-048, TASK-049, TASK-057, TASK-058 | Pending |
+| TASK-060 | Security closure and release gate | REQ-030 | TASK-041..TASK-059 | Pending |
+
+## Sprint 13 — Runtime Stabilization (`SPRINT_13_RUNTIME_STABILIZATION`)
+
+| ID | Title | REQ | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-061 | Hydrate BM25 and enforce corpus parity | REQ-031, REQ-032 | TASK-057, TASK-063 | Pending |
+| TASK-062 | Enforce the query configuration contract | REQ-031 | TASK-057 | Pending |
+| TASK-063 | Version the corpus and deterministic bootstrap fixture | REQ-032 | TASK-041, TASK-056 | Pending |
+| TASK-064 | Complete the production composition root | REQ-031, REQ-032 | TASK-061, TASK-062, TASK-063 | Pending |
+| TASK-065 | Prove the operational query and feedback journey | REQ-031 | TASK-050, TASK-051, TASK-064 | Pending |
+
+## Sprint 14 — Quality & Reproducibility (`SPRINT_14_QUALITY_REPRODUCIBILITY`)
+
+| ID | Title | REQ | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-066 | Repair static quality gates | REQ-033 | TASK-042 | Pending |
+| TASK-067 | Enforce 90% coverage and clean-clone CI | REQ-033, REQ-034 | TASK-041, TASK-042, TASK-066 | Pending |
+| TASK-068 | Build a real infrastructure integration layer | REQ-033 | TASK-063, TASK-064, TASK-065, TASK-067 | Pending |
+| TASK-069 | Add full compose and browser/API end-to-end test | REQ-033, REQ-034 | TASK-068 | Pending |
+| TASK-070 | Reconcile documentation with executable evidence | REQ-034 | TASK-067, TASK-069 | Pending |
+
+## Sprint 15 — Retrieval Quality (`SPRINT_15_RETRIEVAL_QUALITY`)
+
+| ID | Title | REQ | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-071 | Build a reviewed, versioned benchmark | REQ-035 | TASK-063 | Pending |
+| TASK-072 | Use production retrieval implementations in evaluation | REQ-036 | TASK-061, TASK-071 | Pending |
+| TASK-073 | Execute retrieval ablations | REQ-036 | TASK-072 | Pending |
+| TASK-074 | Implement incremental manifest-driven ingestion | REQ-032, REQ-036 | TASK-056, TASK-063 | Pending |
+| TASK-075 | Publish retrieval baseline and regression gate | REQ-036 | TASK-072, TASK-073, TASK-074 | Pending |
+
+## Sprint 16 — LLM Quality & Guardrails (`SPRINT_16_LLM_QUALITY`)
+
+| ID | Title | REQ | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-076 | Implement a real prompt/model evaluation runner | REQ-037 | TASK-057, TASK-071 | Pending |
+| TASK-077 | Add RAGAS/DeepEval automatic scoring | REQ-037 | TASK-076 | Pending |
+| TASK-078 | Establish human evaluation and error taxonomy | REQ-037 | TASK-076 | Pending |
+| TASK-079 | Validate structured claims and citation entailment | REQ-025, REQ-037 | TASK-048, TASK-076 | Pending |
+| TASK-080 | Publish LLM selection report and regression gate | REQ-037 | TASK-077, TASK-078, TASK-079 | Pending |
+
+## Sprint 17 — Observability & Product UX (`SPRINT_17_OBSERVABILITY_UX`)
+
+| ID | Title | REQ | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-081 | Add OpenTelemetry tracing and correlation | REQ-038 | TASK-049, TASK-057 | Pending |
+| TASK-082 | Define SLO, token, cost and alert controls | REQ-038 | TASK-047, TASK-081 | Pending |
+| TASK-083 | Populate dashboards and feedback telemetry | REQ-038, REQ-039 | TASK-065, TASK-081, TASK-082 | Pending |
+| TASK-084 | Complete the user workflow UX | REQ-039 | TASK-044, TASK-050, TASK-065 | Pending |
+| TASK-085 | Publish operational analytics and runbooks | REQ-038, REQ-039 | TASK-049, TASK-083, TASK-084 | Pending |
+
+## Sprint 18 — Scale, Cloud & Production Qualification (`SPRINT_18_PRODUCTION_QUALIFICATION`)
+
+| ID | Title | REQ | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TASK-086 | Add safe cache, metadata filtering and MMR policy | REQ-040 | TASK-073, TASK-075 | Pending |
+| TASK-087 | Qualify warm-up, batching, concurrency and cost | REQ-040 | TASK-047, TASK-080, TASK-082, TASK-086 | Pending |
+| TASK-088 | Deploy immutable artifacts to cloud staging | REQ-041 | TASK-055, TASK-058, TASK-069, TASK-083, TASK-087 | Pending |
+| TASK-089 | Exercise backup, restore, rollback and DORA metrics | REQ-041 | TASK-051, TASK-055, TASK-083, TASK-088 | Pending |
+| TASK-090 | Execute final production scorecard and release gate | REQ-042 | TASK-060, TASK-070, TASK-075, TASK-080, TASK-085, TASK-087..089 | Pending |
+
 ---
 
 ## Requirement → Task coverage (traceability roll-up)
@@ -133,8 +233,34 @@ executable by an AI Code Agent, and traceable to a requirement
 | REQ-018 | TASK-032, TASK-033, TASK-034, TASK-036 |
 | REQ-019 | TASK-035, TASK-036 |
 | REQ-020 | TASK-040 |
+| REQ-021 | TASK-041, TASK-055, TASK-058 |
+| REQ-022 | TASK-046, TASK-059 |
+| REQ-023 | TASK-047, TASK-057 |
+| REQ-024 | TASK-044, TASK-054, TASK-059 |
+| REQ-025 | TASK-048, TASK-059 |
+| REQ-026 | TASK-049, TASK-050, TASK-059 |
+| REQ-027 | TASK-052, TASK-053, TASK-055 |
+| REQ-028 | TASK-043, TASK-045, TASK-051, TASK-054, TASK-057 |
+| REQ-029 | TASK-056 |
+| REQ-030 | TASK-042, TASK-057, TASK-058, TASK-059, TASK-060 |
+| REQ-031 | TASK-061, TASK-062, TASK-064, TASK-065 |
+| REQ-032 | TASK-061, TASK-063, TASK-064, TASK-074 |
+| REQ-033 | TASK-066, TASK-067, TASK-068, TASK-069 |
+| REQ-034 | TASK-067, TASK-069, TASK-070 |
+| REQ-035 | TASK-071 |
+| REQ-036 | TASK-072, TASK-073, TASK-074, TASK-075 |
+| REQ-037 | TASK-076, TASK-077, TASK-078, TASK-079, TASK-080 |
+| REQ-038 | TASK-081, TASK-082, TASK-083, TASK-085 |
+| REQ-039 | TASK-083, TASK-084, TASK-085 |
+| REQ-040 | TASK-086, TASK-087 |
+| REQ-041 | TASK-088, TASK-089 |
+| REQ-042 | TASK-090 |
 
 ## Totals
 
-- **40 tasks** across **8 sprints** (6 / 5 / 5 / 6 / 5 / 4 / 5 / 4).
+- **90 tasks** across **18 sprints** (6 / 5 / 5 / 6 / 5 / 4 / 5 / 4, then ten sprints
+  with 5 tasks each).
+- Security findings and closure evidence: [`SECURITY_REMEDIATION_PLAN.md`](../05_agent_harness/SECURITY_REMEDIATION_PLAN.md).
+- Technical findings and closure evidence: [`TECHNICAL_AUDIT_FINDINGS.md`](../05_agent_harness/TECHNICAL_AUDIT_FINDINGS.md).
+- Priority, effort and ownership: [`CONSOLIDATED_BACKLOG.md`](./CONSOLIDATED_BACKLOG.md).
 - Full parallel-execution strategy: [`TASK_DEPENDENCY_GRAPH.md`](./TASK_DEPENDENCY_GRAPH.md).

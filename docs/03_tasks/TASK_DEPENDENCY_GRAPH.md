@@ -8,7 +8,7 @@ multiple agents can execute **in parallel without file conflicts**. Pair this wi
 
 ## Scope
 
-- The full `graph TD` dependency graph for `TASK-001` … `TASK-040`.
+- The full `graph TD` dependency graph for `TASK-001` … `TASK-090`.
 - A **wave** table: batches of tasks that are simultaneously executable and touch disjoint files.
 - The operating strategy for concurrent agents.
 
@@ -76,6 +76,76 @@ graph TD
         T039[TASK-039 full compose + smoke]
         T040[TASK-040 cloud IaC]
     end
+    subgraph S9["Sprint 9 · Security Containment"]
+        T041[TASK-041 dependency security]
+        T042[TASK-042 active security CI]
+        T043[TASK-043 service isolation]
+        T044[TASK-044 SSRF containment]
+        T045[TASK-045 scoped secrets]
+    end
+    subgraph S10["Sprint 10 · API, LLM & Data Security"]
+        T046[TASK-046 API authz]
+        T047[TASK-047 resource guards]
+        T048[TASK-048 prompt/citation integrity]
+        T049[TASK-049 safe boundaries]
+        T050[TASK-050 feedback/privacy]
+    end
+    subgraph S11["Sprint 11 · Platform Hardening"]
+        T051[TASK-051 DB least privilege]
+        T052[TASK-052 rootless images]
+        T053[TASK-053 restricted K8s]
+        T054[TASK-054 network/TLS]
+        T055[TASK-055 immutable IaC]
+    end
+    subgraph S12["Sprint 12 · Security Assurance"]
+        T056[TASK-056 secure ingestion]
+        T057[TASK-057 truthful readiness]
+        T058[TASK-058 automated security gates]
+        T059[TASK-059 DAST/adversarial]
+        T060[TASK-060 release closure]
+    end
+    subgraph S13["Sprint 13 · Runtime Stabilization"]
+        T061[TASK-061 BM25 parity]
+        T062[TASK-062 query contract]
+        T063[TASK-063 corpus bootstrap]
+        T064[TASK-064 composition root]
+        T065[TASK-065 query/feedback journey]
+    end
+    subgraph S14["Sprint 14 · Quality"]
+        T066[TASK-066 static quality]
+        T067[TASK-067 coverage/clean CI]
+        T068[TASK-068 real integration]
+        T069[TASK-069 full E2E]
+        T070[TASK-070 truthful docs]
+    end
+    subgraph S15["Sprint 15 · Retrieval Quality"]
+        T071[TASK-071 reviewed benchmark]
+        T072[TASK-072 real retrieval eval]
+        T073[TASK-073 ablations]
+        T074[TASK-074 incremental corpus]
+        T075[TASK-075 retrieval gate]
+    end
+    subgraph S16["Sprint 16 · LLM Quality"]
+        T076[TASK-076 real LLM runner]
+        T077[TASK-077 RAG scoring]
+        T078[TASK-078 human review]
+        T079[TASK-079 citation validation]
+        T080[TASK-080 LLM gate]
+    end
+    subgraph S17["Sprint 17 · Observability & UX"]
+        T081[TASK-081 tracing]
+        T082[TASK-082 SLO/cost alerts]
+        T083[TASK-083 live dashboards]
+        T084[TASK-084 complete UX]
+        T085[TASK-085 runbooks]
+    end
+    subgraph S18["Sprint 18 · Production"]
+        T086[TASK-086 cache/filter/MMR]
+        T087[TASK-087 load/cost]
+        T088[TASK-088 cloud staging]
+        T089[TASK-089 recovery/DORA]
+        T090[TASK-090 final scorecard]
+    end
 
     T001 --> T002 --> T005
     T001 --> T003
@@ -141,6 +211,121 @@ graph TD
     T030 --> T039
     T038 --> T039
     T039 --> T040
+    T001 --> T041
+    T041 --> T042
+    T039 --> T043
+    T030 --> T044
+    T043 --> T045
+    T029 --> T046
+    T042 --> T046
+    T046 --> T047
+    T025 --> T048
+    T041 --> T048
+    T047 --> T049
+    T046 --> T050
+    T027 --> T050
+    T045 --> T051
+    T026 --> T051
+    T041 --> T052
+    T043 --> T052
+    T052 --> T053
+    T040 --> T053
+    T043 --> T054
+    T044 --> T054
+    T053 --> T054
+    T041 --> T055
+    T053 --> T055
+    T054 --> T055
+    T041 --> T056
+    T010 --> T056
+    T047 --> T057
+    T050 --> T057
+    T051 --> T057
+    T054 --> T057
+    T042 --> T058
+    T055 --> T058
+    T056 --> T058
+    T048 --> T059
+    T049 --> T059
+    T057 --> T059
+    T058 --> T059
+    T059 --> T060
+    T057 --> T061
+    T063 --> T061
+    T057 --> T062
+    T041 --> T063
+    T056 --> T063
+    T061 --> T064
+    T062 --> T064
+    T063 --> T064
+    T050 --> T065
+    T051 --> T065
+    T064 --> T065
+    T042 --> T066
+    T041 --> T067
+    T042 --> T067
+    T066 --> T067
+    T063 --> T068
+    T064 --> T068
+    T065 --> T068
+    T067 --> T068
+    T068 --> T069
+    T067 --> T070
+    T069 --> T070
+    T063 --> T071
+    T061 --> T072
+    T071 --> T072
+    T072 --> T073
+    T056 --> T074
+    T063 --> T074
+    T072 --> T075
+    T073 --> T075
+    T074 --> T075
+    T057 --> T076
+    T071 --> T076
+    T076 --> T077
+    T076 --> T078
+    T048 --> T079
+    T076 --> T079
+    T077 --> T080
+    T078 --> T080
+    T079 --> T080
+    T049 --> T081
+    T057 --> T081
+    T047 --> T082
+    T081 --> T082
+    T065 --> T083
+    T081 --> T083
+    T082 --> T083
+    T044 --> T084
+    T050 --> T084
+    T065 --> T084
+    T049 --> T085
+    T083 --> T085
+    T084 --> T085
+    T073 --> T086
+    T075 --> T086
+    T047 --> T087
+    T080 --> T087
+    T082 --> T087
+    T086 --> T087
+    T055 --> T088
+    T058 --> T088
+    T069 --> T088
+    T083 --> T088
+    T087 --> T088
+    T051 --> T089
+    T055 --> T089
+    T083 --> T089
+    T088 --> T089
+    T060 --> T090
+    T070 --> T090
+    T075 --> T090
+    T080 --> T090
+    T085 --> T090
+    T087 --> T090
+    T088 --> T090
+    T089 --> T090
 ```
 
 ---
@@ -168,6 +353,28 @@ merged + green quality gate) before the next begins.
 | **W12** | TASK-038 | Grafana/Prometheus config atop the metrics collector. |
 | **W13** | TASK-039 | Full compose integration + smoke — needs UI, API, ingestion CLI, dashboards. |
 | **W14** | TASK-040 | Cloud IaC last, atop a working compose stack. |
+| **W15** | TASK-041, TASK-043, TASK-044 | Dependency files, compose topology and UI client are disjoint containment surfaces. |
+| **W16** | TASK-042, TASK-045, TASK-048, TASK-056 | CI, service config, RAG prompts and ingestion modules are disjoint after W15. |
+| **W17** | TASK-046, TASK-051, TASK-052 | API identity, database privileges and Docker image builds are independent. |
+| **W18** | TASK-047, TASK-053 | API abuse controls and Kubernetes workload policy touch disjoint surfaces. |
+| **W19** | TASK-049, TASK-054 | API boundary handling and platform network/TLS policy can proceed concurrently. |
+| **W20** | TASK-050, TASK-055 | Feedback/data governance and canonical IaC are disjoint; serialization avoids API and manifest conflicts. |
+| **W21** | TASK-057, TASK-058 | Runtime wiring and CI security automation consume completed platform controls without shared implementation files. |
+| **W22** | TASK-059 | DAST/adversarial suite requires the complete hardened stack and security gates. |
+| **W23** | TASK-060 | Final audit closure and accountable release decision. |
+| **W24** | TASK-062, TASK-063, TASK-066, TASK-081 | Query contract, corpus, static quality and tracing touch separable surfaces after security prerequisites. |
+| **W25** | TASK-061, TASK-067, TASK-071 | Index hydration, quality tests and benchmark authoring are separable. |
+| **W26** | TASK-064, TASK-074, TASK-076 | Composition, incremental ingestion and LLM runner can progress after their respective data prerequisites. |
+| **W27** | TASK-065, TASK-077, TASK-078, TASK-079 | Runtime journey and three independent evaluation/guardrail branches. |
+| **W28** | TASK-068, TASK-080, TASK-082, TASK-084 | Integration, LLM report, telemetry rules and UI are file-disjoint. |
+| **W29** | TASK-069, TASK-072, TASK-083 | Full-stack E2E, retrieval evaluator and dashboards use stable runtime boundaries. |
+| **W30** | TASK-070, TASK-073, TASK-085 | Documentation, experiments and runbooks proceed independently. |
+| **W31** | TASK-075 | Retrieval report waits for ablations and incremental corpus lifecycle. |
+| **W32** | TASK-086 | Cache/filter/MMR policy consumes the approved retrieval baseline. |
+| **W33** | TASK-087 | Performance qualification consumes selected LLM/retrieval and telemetry. |
+| **W34** | TASK-088 | Staging deploy consumes approved artifacts, E2E, dashboards and capacity evidence. |
+| **W35** | TASK-089 | Recovery/rollback drill executes against proven staging. |
+| **W36** | TASK-090 | Final scorecard is the sole program-level production gate. |
 
 > Note: tasks appear in the wave of their *earliest* eligibility; an agent pool may also
 > pull any later task whose dependencies are already `Done`. The waves are the safe lower

@@ -8,7 +8,10 @@ Enumerate **every mandatory check** a change must pass before it can merge into 
 
 ## Scope
 
-- **In scope:** the concrete gate list, its mapping to [`../../Makefile`](../../Makefile) and [`../../ci/workflows/ci.yml`](../../ci/workflows/ci.yml), and the PR pipeline order.
+- **In scope:** the concrete gate list, its mapping to [`../../Makefile`](../../Makefile) and
+  the target workflow `.github/workflows/ci.yml`, and
+  the PR pipeline order. Until TASK-042 relocates the current `ci/workflows/ci.yml`, CI
+  discovery is itself a release blocker.
 - **Out of scope:** the principles the gates enforce (see [PROJECT_CONSTITUTION.md](./PROJECT_CONSTITUTION.md)) and the numeric quality targets themselves (see [`../00_project/SUCCESS_CRITERIA.md`](../00_project/SUCCESS_CRITERIA.md)).
 
 ---
@@ -29,12 +32,29 @@ Enumerate **every mandatory check** a change must pass before it can merge into 
 | **GATE-010** | **Regression / eval not degraded** | `make eval` (`pytest tests/evaluation/ -m evaluation`) | Recall@K, Faithfulness, latency **not worse** than stored baseline (only runs when retrieval/chunking/prompt/model changed) | **Yes** (conditional) | [SC-001..SC-013](../00_project/SUCCESS_CRITERIA.md), [REQ-018](../00_project/REQUIREMENTS.md)/[REQ-019](../00_project/REQUIREMENTS.md) |
 | **GATE-011** | **Dependency pinning** | review of [`../../pyproject.toml`](../../pyproject.toml) / [`../../requirements.txt`](../../requirements.txt) | Every runtime dependency has a version specifier | Yes | [SC-019](../00_project/SUCCESS_CRITERIA.md) |
 | **GATE-012** | **Conventional commit / one-task PR** | review | Commits follow `<type>(task-###)` and PR closes exactly one `TASK-###` | Yes | [PRINCIPLE-015](./PROJECT_CONSTITUTION.md), [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md) |
+| **GATE-013** | **Resolved dependency and image SCA** | locked install + SCA/container scanner | 0 unaccepted Critical/High findings; exceptions have owner and expiry | **Yes** | [REQ-021](../00_project/REQUIREMENTS.md), [SC-025](../00_project/SUCCESS_CRITERIA.md) |
+| **GATE-014** | **Repository and history secret scan** | CI secret scanner + pre-commit | 0 verified secrets in working tree or reachable history | **Yes** | [REQ-028](../00_project/REQUIREMENTS.md), [SC-030](../00_project/SUCCESS_CRITERIA.md) |
+| **GATE-015** | **SAST** | language-aware CI scanner | 0 unaccepted Critical/High findings; seeded-rule self-test detected | **Yes** | [REQ-030](../00_project/REQUIREMENTS.md), [SC-034](../00_project/SUCCESS_CRITERIA.md) |
+| **GATE-016** | **IaC and container policy** | rendered manifests + policy-as-code/image scan | Restricted workload, immutable image and network policies pass; 0 unaccepted Critical/High | **Yes** | [REQ-027](../00_project/REQUIREMENTS.md), [SC-031](../00_project/SUCCESS_CRITERIA.md) |
+| **GATE-017** | **SBOM and provenance** | release workflow | CycloneDX/SPDX SBOM and verified signature/provenance exist for each release image | **Yes** (release) | [REQ-021](../00_project/REQUIREMENTS.md), [SC-025](../00_project/SUCCESS_CRITERIA.md) |
+| **GATE-018** | **DAST and LLM adversarial regression** | ephemeral-stack authenticated DAST + adversarial corpus | No exploitable Critical/High result; SC-026..SC-029 and SC-032 pass | **Yes** (conditional/nightly + release) | [REQ-022](../00_project/REQUIREMENTS.md)–[REQ-026](../00_project/REQUIREMENTS.md) |
+| **GATE-019** | **Security finding closure** | TEST-148 evidence bundle and accountable review | SEC-01..SEC-17 closed or accepted with owner/expiry; all SC-025..SC-034 pass | **Yes** (release) | [REQ-030](../00_project/REQUIREMENTS.md), [SC-034](../00_project/SUCCESS_CRITERIA.md) |
+| **GATE-020** | **Clean runtime and real-stack test** | TEST-149..158 in active CI | Corpus parity, production composition, query/feedback, clean clone, real integration/E2E and docs pass | **Yes** | REQ-031..034, SC-035..038 |
+| **GATE-021** | **Reviewed retrieval evaluation** | Real ranked outputs + benchmark/report registry | SC-039/040 pass with matched corpus/config and no >2% regression | **Yes** (retrieval/corpus change) | REQ-035/036 |
+| **GATE-022** | **LLM quality and grounding** | Real output, automatic/human and citation reports | SC-041/042 pass within approved model/cost configuration | **Yes** (prompt/model change) | REQ-037 |
+| **GATE-023** | **Operational SLO and capacity** | Trace/metrics/alert/load evidence | SC-043..045 pass; no sensitive telemetry; workload remains bounded | **Yes** (release) | REQ-038..040 |
+| **GATE-024** | **Staging and recovery** | Remote smoke + restore/rollback drill | SC-046/047 pass against approved digest and RPO/RTO | **Yes** (release) | REQ-041 |
+| **GATE-025** | **Combined production qualification** | TEST-178 scorecard | All blocking SCs and all SEC/TECH finding evidence are current and approved | **Yes** (production) | REQ-042, SC-048 |
 
-**Blocking = Yes** means merge is refused until the gate is green. GATE-010 is *conditionally* blocking: it must run and pass whenever the PR touches retrieval, chunking, prompts, or model configuration (per [SUCCESS_CRITERIA.md](../00_project/SUCCESS_CRITERIA.md) §3 regression rule).
+**Blocking = Yes** means merge is refused until the gate is green. GATE-010 is *conditionally*
+blocking when retrieval/LLM behavior changes. GATE-013..GATE-019 become automated blocking
+controls as TASK-042/TASK-058 deliver their runners; GATE-020..025 become available in
+Sprints 13–18. Before then, each remediation task's
+mandatory security test and Sprint Exit Gate provide the blocking evidence.
 
 ---
 
-## 2. Mapping to `ci/workflows/ci.yml`
+## 2. Mapping to `.github/workflows/ci.yml`
 
 ```mermaid
 flowchart LR
@@ -56,7 +76,16 @@ flowchart LR
         K["deps pin review → GATE-011"]
         L["commit/PR review → GATE-012"]
     end
+    subgraph SECURITY["Security jobs (TASK-042/TASK-058)"]
+        M["SCA + image scan → GATE-013"]
+        N["secret history + SAST → GATE-014/015"]
+        O["IaC/container policy → GATE-016"]
+        P["SBOM/provenance → GATE-017"]
+        Q["DAST/adversarial → GATE-018"]
+        R["release evidence → GATE-019"]
+    end
     JOB1 --> JOB2
+    JOB2 --> SECURITY
 ```
 
 The `quality-gate` job is a hard prerequisite (`needs: quality-gate`) for the test job, so lint/format/type failures short-circuit the pipeline before any test runs — matching the fail-fast ordering agents should reproduce locally with `scripts/check_quality.sh`.
@@ -81,9 +110,22 @@ flowchart TD
     COND -- No --> G11
     G10 --> G11["GATE-011 deps pinned"]
     G11 --> G12["GATE-012 conventional commit / one-task PR"]
-    G12 --> OK{"All blocking gates green?"}
+    G12 --> G13["GATE-013..016<br/>SCA + secrets + SAST + IaC/container"]
+    G13 --> OK{"All blocking gates green?"}
     OK -- No --> FAIL["Merge BLOCKED → fix on branch"]
     OK -- Yes --> MERGE([Merge to main])
+    MERGE --> RC{"Release candidate?"}
+    RC -- Yes --> G17["GATE-017 SBOM/provenance"]
+    G17 --> G18["GATE-018 DAST/adversarial"]
+    G18 --> G19["GATE-019 finding closure"]
+    G19 --> G20["GATE-020 clean runtime/real stack"]
+    G20 --> G21["GATE-021 retrieval evidence"]
+    G21 --> G22["GATE-022 LLM quality/grounding"]
+    G22 --> G23["GATE-023 SLO/capacity"]
+    G23 --> G24["GATE-024 staging/recovery"]
+    G24 --> G25["GATE-025 production qualification"]
+    G25 --> RELEASE([Production-approved release])
+    RC -- No --> END([PR complete])
 ```
 
 ---
@@ -100,4 +142,5 @@ If any blocking gate fails, the agent MUST return to the TDD loop on the feature
 - [`IMPLEMENTATION_GUIDE.md`](./IMPLEMENTATION_GUIDE.md) — the checklist that feeds this gate.
 - [`AGENT_PLAYBOOK.md`](./AGENT_PLAYBOOK.md) — where in the loop gates are run.
 - [`../00_project/SUCCESS_CRITERIA.md`](../00_project/SUCCESS_CRITERIA.md) — numeric targets (SC-###) behind GATE-005/006/010/011.
-- [`../../Makefile`](../../Makefile) · [`../../ci/workflows/ci.yml`](../../ci/workflows/ci.yml) · [`../../scripts/check_quality.sh`](../../scripts/check_quality.sh) — the runners.
+- [`../../Makefile`](../../Makefile) · target `.github/workflows/ci.yml` ·
+  [`../../scripts/check_quality.sh`](../../scripts/check_quality.sh) — the runners.

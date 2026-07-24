@@ -4,7 +4,7 @@
 
 Provide the **macro, phase-level plan** that sequences the entire build of the Pokemon TCG
 Rules RAG Expert Assistant, mapping each phase to the sprint files under `docs/02_sprints/`
-(SPRINT_01..08) and to the requirements in [`REQUIREMENTS.md`](./REQUIREMENTS.md). Each
+(SPRINT_01..18) and to the requirements in [`REQUIREMENTS.md`](./REQUIREMENTS.md). Each
 phase carries an objective, its dependencies, the artifacts it produces, completion
 criteria (linked to [`SUCCESS_CRITERIA.md`](./SUCCESS_CRITERIA.md)), and key risks (linked
 to [`Risks.md`](./Risks.md)). This is the "what/when/in-what-order"; sprint files carry the
@@ -12,7 +12,7 @@ task-level detail.
 
 ## Scope
 
-- **In scope:** ordering, dependencies, and gating between the eleven named phases.
+- **In scope:** ordering, dependencies, and gating between the twenty-one named phases.
 - **Out of scope:** granular tasks (see `docs/03_tasks/`) and per-sprint checklists (see
   `docs/02_sprints/`).
 
@@ -36,6 +36,16 @@ The phase ordering follows the "Roadmap de implementação" in the source plan
 | **P9 Frontend / UI** | [SPRINT_06](../02_sprints/SPRINT_06_UI_FEEDBACK.md) | REQ-013, REQ-014 | Interface, Monitoring (feedback) |
 | **P10 Testing & Evaluation** | [SPRINT_07](../02_sprints/SPRINT_07_EVALUATION.md) | REQ-017, REQ-018, REQ-019 | Retrieval & LLM evaluation |
 | **P11 Deploy & Hardening** | [SPRINT_08](../02_sprints/SPRINT_08_MONITORING_DEPLOY.md) | REQ-015, REQ-016, REQ-020 | Monitoring, Containerization, Bonus |
+| **P12 Security Containment** | [SPRINT_09](../02_sprints/SPRINT_09_SECURITY_CONTAINMENT.md) | REQ-021, REQ-024, REQ-028, REQ-030 | Critical exposure and supply-chain containment |
+| **P13 API, LLM & Data Security** | [SPRINT_10](../02_sprints/SPRINT_10_API_LLM_SECURITY.md) | REQ-022, REQ-023, REQ-025, REQ-026 | Access control, abuse prevention, LLM/data boundaries |
+| **P14 Platform Hardening** | [SPRINT_11](../02_sprints/SPRINT_11_PLATFORM_HARDENING.md) | REQ-021, REQ-024, REQ-027, REQ-028 | Least privilege, segmentation, immutable deployment |
+| **P15 Security Assurance** | [SPRINT_12](../02_sprints/SPRINT_12_SECURITY_ASSURANCE.md) | REQ-021..REQ-030 | DevSecOps evidence and release decision |
+| **P16 Runtime Stabilization** | [SPRINT_13](../02_sprints/SPRINT_13_RUNTIME_STABILIZATION.md) | REQ-031, REQ-032 | Functional retrieval flow and reproducibility |
+| **P17 Quality & Reproducibility** | [SPRINT_14](../02_sprints/SPRINT_14_QUALITY_REPRODUCIBILITY.md) | REQ-033, REQ-034 | Real test pyramid and clean clone |
+| **P18 Measured RAG Quality** | [SPRINT_15](../02_sprints/SPRINT_15_RETRIEVAL_QUALITY.md), [SPRINT_16](../02_sprints/SPRINT_16_LLM_QUALITY.md) | REQ-035..REQ-037 | Retrieval/LLM evaluation and best practices |
+| **P19 Observability & Product Operations** | [SPRINT_17](../02_sprints/SPRINT_17_OBSERVABILITY_UX.md) | REQ-038, REQ-039 | Monitoring, feedback and UX |
+| **P20 Scale & Cloud Resilience** | [SPRINT_18](../02_sprints/SPRINT_18_PRODUCTION_QUALIFICATION.md) | REQ-040, REQ-041 | Performance, cloud and recovery |
+| **P21 Production Qualification** | [SPRINT_18](../02_sprints/SPRINT_18_PRODUCTION_QUALIFICATION.md) | REQ-042 | Evidence-backed production decision |
 
 > Note: P6 (RAG Pipeline) and P7 (Retrieval) are logically distinct phases but are built in
 > overlapping sprints — a minimal Dense→LLM pipeline (P6) is stood up first, then the full
@@ -58,6 +68,16 @@ graph TD
     P8 --> P9[P9 Frontend / UI + Feedback]
     P9 --> P10[P10 Testing and Evaluation]
     P10 --> P11[P11 Deploy and Hardening]
+    P11 --> P12[P12 Security Containment]
+    P12 --> P13[P13 API LLM and Data Security]
+    P13 --> P14[P14 Platform Hardening]
+    P14 --> P15[P15 Security Assurance]
+    P15 --> P16[P16 Runtime Stabilization]
+    P16 --> P17[P17 Quality and Reproducibility]
+    P17 --> P18[P18 Measured RAG Quality]
+    P18 --> P19[P19 Observability and Product Operations]
+    P19 --> P20[P20 Scale and Cloud Resilience]
+    P20 --> P21[P21 Production Qualification]
     P10 -.regression feedback.-> P7
     P10 -.regression feedback.-> P6
 ```
@@ -79,6 +99,20 @@ gantt
     SPRINT_06 UI and Feedback              :s6, after s5, 1
     SPRINT_07 Evaluation                   :s7, after s6, 1
     SPRINT_08 Monitoring and Deploy        :s8, after s7, 1
+    section Security
+    SPRINT_09 Security Containment         :s9, after s8, 1
+    SPRINT_10 API LLM and Data Security    :s10, after s9, 1
+    SPRINT_11 Platform Hardening           :s11, after s10, 1
+    SPRINT_12 Security Assurance           :s12, after s11, 1
+    section Stabilization
+    SPRINT_13 Runtime Stabilization         :s13, after s12, 1
+    SPRINT_14 Quality and Reproducibility   :s14, after s13, 1
+    section Measured RAG
+    SPRINT_15 Retrieval Quality             :s15, after s14, 1
+    SPRINT_16 LLM Quality                   :s16, after s15, 1
+    section Production
+    SPRINT_17 Observability and UX          :s17, after s16, 1
+    SPRINT_18 Production Qualification      :s18, after s17, 1
 ```
 
 ---
@@ -191,12 +225,82 @@ gantt
   [SC-024](./SUCCESS_CRITERIA.md); optionally [SC-023](./SUCCESS_CRITERIA.md). REQ-015/016/020.
 - **Risks:** [RISK-006](./Risks.md) legal/ToS for public deploy; [RISK-008](./Risks.md) drift.
 
+### P12 — Security Containment
+- **Objective:** close immediately exploitable SSRF/exposure/default-secret paths and restore a
+  deterministic, scanned dependency graph and active CI.
+- **Dependencies:** P11.
+- **Artifacts:** locked dependencies, discoverable CI, isolated compose topology, trusted UI
+  destination config, service-scoped secrets.
+- **Completion criteria:** SC-025/026 and the applicable SC-030 controls pass.
+
+### P13 — API, LLM & Data Security
+- **Objective:** add identity and authorization, resource/cost controls, safe error boundaries,
+  prompt/citation integrity, and feedback privacy.
+- **Dependencies:** P12.
+- **Artifacts:** API policy matrix, adversarial corpus, rate/cost controls, safe error model,
+  retention and minimization policy.
+- **Completion criteria:** SC-027–SC-029 and SC-032 pass.
+
+### P14 — Platform Hardening
+- **Objective:** enforce database, container, Kubernetes and network least privilege with
+  immutable, attestable deployment artifacts.
+- **Dependencies:** P13.
+- **Artifacts:** restricted roles/workloads, NetworkPolicies/TLS, canonical IaC and provenance.
+- **Completion criteria:** SC-030/031 pass.
+
+### P15 — Security Assurance
+- **Objective:** harden ingestion and production readiness, automate SAST/SCA/secret/IaC/
+  container/DAST/adversarial gates, and close the audit with accountable evidence.
+- **Dependencies:** P14.
+- **Artifacts:** ingestion quarantine/provenance, security CI reports, SBOM, threat model,
+  runbooks and final evidence bundle.
+- **Completion criteria:** SC-033/034 pass and SEC-01..SEC-17 are closed or formally accepted.
+
+### P16 — Runtime Stabilization
+- **Objective:** hydrate lexical/vector indexes from one deterministic corpus, compose real
+  production dependencies and prove query/feedback behavior.
+- **Dependencies:** P15's secure runtime prerequisites.
+- **Artifacts:** corpus bootstrap/manifest, BM25 parity, composition root and real journey evidence.
+- **Completion criteria:** SC-035/036 pass (Sprint 13).
+
+### P17 — Quality & Reproducibility
+- **Objective:** make clean-clone quality, real integration and browser/API E2E gates green.
+- **Dependencies:** P16.
+- **Artifacts:** supported lock/runtime matrix, ≥90% coverage, real-stack tests and truthful docs.
+- **Completion criteria:** SC-037/038 pass (Sprint 14).
+
+### P18 — Measured RAG Quality
+- **Objective:** select retrieval and LLM configurations from reviewed, real, reproducible evidence.
+- **Dependencies:** P16 corpus/runtime; P17 test/evidence infrastructure.
+- **Artifacts:** benchmark, ablations, automatic/human reports and citation validator.
+- **Completion criteria:** SC-039..042 pass (Sprints 15–16).
+
+### P19 — Observability & Product Operations
+- **Objective:** trace, meter and operate a complete accessible user workflow.
+- **Dependencies:** P16 and stable security/privacy boundaries.
+- **Artifacts:** OTel, SLO/cost alerts, live dashboards, UX and tested runbooks.
+- **Completion criteria:** SC-043/044 pass (Sprint 17).
+
+### P20 — Scale & Cloud Resilience
+- **Objective:** qualify cache/capacity/cost and prove immutable staging plus recovery.
+- **Dependencies:** P18 selected configuration and P19 telemetry.
+- **Artifacts:** load report, staging URL/evidence, restore/rollback and DORA baseline.
+- **Completion criteria:** SC-045..047 pass (Sprint 18).
+
+### P21 — Production Qualification
+- **Objective:** make one evidence-backed go/no-go decision across every audit finding.
+- **Dependencies:** P15, P17, P18, P19 and P20.
+- **Artifacts:** fresh scorecard, evidence index and residual-risk approvals.
+- **Completion criteria:** SC-048 and TEST-178 pass; SEC-01..17 and TECH-01..30 closed/accepted.
+
 ---
 
 ## 4. Critical Path & Parallelism
 
-- **Critical path:** P1 → P2 → P4 → P5 → P6 → P7 → P10 → P11 (data must exist before
-  retrieval can be evaluated).
+- **Critical path:** P1 → P2 → P4 → P5 → P6 → P7 → P10 → P11 → P12 → P13 → P14 →
+  P15 → P16 → P17 → P18 → P19 → P20 → P21.
+  Production release cannot precede containment, working runtime, measured RAG, operational
+  qualification and fresh evidence.
 - **Parallelizable:** P3 (Domain) alongside P2; P8/P9 (API/UI shell) can start against a
   stubbed pipeline once P6 exists; prompt authoring (`docs/05_prompts/`) can precede P6.
 - Regression loop: P10 feeds fixes back into P6/P7 until [SUCCESS_CRITERIA.md](./SUCCESS_CRITERIA.md)
@@ -208,4 +312,5 @@ gantt
 
 - [`REQUIREMENTS.md`](./REQUIREMENTS.md) · [`SUCCESS_CRITERIA.md`](./SUCCESS_CRITERIA.md) · [`TECH_STACK.md`](./TECH_STACK.md)
 - [`Risks.md`](./Risks.md) · [`Assumptions.md`](./Assumptions.md) · [`Backlog.md`](./Backlog.md)
-- Sprint specs: `docs/02_sprints/SPRINT_01..08`; tasks: `docs/03_tasks/`.
+- Sprint specs: `docs/02_sprints/SPRINT_01..18`; tasks: `docs/03_tasks/`.
+- Official evolution program: [`../05_agent_harness/EVOLUTION_PROGRAM.md`](../05_agent_harness/EVOLUTION_PROGRAM.md).
