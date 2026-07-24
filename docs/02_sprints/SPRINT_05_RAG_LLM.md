@@ -67,14 +67,14 @@ Prompt A/B and model A/B are *implemented* here (selectable) and *compared* in [
 
 ## Checklist
 
-- [ ] Query rewriter transforms conversational queries into retrieval-optimized queries; original preserved in `AnswerResponse.rewritten_query`.
-- [ ] Prompt enforces: answer only from context, always cite, "I don't know" if unsupported, never invent rules.
-- [ ] Prompt builder orders context by score and respects a max-token budget.
-- [ ] LLM client reads `OPENAI_MODEL_NAME` / `OPENAI_TEMPERATURE=0.0`; model switchable for A/B.
-- [ ] `AnswerResponse` populated: `query`, `rewritten_query`, `answer`, `citations`, `retrieved_chunks`, `model_name`, `latency_seconds`.
-- [ ] Citations derive from retrieved chunk `DocumentMetadata` (source, page, date, url).
-- [ ] Out-of-context query returns a grounded "I don't know" (no fabrication).
-- [ ] Two prompt variants (A/B) selectable via config.
+- [x] Query rewriter transforms conversational queries into retrieval-optimized queries; original preserved in `AnswerResponse.rewritten_query`.
+- [x] Prompt enforces: answer only from context, always cite, "I don't know" if unsupported, never invent rules.
+- [x] Prompt builder orders context by score and respects a max-token budget.
+- [x] LLM client reads `OPENAI_MODEL_NAME` / `OPENAI_TEMPERATURE=0.0`; model switchable for A/B.
+- [x] `AnswerResponse` populated: `query`, `rewritten_query`, `answer`, `citations`, `retrieved_chunks`, `model_name`, `latency_seconds`.
+- [x] Citations derive from retrieved chunk `DocumentMetadata` (source, page, date, url).
+- [x] Out-of-context query returns a grounded "I don't know" (no fabrication).
+- [x] Two prompt variants (A/B) selectable via config.
 
 ## Acceptance Criteria (measurable)
 
