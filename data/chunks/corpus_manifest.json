@@ -1,0 +1,13 @@
+{
+  "corpus_id": "bootstrap-demo-corpus",
+  "version": "2026-07-24",
+  "description": "Local demo corpus bundled for clean-clone UI execution.",
+  "chunk_count": 4,
+  "files": [
+    {
+      "path": "bootstrap.jsonl",
+      "sha256": "68c9705aadb2f8c1bbe8ee06ab7552216ccaf98dbb7fa58a3968ec7b3ed2e1ac",
+      "chunk_count": 4
+    }
+  ]
+}

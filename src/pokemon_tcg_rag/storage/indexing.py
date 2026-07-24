@@ -5,9 +5,12 @@ Chunk embedding and Qdrant seeding helpers.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 from sentence_transformers import SentenceTransformer
@@ -19,6 +22,84 @@ from pokemon_tcg_rag.monitoring.logger import get_logger, setup_logging
 from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 
 LOGGER = get_logger(__name__)
+CORPUS_MANIFEST_NAME = "corpus_manifest.json"
+
+
+@dataclass(frozen=True, slots=True)
+class CorpusManifestFile:
+    """Single file entry within a versioned corpus manifest."""
+
+    path: str
+    sha256: str
+    chunk_count: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class CorpusManifest:
+    """Versioned corpus descriptor used for reproducible hydration."""
+
+    corpus_id: str
+    version: str
+    description: str
+    expected_chunk_count: int | None
+    files: tuple[CorpusManifestFile, ...]
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> CorpusManifest:
+        files = tuple(
+            CorpusManifestFile(
+                path=str(entry["path"]),
+                sha256=str(entry["sha256"]),
+                chunk_count=int(entry["chunk_count"]) if entry.get("chunk_count") is not None else None,
+            )
+            for entry in data.get("files", [])
+        )
+        return cls(
+            corpus_id=str(data["corpus_id"]),
+            version=str(data["version"]),
+            description=str(data.get("description", "")),
+            expected_chunk_count=int(data["chunk_count"]) if data.get("chunk_count") is not None else None,
+            files=files,
+        )
+
+    def canonical_payload(self) -> dict[str, Any]:
+        return {
+            "corpus_id": self.corpus_id,
+            "version": self.version,
+            "description": self.description,
+            "files": [
+                {
+                    "path": entry.path,
+                    "sha256": entry.sha256,
+                    "chunk_count": entry.chunk_count,
+                }
+                for entry in self.files
+            ],
+        }
+
+    def manifest_sha256(self) -> str:
+        canonical = json.dumps(self.canonical_payload(), sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    def chunk_count(self) -> int:
+        if self.expected_chunk_count is not None:
+            return self.expected_chunk_count
+        return sum(entry.chunk_count or 0 for entry in self.files)
+
+    def source_hash(self) -> str:
+        joined = "|".join(entry.sha256 for entry in self.files)
+        return hashlib.sha256(joined.encode("utf-8")).hexdigest()
+
+    def to_collection_metadata(self) -> dict[str, Any]:
+        return {
+            "corpus_id": self.corpus_id,
+            "corpus_version": self.version,
+            "corpus_description": self.description,
+            "corpus_manifest_sha256": self.manifest_sha256(),
+            "corpus_source_hash": self.source_hash(),
+            "corpus_chunk_count": self.chunk_count(),
+            "corpus_files": [entry.path for entry in self.files],
+        }
 
 
 class ChunkEmbedder:
@@ -64,19 +145,71 @@ def load_chunks(chunks_dir: str | Path | None = None) -> list[Chunk]:
         return []
 
     chunks: list[Chunk] = []
+    manifest = _load_manifest(directory)
+    if manifest is not None:
+        for entry in manifest["files"]:
+            file_path = directory / entry["path"]
+            _assert_file_hash(file_path, entry["sha256"])
+            loaded = _load_chunks_from_path(file_path)
+            if entry.get("chunk_count") is not None and len(loaded) != int(entry["chunk_count"]):
+                raise IngestionError(
+                    f"Corpus manifest chunk count mismatch for {file_path.name}: "
+                    f"expected {entry['chunk_count']}, got {len(loaded)}"
+                )
+            chunks.extend(loaded)
+        manifest_count = manifest.get("chunk_count")
+        if manifest_count is not None and len(chunks) != int(manifest_count):
+            raise IngestionError(
+                f"Corpus manifest total chunk count mismatch: expected {manifest_count}, got {len(chunks)}"
+            )
+        return chunks
+
     for path in sorted(directory.rglob("*")):
-        if path.suffix.lower() == ".parquet":
-            frame = pd.read_parquet(path)
-            for record in frame.to_dict(orient="records"):
-                chunks.append(_record_to_chunk(record))
-        elif path.suffix.lower() in {".jsonl", ".ndjson"}:
-            with path.open("r", encoding="utf-8") as fh:
-                for line in fh:
-                    stripped = line.strip()
-                    if not stripped:
-                        continue
-                    chunks.append(_record_to_chunk(json.loads(stripped)))
+        chunks.extend(_load_chunks_from_path(path))
     return chunks
+
+
+def load_corpus_manifest(chunks_dir: str | Path | None = None) -> CorpusManifest | None:
+    settings = get_settings()
+    directory = Path(chunks_dir or settings.DATA_CHUNKS_DIR)
+    if not directory.exists():
+        return None
+    raw_manifest = _load_manifest(directory)
+    if raw_manifest is None:
+        return None
+    return CorpusManifest.from_dict(raw_manifest)
+
+
+def _load_manifest(directory: Path) -> dict[str, Any] | None:
+    manifest_path = directory / CORPUS_MANIFEST_NAME
+    if not manifest_path.exists():
+        return None
+    with manifest_path.open("r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _load_chunks_from_path(path: Path) -> list[Chunk]:
+    if path.suffix.lower() == ".parquet":
+        frame = pd.read_parquet(path)
+        return [_record_to_chunk(record) for record in frame.to_dict(orient="records")]
+    if path.suffix.lower() in {".jsonl", ".ndjson"}:
+        chunks: list[Chunk] = []
+        with path.open("r", encoding="utf-8") as fh:
+            for line in fh:
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                chunks.append(_record_to_chunk(json.loads(stripped)))
+        return chunks
+    return []
+
+
+def _assert_file_hash(path: Path, expected_sha256: str) -> None:
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest != expected_sha256:
+        raise IngestionError(
+            f"Corpus manifest hash mismatch for {path.name}: expected {expected_sha256}, got {digest}"
+        )
 
 
 def seed_chunks(
