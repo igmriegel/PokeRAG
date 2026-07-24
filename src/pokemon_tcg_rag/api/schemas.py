@@ -1,36 +1,90 @@
 """
-API OpenAPI Request & Response Schemas.
+Pydantic wire schemas for the public API.
 """
 
-from typing import Any
-from pydantic import BaseModel, Field
+from __future__ import annotations
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from pokemon_tcg_rag.domain.models import AnswerResponse, RetrievedChunk
 
 
 class QueryRequest(BaseModel):
-    """Payload for RAG question query endpoint."""
-    question: str = Field(..., example="Posso usar a carta Rare Candy no primeiro turno do jogo?")
+    """Payload for the query endpoint."""
+
+    question: str = Field(..., min_length=1, examples=["Posso usar Rare Candy no primeiro turno?"])
     top_k: int = Field(default=5, ge=1, le=20)
+
+    @field_validator("question")
+    @classmethod
+    def question_must_not_be_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("question must not be empty")
+        return value.strip()
 
 
 class CitationSchema(BaseModel):
-    """Source document citation metadata schema."""
+    """Citation metadata for an answer."""
+
+    model_config = ConfigDict(from_attributes=True)
+
     source: str
     document_title: str
     page_number: int | None = None
     rule_type: str
     card_name: str | None = None
+    publication_date: str | None = None
+    source_url: str | None = None
+
+    @classmethod
+    def from_metadata(cls, metadata) -> CitationSchema:
+        return cls(
+            source=metadata.source.value,
+            document_title=metadata.document_title,
+            page_number=metadata.page_number,
+            rule_type=metadata.rule_type.value,
+            card_name=metadata.card_name,
+            publication_date=metadata.publication_date,
+            source_url=metadata.source_url,
+        )
 
 
 class ChunkSnippetSchema(BaseModel):
-    """Snippet of retrieved chunk content."""
+    """Short snippet of a retrieved chunk."""
+
     chunk_id: str
     text: str
     score: float
     retrieval_method: str
+    source: str
+    document_title: str
+    page_number: int | None = None
+    rule_type: str
+    card_name: str | None = None
+    publication_date: str | None = None
+    source_url: str | None = None
+
+    @classmethod
+    def from_retrieved_chunk(cls, item: RetrievedChunk) -> ChunkSnippetSchema:
+        metadata = item.chunk.metadata
+        return cls(
+            chunk_id=item.chunk.chunk_id,
+            text=item.chunk.text,
+            score=item.score,
+            retrieval_method=item.retrieval_method,
+            source=metadata.source.value,
+            document_title=metadata.document_title,
+            page_number=metadata.page_number,
+            rule_type=metadata.rule_type.value,
+            card_name=metadata.card_name,
+            publication_date=metadata.publication_date,
+            source_url=metadata.source_url,
+        )
 
 
 class QueryResponse(BaseModel):
-    """Full RAG answer response API schema."""
+    """Public API response for an answer."""
+
     query: str
     rewritten_query: str | None = None
     answer: str
@@ -39,18 +93,50 @@ class QueryResponse(BaseModel):
     model_name: str
     latency_seconds: float
 
+    @classmethod
+    def from_answer_response(cls, response: AnswerResponse) -> QueryResponse:
+        return cls(
+            query=response.query,
+            rewritten_query=response.rewritten_query,
+            answer=response.answer,
+            citations=[CitationSchema.from_metadata(item) for item in response.citations],
+            retrieved_chunks=[
+                ChunkSnippetSchema.from_retrieved_chunk(item) for item in response.retrieved_chunks
+            ],
+            model_name=response.model_name,
+            latency_seconds=response.latency_seconds,
+        )
+
 
 class FeedbackRequest(BaseModel):
-    """User feedback submission payload."""
-    query: str
-    answer: str
+    """Payload submitted by the UI and client for feedback persistence."""
+
+    query: str = Field(..., min_length=1)
+    answer: str = Field(..., min_length=1)
     rating: int = Field(..., description="1 for thumbs up, -1 for thumbs down")
     comment: str | None = None
-    model_name: str
-    latency_seconds: float
+    model_name: str = Field(..., min_length=1)
+    latency_seconds: float = Field(..., ge=0)
+
+    @field_validator("query", "answer", "model_name")
+    @classmethod
+    def text_fields_must_not_be_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("value must not be empty")
+        return value.strip()
+
+    @field_validator("rating")
+    @classmethod
+    def rating_must_be_binary(cls, value: int) -> int:
+        if value not in (-1, 1):
+            raise ValueError("rating must be either 1 or -1")
+        return value
 
 
 class HealthResponse(BaseModel):
-    """API health status response."""
+    """Health check payload."""
+
     status: str
     version: str
+    rag_chain_ready: bool
+    feedback_store_ready: bool
