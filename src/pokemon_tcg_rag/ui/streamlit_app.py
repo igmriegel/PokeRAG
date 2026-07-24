@@ -4,13 +4,14 @@ Streamlit web UI for the Pokemon TCG RAG service.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from typing import Any
 
 import requests
 import streamlit as st
 
-DEFAULT_API_URL = "http://localhost:8000/api/v1"
+DEFAULT_API_URL = os.getenv("POKERAG_API_URL", "http://localhost:8000/api/v1")
 
 
 def build_query_payload(question: str, top_k: int) -> dict[str, Any]:

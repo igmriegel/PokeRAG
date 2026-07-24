@@ -5,11 +5,13 @@ FastAPI application entrypoint.
 from __future__ import annotations
 
 from fastapi import FastAPI
-from prometheus_client import make_asgi_app
+from fastapi.responses import Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from pokemon_tcg_rag.api.routes import dependency_status, router
 from pokemon_tcg_rag.api.schemas import HealthResponse
 from pokemon_tcg_rag.monitoring.logger import setup_logging
+from pokemon_tcg_rag.monitoring.metrics_collector import DEFAULT_METRICS_COLLECTOR
 
 
 def create_app() -> FastAPI:
@@ -20,8 +22,14 @@ def create_app() -> FastAPI:
         description="REST API for querying Pokemon TCG official rules and rulings",
         version="0.1.0",
     )
-    app.mount("/metrics", make_asgi_app())
     app.include_router(router, prefix="/api/v1")
+
+    @app.get("/metrics")
+    def metrics() -> Response:
+        """Expose Prometheus metrics for scraping."""
+        payload = generate_latest(DEFAULT_METRICS_COLLECTOR.registry)
+        return Response(content=payload, media_type=CONTENT_TYPE_LATEST)
+
     return app
 
 

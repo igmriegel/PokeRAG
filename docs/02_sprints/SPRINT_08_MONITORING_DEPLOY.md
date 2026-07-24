@@ -76,14 +76,14 @@ flowchart LR
 
 ## Checklist
 
-- [ ] `/metrics` endpoint exposes queries/day, mean & P95 latency, retrieved-doc count, positive/negative feedback, source distribution, top questions.
-- [ ] Structured JSON logging enabled across services.
-- [ ] Grafana dashboard has **≥6 panels** backed by real Prometheus/Postgres data.
-- [ ] `docker-compose.yml` brings up all 7 services with healthchecks and correct dependency order.
-- [ ] All services read config from `.env`/`Settings`; no secrets hardcoded.
-- [ ] Ingestion service runs as a one-shot/compose job populating Qdrant.
-- [ ] `.env.example` complete; README documents `docker compose up` from a clean clone.
-- [ ] (Bonus) Cloud deploy reachable with `/health` 200 from public internet.
+- [x] `/metrics` endpoint exposes queries/day, mean & P95 latency, retrieved-doc count, positive/negative feedback, source distribution, top questions.
+- [x] Structured JSON logging enabled across services.
+- [x] Grafana dashboard has **≥6 panels** backed by real Prometheus/Postgres data.
+- [x] `docker-compose.yml` brings up all 7 services with healthchecks and correct dependency order.
+- [x] All services read config from `.env`/`Settings`; no secrets hardcoded.
+- [x] Ingestion service runs as a one-shot/compose job populating Qdrant.
+- [x] `.env.example` complete; README documents `docker compose up` from a clean clone.
+- [x] (Bonus) Cloud deploy reachable with `/health` 200 from public internet.
 
 ## Acceptance Criteria (measurable)
 

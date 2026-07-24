@@ -5,7 +5,6 @@ Smoke tests for Docker Compose configuration validity.
 These tests do not start Docker, they validate the compose file structure.
 """
 
-import subprocess
 from pathlib import Path
 
 import pytest
@@ -15,7 +14,7 @@ import yaml
 PROJECT_ROOT = Path(__file__).parents[2]
 COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yml"
 
-EXPECTED_SERVICES = {"qdrant", "postgres", "ingestion", "app", "prometheus", "grafana"}
+EXPECTED_SERVICES = {"qdrant", "postgres", "ingestion", "api", "ui", "prometheus", "grafana"}
 
 
 @pytest.mark.smoke
@@ -31,8 +30,8 @@ def test_compose_config_valid() -> None:
 
 
 @pytest.mark.smoke
-def test_all_six_services_declared() -> None:
-    """TEST-017: All six required services must be declared in docker-compose.yml."""
+def test_all_seven_services_declared() -> None:
+    """TEST-017: All seven required services must be declared in docker-compose.yml."""
     with open(COMPOSE_FILE) as fh:
         config = yaml.safe_load(fh)
 

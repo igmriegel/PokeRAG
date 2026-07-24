@@ -1,0 +1,65 @@
+services:
+  - type: pserv
+    name: qdrant
+    image: qdrant/qdrant:v1.7.4
+    disk:
+      name: qdrant-storage
+      mountPath: /qdrant/storage
+      sizeGB: 5
+    envVars:
+      - key: QDRANT__SERVICE__GRPC_PORT
+        value: "6334"
+
+  - type: pserv
+    name: postgres
+    image: postgres:16-alpine
+    disk:
+      name: postgres-storage
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 5
+    envVars:
+      - key: POSTGRES_USER
+        value: pokemon_user
+      - key: POSTGRES_PASSWORD
+        sync: false
+      - key: POSTGRES_DB
+        value: pokemon_tcg_rag_db
+
+  - type: web
+    name: api
+    dockerfilePath: docker/Dockerfile.app
+    dockerCommand: uvicorn pokemon_tcg_rag.api.main:app --host 0.0.0.0 --port 8000
+    healthCheckPath: /health
+    envVars:
+      - key: QDRANT_HOST
+        value: qdrant
+      - key: POSTGRES_HOST
+        value: postgres
+      - key: OPENAI_API_KEY
+        sync: false
+
+  - type: web
+    name: ui
+    dockerfilePath: docker/Dockerfile.app
+    dockerCommand: streamlit run src/pokemon_tcg_rag/ui/streamlit_app.py --server.port=8501 --server.address=0.0.0.0
+    envVars:
+      - key: POKERAG_API_URL
+        value: http://api:8000/api/v1
+
+  - type: pserv
+    name: prometheus
+    image: prom/prometheus:v2.48.1
+
+  - type: pserv
+    name: grafana
+    image: grafana/grafana:10.2.3
+
+  - type: job
+    name: ingestion
+    dockerfilePath: docker/Dockerfile.ingestion
+    dockerCommand: python3 scripts/run_ingestion.py
+    envVars:
+      - key: QDRANT_HOST
+        value: qdrant
+      - key: OPENAI_API_KEY
+        sync: false

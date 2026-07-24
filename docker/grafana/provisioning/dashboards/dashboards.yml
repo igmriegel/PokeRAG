@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: pokemon-rag
+    orgId: 1
+    folder: Pokemon RAG
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/dashboards

@@ -6,8 +6,8 @@ Define the **observability stack** for the Pokemon TCG RAG system: structured JS
 the Prometheus metrics catalog, the Grafana dashboard specification (≥ 6 panels), and the
 feedback pipeline into PostgreSQL. Grounded in `monitoring/logger.py`,
 `monitoring/metrics_collector.py`, `monitoring/feedback_store.py`,
-[`config/prometheus.yml`](../../config/prometheus.yml),
-[`config/grafana/dashboards.json`](../../config/grafana/dashboards.json), and
+[`docker/prometheus/prometheus.yml`](../../docker/prometheus/prometheus.yml),
+[`docker/grafana/dashboards/pokemon_rag.json`](../../docker/grafana/dashboards/pokemon_rag.json), and
 [`docker-compose.yml`](../../docker-compose.yml).
 
 ## Scope
@@ -28,7 +28,7 @@ Satisfies [REQ-015](../00_project/REQUIREMENTS.md) (Prometheus + Grafana ≥ 5 c
 
 ```mermaid
 graph TD
-    APP["app (FastAPI + Streamlit)"] -->|structlog JSON to stdout| LOGS[Container logs]
+    APP["api + ui"] -->|structlog JSON to stdout| LOGS[Container logs]
     APP -->|MetricsCollector.record_*| REG[prometheus_client registry]
     REG -->|GET /metrics :8000| PROM[Prometheus :9090]
     PROM -->|scrape_interval 15s| PROM
@@ -38,8 +38,8 @@ graph TD
     PG -->|SQL datasource| GRAF
 ```
 
-Prometheus scrape config ([`config/prometheus.yml`](../../config/prometheus.yml)):
-`scrape_interval: 15s`, job `pokemon_rag_app`, `metrics_path: /metrics`, target `app:8000`.
+Prometheus scrape config ([`docker/prometheus/prometheus.yml`](../../docker/prometheus/prometheus.yml)):
+`scrape_interval: 15s`, job `pokemon_rag_app`, `metrics_path: /metrics`, target `api:8000`.
 
 ---
 
@@ -100,8 +100,9 @@ Histograms auto-expose `_bucket`, `_sum`, `_count` series used by the PromQL bel
 ## 4. Grafana Dashboard Specification (≥ 6 panels)
 
 Dashboard `pokemon_rag_dash` (title *"Pokemon TCG RAG Expert - Monitoring Dashboard"*),
-provisioned from [`config/grafana/dashboards.json`](../../config/grafana/dashboards.json)
-(mounted read-only in the `grafana` service; datasource from `config/grafana/datasource.yml`).
+provisioned from [`docker/grafana/dashboards/pokemon_rag.json`](../../docker/grafana/dashboards/pokemon_rag.json)
+(mounted read-only in the `grafana` service; datasource from
+[`docker/grafana/provisioning/datasources/datasource.yml`](../../docker/grafana/provisioning/datasources/datasource.yml)).
 `refresh: 5s`. Panels 1–6 exist in the committed JSON; panels 7–8 are the plan-required
 Postgres-backed additions.
 
@@ -197,7 +198,7 @@ UI exposes ratings + optional comment ([REQ-014](../00_project/REQUIREMENTS.md))
 | ID | Criterion | Verified by |
 | :--- | :--- | :--- |
 | OBS-AC-1 | Logs are structured JSON with level + ISO timestamp | inspect container logs |
-| OBS-AC-2 | `/metrics` exposes the 4 catalog metrics; Prometheus scrapes `app:8000` | `curl app:8000/metrics`, Prometheus targets |
+| OBS-AC-2 | `/metrics` exposes the 4 catalog metrics; Prometheus scrapes `api:8000` | `curl api:8000/metrics`, Prometheus targets |
 | OBS-AC-3 | Grafana dashboard provisioned with ≥ 5 (here ≥ 6) live panels | [SC-017](../00_project/SUCCESS_CRITERIA.md), dashboard JSON |
 | OBS-AC-4 | Feedback persisted to Postgres + counter incremented | [SC-018](../00_project/SUCCESS_CRITERIA.md), TEST-023 |
 | OBS-AC-5 | No secrets/PII in logs or metrics labels | [`Security.md`](./Security.md) §6 |

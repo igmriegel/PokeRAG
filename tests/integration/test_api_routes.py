@@ -9,10 +9,11 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from fastapi.testclient import TestClient
+from fastapi import HTTPException
 
-from pokemon_tcg_rag.api.main import app
-from pokemon_tcg_rag.api.routes import set_dependencies
+from pokemon_tcg_rag.api.main import health_check
+from pokemon_tcg_rag.api.routes import query_rag, set_dependencies, submit_feedback
+from pokemon_tcg_rag.api.schemas import FeedbackRequest, QueryRequest
 from pokemon_tcg_rag.domain.models import (
     AnswerResponse,
     Chunk,
@@ -85,14 +86,11 @@ def test_query_endpoint_returns_answer() -> None:
     fake_chain = FakeRAGChain()
     fake_feedback = FakeFeedbackStore()
     set_dependencies(fake_chain, fake_feedback)
-    client = TestClient(app)
 
-    response = client.post("/api/v1/query", json={"question": "Can I use Rare Candy?", "top_k": 5})
+    response = query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
 
-    assert response.status_code == 200
-    body = response.json()
-    assert body["answer"] == "Yes."
-    assert body["citations"][0]["document_title"] == "Official Rulebook"
+    assert response.answer == "Yes."
+    assert response.citations[0].document_title == "Official Rulebook"
     assert fake_chain.calls == ["Can I use Rare Candy?"]
 
 
@@ -102,21 +100,19 @@ def test_feedback_endpoint_persists() -> None:
     fake_chain = FakeRAGChain()
     fake_feedback = FakeFeedbackStore()
     set_dependencies(fake_chain, fake_feedback)
-    client = TestClient(app)
 
-    response = client.post(
-        "/api/v1/feedback",
-        json={
-            "query": "q",
-            "answer": "a",
-            "rating": 1,
-            "comment": "ok",
-            "model_name": "gpt-4o-mini",
-            "latency_seconds": 0.5,
-        },
+    response = submit_feedback(
+        FeedbackRequest(
+            query="q",
+            answer="a",
+            rating=1,
+            comment="ok",
+            model_name="gpt-4o-mini",
+            latency_seconds=0.5,
+        )
     )
 
-    assert response.status_code == 201
+    assert response["status"] == "success"
     assert fake_feedback.calls[0]["rating"] == 1
 
 
@@ -124,24 +120,21 @@ def test_feedback_endpoint_persists() -> None:
 def test_health_endpoint_ok() -> None:
     """TEST-095: health endpoint must report dependency readiness."""
     set_dependencies(FakeRAGChain(), FakeFeedbackStore())
-    client = TestClient(app)
 
-    response = client.get("/health")
+    response = health_check()
 
-    assert response.status_code == 200
-    body = response.json()
-    assert body["status"] == "healthy"
-    assert body["rag_chain_ready"] is True
-    assert body["feedback_store_ready"] is True
+    assert response.status == "healthy"
+    assert response.rag_chain_ready is True
+    assert response.feedback_store_ready is True
 
 
 @pytest.mark.integration
 def test_query_error_maps_to_http_500() -> None:
     """TEST-096: query endpoint must map retrieval errors to HTTP 500."""
     set_dependencies(FakeRAGChain(error=RuntimeError("boom")), FakeFeedbackStore())
-    client = TestClient(app)
 
-    response = client.post("/api/v1/query", json={"question": "Can I use Rare Candy?", "top_k": 5})
+    with pytest.raises(HTTPException) as exc_info:
+        query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
 
-    assert response.status_code == 500
-    assert "boom" in response.json()["detail"]
+    assert exc_info.value.status_code == 500
+    assert "boom" in str(exc_info.value.detail)

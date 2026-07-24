@@ -22,7 +22,7 @@ class DummyPipeline:
     def __init__(self, processed_dir: Path | None = None) -> None:
         self.processed_dir = processed_dir
 
-    def run(self, sources: list[str] | None = None) -> list[Document]:
+    def run(self, sources: list[str] | None = None, index: bool = False) -> list[Document]:
         return [
             Document(
                 doc_id="cli_doc_001",

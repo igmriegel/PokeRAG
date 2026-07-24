@@ -55,7 +55,7 @@ graph TD
 - ✏️ **User Query Rewriting**: Expands ambiguous user phrasing into domain-specific Pokemon TCG queries.
 - 📊 **Evaluations Suite**: Measures `Recall@5`, `Recall@10`, `MRR`, `Hit Rate`, and `Faithfulness` across retrieval strategies on a 100-question ground truth dataset.
 - 📈 **Monitoring & Observability**: Integrated Prometheus metrics export and pre-configured Grafana dashboards displaying 6 key operational metrics.
-- 🚀 **Full Containerization**: Entire environment (App, Ingestion, Qdrant, Postgres, Prometheus, Grafana) orchestrates cleanly with a single command: `docker-compose up`.
+- 🚀 **Full Containerization**: Entire environment (API, UI, Ingestion, Qdrant, Postgres, Prometheus, Grafana) orchestrates cleanly with a single command: `docker-compose up`.
 
 ---
 
@@ -99,7 +99,7 @@ All services will start up automatically:
 - 🔌 **FastAPI REST API**: [http://localhost:8000/docs](http://localhost:8000/docs)
 - 📊 **Grafana Dashboard**: [http://localhost:3000](http://localhost:3000) (User: `admin` / Pass: `admin`)
 - 🎯 **Qdrant Vector DB**: [http://localhost:6333/dashboard](http://localhost:6333/dashboard)
-- 📈 **Prometheus Metrics**: [http://localhost:9090](http://localhost:9090)
+- 📈 **Prometheus Metrics**: [http://localhost:9090](http://localhost:9090) (`/metrics` on the API at [http://localhost:8000/metrics](http://localhost:8000/metrics))
 
 ### Step 3: Execute Automated Ingestion Pipeline
 To scrape Pokegym, extract official PDFs, chunk documents, generate embeddings, and seed Qdrant:

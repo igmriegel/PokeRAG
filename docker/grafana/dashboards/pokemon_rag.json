@@ -1,0 +1,76 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Queries per Model and Status",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(pokemon_rag_queries_total[5m])", "legendFormat": "{{model}} / {{status}}" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "title": "Average Query Latency",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(pokemon_rag_query_latency_seconds_sum[5m]) / rate(pokemon_rag_query_latency_seconds_count[5m])", "legendFormat": "avg latency" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "title": "Retrieved Documents per Query",
+      "type": "histogram",
+      "targets": [
+        { "expr": "pokemon_rag_retrieved_docs_count_bucket", "legendFormat": "{{le}}" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "title": "Feedback Positive vs Negative",
+      "type": "piechart",
+      "targets": [
+        { "expr": "pokemon_rag_feedback_total", "legendFormat": "{{rating}}" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 5,
+      "title": "Source Distribution",
+      "type": "piechart",
+      "targets": [
+        { "expr": "pokemon_rag_query_sources_total", "legendFormat": "{{source}}" }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "id": 6,
+      "title": "P95 and P99 Latency",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(pokemon_rag_query_latency_seconds_bucket[5m])) by (le))", "legendFormat": "P95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(pokemon_rag_query_latency_seconds_bucket[5m])) by (le))", "legendFormat": "P99" }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["pokemon", "rag", "monitoring"],
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Pokemon TCG RAG Monitoring",
+  "uid": "pokemon-rag-monitoring",
+  "version": 1
+}

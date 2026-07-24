@@ -23,10 +23,9 @@ class FakeDB:
 
 
 @pytest.mark.unit
-def test_submit_feedback_persists(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_submit_feedback_persists() -> None:
     """TEST-087: submit_feedback must persist through the database layer."""
     db = FakeDB()
-    monkeypatch.setattr("pokemon_tcg_rag.monitoring.feedback_store.MetricsCollector.record_feedback", lambda rating: None)
     store = FeedbackStore(db=db)
 
     record = store.submit_feedback(
@@ -52,10 +51,9 @@ def test_invalid_rating_rejected() -> None:
 
 
 @pytest.mark.unit
-def test_returns_feedback_record(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_returns_feedback_record() -> None:
     """TEST-089: submit_feedback must return a feedback record."""
     db = FakeDB()
-    monkeypatch.setattr("pokemon_tcg_rag.monitoring.feedback_store.MetricsCollector.record_feedback", lambda rating: None)
     store = FeedbackStore(db=db)
 
     record = store.submit_feedback("q", "a", -1, None, "gpt-4o-mini", 0.1)

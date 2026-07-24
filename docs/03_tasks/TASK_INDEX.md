@@ -102,10 +102,10 @@ executable by an AI Code Agent, and traceable to a requirement
 
 | ID | Title | REQ | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TASK-037 | Prometheus metrics collector (`monitoring/metrics_collector.py`) | REQ-015 | TASK-029 | Pending |
-| TASK-038 | Prometheus config + Grafana dashboard (≥5 charts) | REQ-015 | TASK-037 | Pending |
-| TASK-039 | Full Docker Compose integration + smoke tests | REQ-016 | TASK-011, TASK-029, TASK-030, TASK-038 | Pending |
-| TASK-040 | Cloud deployment IaC (Kubernetes / Render) | REQ-020 | TASK-039 | Pending |
+| TASK-037 | Prometheus metrics collector (`monitoring/metrics_collector.py`) | REQ-015 | TASK-029 | Done |
+| TASK-038 | Prometheus config + Grafana dashboard (≥5 charts) | REQ-015 | TASK-037 | Done |
+| TASK-039 | Full Docker Compose integration + smoke tests | REQ-016 | TASK-011, TASK-029, TASK-030, TASK-038 | Done |
+| TASK-040 | Cloud deployment IaC (Kubernetes / Render) | REQ-020 | TASK-039 | Done |
 
 ---
 

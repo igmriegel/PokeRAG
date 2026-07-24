@@ -1,11 +1,16 @@
-version: '3.8'
+version: "3.8"
 
 networks:
   pokemon_net:
     driver: bridge
 
+volumes:
+  qdrant_storage:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
 services:
-  # Vector Store for Hybrid & Dense Embeddings
   qdrant:
     image: qdrant/qdrant:v1.7.4
     container_name: pokemon_qdrant
@@ -23,7 +28,6 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # Relational Store for Feedback & Monitoring Logs
   postgres:
     image: postgres:16-alpine
     container_name: pokemon_postgres
@@ -44,7 +48,6 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # Ingestion Job Service (Scraping, Extraction, Chunking, Indexing)
   ingestion:
     build:
       context: .
@@ -52,13 +55,13 @@ services:
     container_name: pokemon_ingestion
     command: ["python3", "scripts/run_ingestion.py"]
     environment:
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - POSTGRES_USER=${POSTGRES_USER:-pokemon_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pokemon_password}
-      - POSTGRES_DB=${POSTGRES_DB:-pokemon_tcg_rag_db}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      POSTGRES_USER: ${POSTGRES_USER:-pokemon_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pokemon_password}
+      POSTGRES_DB: ${POSTGRES_DB:-pokemon_tcg_rag_db}
     env_file:
       - .env
     volumes:
@@ -69,28 +72,29 @@ services:
     depends_on:
       qdrant:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
     profiles:
       - ingestion
 
-  # RAG Core Application (FastAPI + Streamlit Interface)
-  app:
+  api:
     build:
       context: .
       dockerfile: docker/Dockerfile.app
-    container_name: pokemon_rag_app
+    container_name: pokemon_rag_api
+    command: ["uvicorn", "pokemon_tcg_rag.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
     ports:
       - "8000:8000"
-      - "8501:8501"
     environment:
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=${POSTGRES_USER:-pokemon_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pokemon_password}
-      - POSTGRES_DB=${POSTGRES_DB:-pokemon_tcg_rag_db}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-pokemon_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pokemon_password}
+      POSTGRES_DB: ${POSTGRES_DB:-pokemon_tcg_rag_db}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     env_file:
       - .env
     volumes:
@@ -110,40 +114,65 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # Prometheus Metrics Collector
+  ui:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+    container_name: pokemon_rag_ui
+    command: ["streamlit", "run", "src/pokemon_tcg_rag/ui/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      POKERAG_API_URL: http://api:8000/api/v1
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    networks:
+      - pokemon_net
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8501/_stcore/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   prometheus:
     image: prom/prometheus:v2.48.1
     container_name: pokemon_prometheus
     ports:
       - "9090:9090"
     volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
       - pokemon_net
+    depends_on:
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
-  # Grafana Dashboard UI
   grafana:
     image: grafana/grafana:10.2.3
     container_name: pokemon_grafana
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
     volumes:
-      - ./config/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
-      - ./config/grafana/dashboards.json:/etc/grafana/provisioning/dashboards/dashboards.json
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/etc/grafana/dashboards:ro
       - grafana_data:/var/lib/grafana
     networks:
       - pokemon_net
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_started
     restart: unless-stopped
-
-volumes:
-  qdrant_storage:
-  postgres_data:
-  prometheus_data:
-  grafana_data:

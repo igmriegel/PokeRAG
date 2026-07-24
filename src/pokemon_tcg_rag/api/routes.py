@@ -15,6 +15,7 @@ from pokemon_tcg_rag.api.schemas import (
 from pokemon_tcg_rag.domain.models import AnswerResponse
 from pokemon_tcg_rag.llm.rag_chain import RAGChain
 from pokemon_tcg_rag.monitoring.feedback_store import FeedbackStore
+from pokemon_tcg_rag.monitoring.metrics_collector import DEFAULT_METRICS_COLLECTOR
 
 router = APIRouter()
 
@@ -45,10 +46,29 @@ def query_rag(payload: QueryRequest) -> QueryResponse:
 
     try:
         response: AnswerResponse = _rag_chain.query(payload.question)
+        DEFAULT_METRICS_COLLECTOR.record_query(
+            model=response.model_name,
+            latency=response.latency_seconds,
+            num_docs=len(response.retrieved_chunks),
+            status="success",
+            sources=[citation.source for citation in response.citations],
+        )
         return QueryResponse.from_answer_response(response)
     except HTTPException:
+        DEFAULT_METRICS_COLLECTOR.record_query(
+            model="unknown",
+            latency=0.0,
+            num_docs=0,
+            status="failure",
+        )
         raise
     except Exception as exc:  # pragma: no cover - route boundary
+        DEFAULT_METRICS_COLLECTOR.record_query(
+            model="unknown",
+            latency=0.0,
+            num_docs=0,
+            status="failure",
+        )
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
 
 
@@ -67,6 +87,7 @@ def submit_feedback(payload: FeedbackRequest) -> dict[str, str]:
             model_name=payload.model_name,
             latency=payload.latency_seconds,
         )
+        DEFAULT_METRICS_COLLECTOR.record_feedback(payload.rating)
         return {"status": "success", "message": "Feedback recorded successfully."}
     except HTTPException:
         raise

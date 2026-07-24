@@ -7,7 +7,6 @@ from __future__ import annotations
 import uuid
 
 from pokemon_tcg_rag.domain.models import FeedbackRecord
-from pokemon_tcg_rag.monitoring.metrics_collector import MetricsCollector
 from pokemon_tcg_rag.storage.relational_db import RelationalDatabase
 
 
@@ -37,5 +36,4 @@ class FeedbackStore:
             latency_seconds=latency,
         )
         stored = self.db.save_feedback(record)
-        MetricsCollector.record_feedback(record.rating)
         return stored
