@@ -73,6 +73,10 @@ class LLMError(PokemonRAGError):
     """
 
 
+class LLMQuotaError(LLMError):
+    """Raised when the configured LLM provider has no available billing quota."""
+
+
 class ConfigurationError(PokemonRAGError):
     """Raised when required application configuration is missing or invalid.
 

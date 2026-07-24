@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from pokemon_tcg_rag.domain.exceptions import LLMError
+from pokemon_tcg_rag.domain.exceptions import LLMError, LLMQuotaError
 from pokemon_tcg_rag.llm.client import LLMClient
 
 
@@ -62,3 +62,15 @@ def test_api_error_raises_llm_error(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with pytest.raises(LLMError):
         client.generate_answer("prompt")
+
+
+@pytest.mark.unit
+def test_insufficient_quota_does_not_retry() -> None:
+    """Billing quota failures are terminal and should not consume retry budget."""
+    completions = FakeCompletions(error=RuntimeError("code=insufficient_quota"))
+    client = LLMClient(client=FakeClient(completions), retries=3, retry_delay=0.0)
+
+    with pytest.raises(LLMQuotaError):
+        client.generate_answer("prompt")
+
+    assert len(completions.calls) == 1

@@ -124,7 +124,12 @@ class OfflineDenseRetriever(DenseRetriever):
         self.default_top_k = 10
         self._embedding_model = None
 
-    def retrieve(self, query: str, top_k: int | None = None) -> list[RetrievedChunk]:
+    def retrieve(
+        self,
+        query: str,
+        top_k: int | None = None,
+        filters: dict[str, str] | None = None,
+    ) -> list[RetrievedChunk]:
         """Return no dense matches when embeddings are unavailable locally."""
         return []
 

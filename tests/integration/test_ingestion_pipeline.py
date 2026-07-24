@@ -107,7 +107,9 @@ def test_pipeline_aggregates_all_sources(tmp_path: Path, monkeypatch: pytest.Mon
     )
 
     pipeline = IngestionPipeline(
-        raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed"
+        raw_data_dir=tmp_path / "raw",
+        processed_dir=tmp_path / "processed",
+        chunks_dir=tmp_path / "chunks",
     )
     documents = pipeline.run()
 
@@ -153,7 +155,9 @@ def test_download_dedup_by_checksum(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     )
 
     pipeline = IngestionPipeline(
-        raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed"
+        raw_data_dir=tmp_path / "raw",
+        processed_dir=tmp_path / "processed",
+        chunks_dir=tmp_path / "chunks",
     )
     pdf_url = PDFParser.PDF_SOURCES["rulebook"][0]
 
@@ -199,12 +203,15 @@ def test_processed_persistence_written(tmp_path: Path, monkeypatch: pytest.Monke
     )
 
     pipeline = IngestionPipeline(
-        raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed"
+        raw_data_dir=tmp_path / "raw",
+        processed_dir=tmp_path / "processed",
+        chunks_dir=tmp_path / "chunks",
     )
     pipeline.run(sources=["pokegym"])
 
     assert (tmp_path / "processed" / "documents.jsonl").exists()
     assert (tmp_path / "processed" / "documents.parquet").exists()
+    assert (tmp_path / "chunks" / "corpus_manifest.json").exists()
 
 
 @pytest.mark.integration
@@ -259,7 +266,7 @@ def test_pipeline_produces_chunks(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     )
     monkeypatch.setattr(
         "pokemon_tcg_rag.ingestion.pipeline.seed_chunks",
-        lambda chunks: len(chunks),
+        lambda chunks, **kwargs: len(chunks),
     )
 
     pipeline = IngestionPipeline(
@@ -312,7 +319,7 @@ def test_chunks_parquet_written(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     )
     monkeypatch.setattr(
         "pokemon_tcg_rag.ingestion.pipeline.seed_chunks",
-        lambda chunks: len(chunks),
+        lambda chunks, **kwargs: len(chunks),
     )
 
     pipeline = IngestionPipeline(
@@ -354,7 +361,7 @@ def test_end_to_end_counts_consistent(tmp_path: Path, monkeypatch: pytest.Monkey
     )
     indexed_counts: list[int] = []
 
-    def fake_seed_chunks(chunks: list[object]) -> int:
+    def fake_seed_chunks(chunks: list[object], **kwargs: object) -> int:
         indexed_counts.append(len(chunks))
         return len(chunks)
 

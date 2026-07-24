@@ -226,6 +226,7 @@ def seed_chunks(
     vector_db: VectorDatabase | None = None,
     embedder: ChunkEmbedder | None = None,
     batch_size: int = 32,
+    collection_metadata: dict[str, Any] | None = None,
 ) -> int:
     if not chunks:
         return 0
@@ -239,7 +240,7 @@ def seed_chunks(
     for chunk, embedding in zip(chunks, embeddings, strict=True):
         embedded_chunks.append(chunk.model_copy(update={"embedding": embedding}))
 
-    vector_store.init_collection()
+    vector_store.init_collection(metadata=collection_metadata)
     vector_store.upsert_chunks(embedded_chunks)
     LOGGER.info("chunks_seeded", count=len(embedded_chunks))
     return len(embedded_chunks)
@@ -257,7 +258,7 @@ def seed_from_directory(
 
 
 def _record_to_chunk(record: dict[str, object]) -> Chunk:
-    page_number = record.get("page_number")
+    page_number = _none_if_missing(record.get("page_number"))
     if page_number is not None and not isinstance(page_number, int):
         page_number = int(cast(Any, page_number))
 
@@ -265,14 +266,12 @@ def _record_to_chunk(record: dict[str, object]) -> Chunk:
         source=DocumentSource(str(record["source"])),
         document_title=str(record["document_title"]),
         page_number=page_number,
-        section_title=None if record.get("section_title") is None else str(record["section_title"]),
-        card_name=None if record.get("card_name") is None else str(record["card_name"]),
+        section_title=_optional_string(record.get("section_title")),
+        card_name=_optional_string(record.get("card_name")),
         rule_type=RuleType(str(record["rule_type"])),
-        publication_date=None
-        if record.get("publication_date") is None
-        else str(record["publication_date"]),
-        source_url=None if record.get("source_url") is None else str(record["source_url"]),
-        checksum=None if record.get("checksum") is None else str(record["checksum"]),
+        publication_date=_optional_string(record.get("publication_date")),
+        source_url=_optional_string(record.get("source_url")),
+        checksum=_optional_string(record.get("checksum")),
     )
     embedding = record.get("embedding")
     return Chunk(
@@ -283,6 +282,20 @@ def _record_to_chunk(record: dict[str, object]) -> Chunk:
         metadata=metadata,
         embedding=embedding if isinstance(embedding, list) else None,
     )
+
+
+def _none_if_missing(value: object) -> object | None:
+    if value is None:
+        return None
+    missing = pd.isna(value)
+    if isinstance(missing, bool) and missing:
+        return None
+    return value
+
+
+def _optional_string(value: object) -> str | None:
+    normalized = _none_if_missing(value)
+    return None if normalized is None else str(normalized)
 
 
 def main(argv: Sequence[str] | None = None) -> int:

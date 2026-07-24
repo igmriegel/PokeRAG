@@ -24,6 +24,7 @@ from pokemon_tcg_rag.api.schemas import (
     QueryResponse,
 )
 from pokemon_tcg_rag.config.settings import get_settings
+from pokemon_tcg_rag.domain.exceptions import LLMQuotaError
 from pokemon_tcg_rag.domain.models import AnswerResponse
 from pokemon_tcg_rag.llm.rag_chain import RAGChain
 from pokemon_tcg_rag.monitoring.feedback_store import FeedbackStore
@@ -117,6 +118,21 @@ def query_rag(payload: QueryRequest, principal: Principal | None = None) -> Quer
                 sources=[citation.source for citation in response.citations],
             )
             return QueryResponse.from_answer_response(response, query_id=query_id)
+    except LLMQuotaError as exc:
+        LOGGER.warning("llm_quota_unavailable")
+        DEFAULT_METRICS_COLLECTOR.record_query(
+            model="unknown",
+            latency=0.0,
+            num_docs=0,
+            status="failure",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "OpenAI API quota is unavailable. Add API credits or review "
+                "the organization's billing limits."
+            ),
+        ) from exc
     except HTTPException:
         DEFAULT_METRICS_COLLECTOR.record_query(
             model="unknown",

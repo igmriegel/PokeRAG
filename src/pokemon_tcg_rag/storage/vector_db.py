@@ -101,6 +101,9 @@ class VectorDatabase:
 
     def _assert_collection_metadata(self, expected: dict[str, Any]) -> None:
         actual = self.collection_metadata()
+        if not actual:
+            self._write_collection_metadata(expected)
+            return
         for key, value in expected.items():
             if actual.get(key) != value:
                 raise VectorStoreError(

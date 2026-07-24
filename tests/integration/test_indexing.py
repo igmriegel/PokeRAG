@@ -11,7 +11,7 @@ from qdrant_client import QdrantClient
 
 from pokemon_tcg_rag.domain.models import Chunk, DocumentMetadata, DocumentSource, RuleType
 from pokemon_tcg_rag.storage import indexing as seed_db
-from pokemon_tcg_rag.storage.indexing import ChunkEmbedder, seed_chunks
+from pokemon_tcg_rag.storage.indexing import ChunkEmbedder, _record_to_chunk, seed_chunks
 from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 
 
@@ -67,7 +67,7 @@ def test_seed_upserts_all_chunks(monkeypatch: pytest.MonkeyPatch) -> None:
             self.collection_initialized = False
             self.upserted = None
 
-        def init_collection(self) -> None:
+        def init_collection(self, metadata=None) -> None:
             self.collection_initialized = True
 
         def upsert_chunks(self, chunks):
@@ -82,6 +82,32 @@ def test_seed_upserts_all_chunks(monkeypatch: pytest.MonkeyPatch) -> None:
     assert vector_db.collection_initialized is True
     assert len(vector_db.upserted) == 2
     assert all(len(chunk.embedding or []) == 1024 for chunk in vector_db.upserted)
+
+
+@pytest.mark.integration
+def test_parquet_nan_optional_fields_are_loaded_as_none() -> None:
+    """Pandas NaN values must not break corpus loading."""
+    chunk = _record_to_chunk(
+        {
+            "chunk_id": "chunk-1",
+            "doc_id": "doc-1",
+            "text": "Rule text",
+            "token_count": 2,
+            "source": DocumentSource.POKEGYM.value,
+            "document_title": "Ruling",
+            "page_number": float("nan"),
+            "section_title": float("nan"),
+            "card_name": float("nan"),
+            "rule_type": RuleType.RULING.value,
+            "publication_date": float("nan"),
+            "source_url": float("nan"),
+            "checksum": float("nan"),
+        }
+    )
+
+    assert chunk.metadata.page_number is None
+    assert chunk.metadata.card_name is None
+    assert chunk.metadata.source_url is None
 
 
 @pytest.mark.integration

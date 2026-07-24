@@ -137,6 +137,23 @@ def test_init_collection_validates_manifest_metadata() -> None:
 
 
 @pytest.mark.unit
+def test_init_collection_backfills_missing_manifest_metadata() -> None:
+    """Existing pre-metadata collections should be upgraded in place."""
+    client = DummyClient()
+    client.created = True
+    db = VectorDatabase(client=client)  # type: ignore[arg-type]
+
+    db.init_collection(
+        metadata={
+            "corpus_id": "pokemon-tcg-official-corpus",
+            "corpus_version": "2026-07-24",
+        }
+    )
+
+    assert client.collection_metadata["corpus_id"] == "pokemon-tcg-official-corpus"
+
+
+@pytest.mark.unit
 def test_init_collection_rejects_manifest_mismatch() -> None:
     """TASK-061: a manifest mismatch must fail closed."""
     client = DummyClient()

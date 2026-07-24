@@ -15,6 +15,14 @@ import streamlit as st
 DEFAULT_API_URL = "http://localhost:8000/api/v1"
 
 
+class BackendAPIError(RuntimeError):
+    """Backend error with an HTTP status safe to present in the UI."""
+
+    def __init__(self, status_code: int, detail: str) -> None:
+        self.status_code = status_code
+        super().__init__(detail)
+
+
 def get_backend_api_url() -> str:
     """Return the trusted backend URL configured by deployment, not by end users."""
     api_url = os.getenv("POKERAG_API_URL", DEFAULT_API_URL).strip()
@@ -121,7 +129,17 @@ def fetch_answer(
         timeout=30,
         allow_redirects=False,
     )
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        detail = f"Backend request failed with HTTP {response.status_code}"
+        try:
+            payload = response.json()
+            if isinstance(payload, dict) and isinstance(payload.get("detail"), str):
+                detail = payload["detail"]
+        except (TypeError, ValueError):
+            pass
+        raise BackendAPIError(response.status_code, detail) from exc
     return cast(dict[str, Any], response.json())
 
 
@@ -204,13 +222,23 @@ def main() -> None:
                 history = cast(list[dict[str, Any]], st.session_state.get("history", []))
                 history.insert(0, build_history_entry(user_query, summary))
                 st.session_state["history"] = history[:10]
+            except BackendAPIError as exc:  # pragma: no cover - UI boundary
+                st.session_state["last_error"] = str(exc)
+                st.error(f"O backend não conseguiu concluir a consulta: {exc}")
+                if exc.status_code == 503 and "quota" in str(exc).lower():
+                    st.info(
+                        "A chave foi aceita, mas a conta da API OpenAI está sem créditos "
+                        "ou atingiu o limite de uso. Revise o faturamento da organização."
+                    )
+                else:
+                    st.info(
+                        "Verifique a disponibilidade da API, do Qdrant e do Postgres, "
+                        "além da configuração de autenticação."
+                    )
             except Exception as exc:  # pragma: no cover - UI boundary
                 st.session_state["last_error"] = str(exc)
                 st.error(f"Falha ao conectar com o serviço backend: {exc}")
-                st.info(
-                    "Verifique se a API está rodando em `make run-api`, se o backend está "
-                    "conectado ao Qdrant/Postgres e se o token de autenticação foi configurado."
-                )
+                st.info("Verifique se a API está rodando e acessível pela interface.")
 
     last_summary: dict[str, Any] | None = st.session_state.get("last_summary")
     if last_summary:

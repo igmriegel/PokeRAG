@@ -90,6 +90,7 @@ services:
       QDRANT_HOST: qdrant
       QDRANT_PORT: 6333
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      DATA_CHUNKS_DIR: /app/data/runtime_chunks
     volumes:
       - ./data:/app/data
       - ./config:/app/config
@@ -123,6 +124,7 @@ services:
       POSTGRES_RUNTIME_USER: ${POSTGRES_RUNTIME_USER:-pokemon_runtime}
       POSTGRES_RUNTIME_PASSWORD: ${POSTGRES_RUNTIME_PASSWORD:-pokemon_runtime_password}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      DATA_CHUNKS_DIR: /app/data/runtime_chunks
     volumes:
       - ./data:/app/data
       - ./config:/app/config

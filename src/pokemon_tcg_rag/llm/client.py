@@ -11,7 +11,7 @@ from typing import Protocol
 from openai import OpenAI
 
 from pokemon_tcg_rag.config.settings import get_settings
-from pokemon_tcg_rag.domain.exceptions import LLMError
+from pokemon_tcg_rag.domain.exceptions import LLMError, LLMQuotaError
 from pokemon_tcg_rag.monitoring.metrics_collector import DEFAULT_METRICS_COLLECTOR
 from pokemon_tcg_rag.monitoring.tracing import traced_span
 
@@ -77,6 +77,10 @@ class LLMClient:
                 except Exception as exc:  # pragma: no cover - network / provider boundary
                     last_error = exc
                     self._record_failure()
+                    if _is_insufficient_quota(exc):
+                        raise LLMQuotaError(
+                            "OpenAI API quota is unavailable; review API billing and credits"
+                        ) from exc
                     if attempt < self.retries - 1:
                         time.sleep((self.retry_delay * (attempt + 1)) + random.uniform(0.0, 0.05))
                         continue
@@ -105,3 +109,15 @@ class SupportsGeneration(Protocol):
     model_name: str
 
     def generate_answer(self, prompt: str) -> str: ...
+
+
+def _is_insufficient_quota(exc: Exception) -> bool:
+    """Recognize OpenAI billing quota failures without exposing provider payloads."""
+    if getattr(exc, "code", None) == "insufficient_quota":
+        return True
+    body = getattr(exc, "body", None)
+    if isinstance(body, dict):
+        error = body.get("error", body)
+        if isinstance(error, dict) and error.get("code") == "insufficient_quota":
+            return True
+    return "insufficient_quota" in str(exc).lower()

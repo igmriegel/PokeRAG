@@ -140,6 +140,11 @@ def test_build_runtime_container_uses_offline_fallback_without_openai(monkeypatc
             == "offline-query-rewriter"
         )
         assert isinstance(container.vector_db, api_runtime.OfflineVectorDatabase)
+        assert container.dense_retriever.retrieve(
+            "Rare Candy",
+            top_k=5,
+            filters={"rule_type": "general_rule"},
+        ) == []
         assert isinstance(container.feedback_store, api_runtime.OfflineFeedbackStore)
         feedback = container.feedback_store.submit_feedback(
             query_id="qid-1",

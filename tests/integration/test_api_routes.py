@@ -14,6 +14,7 @@ from fastapi import HTTPException
 from pokemon_tcg_rag.api.main import health_check
 from pokemon_tcg_rag.api.routes import query_rag, set_dependencies, submit_feedback
 from pokemon_tcg_rag.api.schemas import FeedbackRequest, QueryRequest
+from pokemon_tcg_rag.domain.exceptions import LLMQuotaError
 from pokemon_tcg_rag.domain.models import (
     AnswerResponse,
     Chunk,
@@ -223,3 +224,19 @@ def test_query_error_maps_to_http_500() -> None:
 
     assert exc_info.value.status_code == 500
     assert "Request failed" in str(exc_info.value.detail)
+
+
+@pytest.mark.integration
+def test_query_quota_error_maps_to_http_503() -> None:
+    """Provider billing failures must be actionable without leaking provider payloads."""
+    set_dependencies(
+        FakeRAGChain(error=LLMQuotaError("provider payload")),
+        FakeFeedbackStore(),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
+
+    assert exc_info.value.status_code == 503
+    assert "quota" in str(exc_info.value.detail).lower()
+    assert "provider payload" not in str(exc_info.value.detail)

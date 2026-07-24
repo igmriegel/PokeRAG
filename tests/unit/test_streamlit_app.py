@@ -7,8 +7,10 @@ Unit tests for the Streamlit application helpers.
 from __future__ import annotations
 
 import pytest
+import requests
 
 from pokemon_tcg_rag.ui.streamlit_app import (
+    BackendAPIError,
     build_feedback_payload,
     build_history_entry,
     fetch_answer,
@@ -124,6 +126,30 @@ def test_fetch_answer_blocks_redirects() -> None:
     assert response["answer"] == "ok"
     assert captured["url"] == "http://example.com/api/v1/query"
     assert captured["kwargs"]["allow_redirects"] is False
+
+
+def test_fetch_answer_exposes_safe_backend_detail() -> None:
+    """The UI should explain actionable backend failures instead of reporting connectivity."""
+
+    class Response:
+        status_code = 503
+
+        def raise_for_status(self) -> None:
+            raise requests.HTTPError("503 Server Error")
+
+        def json(self) -> dict[str, str]:
+            return {"detail": "OpenAI API quota is unavailable."}
+
+    with pytest.raises(BackendAPIError) as exc_info:
+        fetch_answer(
+            "http://example.com/api/v1",
+            "question",
+            3,
+            post=lambda *args, **kwargs: Response(),
+        )
+
+    assert exc_info.value.status_code == 503
+    assert str(exc_info.value) == "OpenAI API quota is unavailable."
 
 
 def test_send_feedback_blocks_redirects() -> None:
