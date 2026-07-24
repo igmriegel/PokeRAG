@@ -7,10 +7,14 @@ from __future__ import annotations
 import asyncio
 from types import SimpleNamespace
 
+import pytest
+
 from pokemon_tcg_rag.api import main as api_main
 from pokemon_tcg_rag.api import runtime as api_runtime
 from pokemon_tcg_rag.api.routes import dependency_status, query_rag, set_dependencies
 from pokemon_tcg_rag.api.schemas import QueryRequest
+from pokemon_tcg_rag.config.settings import Settings
+from pokemon_tcg_rag.domain.exceptions import ConfigurationError
 from pokemon_tcg_rag.domain.models import (
     AnswerResponse,
     Chunk,
@@ -103,3 +107,29 @@ def test_lifespan_bootstraps_real_dependencies(monkeypatch) -> None:
         assert dependency_status() == (False, False)
 
     asyncio.run(run_lifespan())
+
+
+def test_build_runtime_container_uses_offline_fallback_without_openai(monkeypatch) -> None:
+    """Development startup must not fail when OpenAI credentials are absent."""
+    monkeypatch.setattr(api_runtime.VectorDatabase, "init_collection", lambda self: None)
+    monkeypatch.setattr(api_runtime.RelationalDatabase, "init_db", lambda self: None)
+    monkeypatch.setattr(api_runtime, "load_chunks", lambda *_args, **_kwargs: [])
+
+    container = api_runtime.build_runtime_container(
+        Settings(ENVIRONMENT="development", OPENAI_API_KEY="")
+    )
+    try:
+        assert container.rag_chain.llm_client.model_name == "offline-llm"
+        assert container.retrieval_pipeline.query_rewriter.client.model_name == "offline-query-rewriter"
+    finally:
+        container.close()
+
+
+def test_build_runtime_container_requires_openai_in_production(monkeypatch) -> None:
+    """Production startup must fail closed if OpenAI credentials are absent."""
+    monkeypatch.setattr(api_runtime.VectorDatabase, "init_collection", lambda self: None)
+    monkeypatch.setattr(api_runtime.RelationalDatabase, "init_db", lambda self: None)
+    monkeypatch.setattr(api_runtime, "load_chunks", lambda *_args, **_kwargs: [])
+
+    with pytest.raises(ConfigurationError):
+        api_runtime.build_runtime_container(Settings(ENVIRONMENT="production", OPENAI_API_KEY=""))
