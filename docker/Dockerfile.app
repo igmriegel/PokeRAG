@@ -1,8 +1,10 @@
-FROM python:3.11-slim
+FROM python:3.11-slim AS builder
 
-WORKDIR /app
+WORKDIR /build
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -11,16 +13,39 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
 COPY requirements.txt .
 COPY requirements.runtime.txt .
-RUN pip install --no-cache-dir -r requirements.runtime.txt
+RUN pip install -r requirements.runtime.txt
 
 COPY pyproject.toml .
 COPY src/ src/
 COPY config/ config/
-COPY tests/ tests/
+COPY scripts/ scripts/
+RUN pip install -e .
 
-RUN pip install --no-cache-dir -e .
+FROM python:3.11-slim AS runtime
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:${PATH}" \
+    HOME=/home/poketcg \
+    TMPDIR=/tmp/poketcg
+
+RUN useradd --create-home --home-dir /home/poketcg --uid 10001 --shell /usr/sbin/nologin poketcg \
+    && mkdir -p /app /tmp/poketcg \
+    && chown -R 10001:10001 /app /tmp/poketcg /home/poketcg
+
+COPY --from=builder /opt/venv /opt/venv
+COPY --chown=10001:10001 pyproject.toml README.md /app/
+COPY --chown=10001:10001 src/ /app/src/
+COPY --chown=10001:10001 config/ /app/config/
+COPY --chown=10001:10001 scripts/ /app/scripts/
+
+WORKDIR /app
+USER 10001:10001
 
 EXPOSE 8000
 EXPOSE 8501
