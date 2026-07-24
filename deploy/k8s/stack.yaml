@@ -2,6 +2,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: pokemon-rag
+  labels:
+    app.kubernetes.io/name: pokemon-rag
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -47,6 +49,55 @@ spec:
     requests:
       storage: 5Gi
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: qdrant-sa
+  namespace: pokemon-rag
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: postgres-sa
+  namespace: pokemon-rag
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-sa
+  namespace: pokemon-rag
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ui-sa
+  namespace: pokemon-rag
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-sa
+  namespace: pokemon-rag
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-sa
+  namespace: pokemon-rag
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ingestion-sa
+  namespace: pokemon-rag
+automountServiceAccountToken: false
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -63,12 +114,42 @@ spec:
       labels:
         app: qdrant
     spec:
+      serviceAccountName: qdrant-sa
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: qdrant
           image: qdrant/qdrant:v1.7.4
           ports:
             - containerPort: 6333
             - containerPort: 6334
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 6333
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 6333
+            initialDelaySeconds: 5
+            periodSeconds: 5
           volumeMounts:
             - name: data
               mountPath: /qdrant/storage
@@ -113,6 +194,11 @@ spec:
       labels:
         app: postgres
     spec:
+      serviceAccountName: postgres-sa
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: postgres
           image: postgres:16-alpine
@@ -125,6 +211,30 @@ spec:
               value: pokemon_tcg_rag_db
           ports:
             - containerPort: 5432
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            runAsUser: 999
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U pokemon_user -d pokemon_tcg_rag_db"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U pokemon_user -d pokemon_tcg_rag_db"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
@@ -164,9 +274,14 @@ spec:
       labels:
         app: api
     spec:
+      serviceAccountName: api-sa
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: api
-          image: pokemon-rag-api:latest
+          image: pokemon-rag-api:0.1.0
           ports:
             - containerPort: 8000
           env:
@@ -179,6 +294,31 @@ spec:
                 secretKeyRef:
                   name: pokemon-rag-secrets
                   key: openai_api_key
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
@@ -207,14 +347,44 @@ spec:
       labels:
         app: ui
     spec:
+      serviceAccountName: ui-sa
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: ui
-          image: pokemon-rag-ui:latest
+          image: pokemon-rag-ui:0.1.0
           ports:
             - containerPort: 8501
           env:
             - name: POKERAG_API_URL
               value: http://api:8000/api/v1
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 10
+            periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
@@ -243,11 +413,41 @@ spec:
       labels:
         app: prometheus
     spec:
+      serviceAccountName: prometheus-sa
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: prometheus
           image: prom/prometheus:v2.48.1
           ports:
             - containerPort: 9090
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+            initialDelaySeconds: 5
+            periodSeconds: 5
           volumeMounts:
             - name: data
               mountPath: /prometheus
@@ -283,6 +483,11 @@ spec:
       labels:
         app: grafana
     spec:
+      serviceAccountName: grafana-sa
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: grafana
           image: grafana/grafana:10.2.3
@@ -296,6 +501,31 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/grafana
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -321,10 +551,15 @@ metadata:
 spec:
   template:
     spec:
+      serviceAccountName: ingestion-sa
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       restartPolicy: Never
       containers:
         - name: ingestion
-          image: pokemon-rag-ingestion:latest
+          image: pokemon-rag-ingestion:0.1.0
           command: ["python3", "scripts/run_ingestion.py"]
           env:
             - name: QDRANT_HOST
@@ -334,3 +569,16 @@ spec:
                 secretKeyRef:
                   name: pokemon-rag-secrets
                   key: openai_api_key
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
