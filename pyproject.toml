@@ -102,6 +102,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 pythonpath = ["src", "."]
+asyncio_default_fixture_loop_scope = "function"
 addopts = "--strict-markers --cov=pokemon_tcg_rag --cov-report=term-missing --cov-report=html --cov-fail-under=90"
 markers = [
     "unit: Unit tests",
