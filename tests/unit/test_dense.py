@@ -38,6 +38,18 @@ class FakeVectorDB:
         return self.results
 
 
+class FakeVectorDBWithFilterFallback:
+    def __init__(self, results: list[RetrievedChunk]) -> None:
+        self.results = results
+        self.calls: list[tuple] = []
+
+    def search_dense(self, query_vector, top_k, filters=None):
+        self.calls.append((query_vector, top_k, filters))
+        if filters is not None:
+            raise TypeError("unexpected keyword argument 'filters'")
+        return self.results
+
+
 def _make_retrieved(chunk_id: str, score: float) -> RetrievedChunk:
     chunk = Chunk(
         chunk_id=chunk_id,
@@ -111,3 +123,23 @@ def test_results_ordered_by_score(monkeypatch: pytest.MonkeyPatch) -> None:
     output = retriever.retrieve("query", top_k=3)
 
     assert [item.chunk.chunk_id for item in output] == ["c2", "c3", "c1"]
+
+
+@pytest.mark.unit
+def test_search_dense_falls_back_without_filters(monkeypatch: pytest.MonkeyPatch) -> None:
+    """TEST-058: dense retriever must retry when older fakes do not accept filters."""
+    fake_model = FakeModel()
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer",
+        lambda *args, **kwargs: fake_model,
+    )
+
+    results = [_make_retrieved("c1", 0.7)]
+    db = FakeVectorDBWithFilterFallback(results)
+    retriever = DenseRetriever(db)
+
+    output = retriever.retrieve("Rare Candy", top_k=1, filters={"source": "rulebook_pdf"})
+
+    assert output[0].chunk.chunk_id == "c1"
+    assert db.calls[0][2] == {"source": "rulebook_pdf"}
+    assert db.calls[1][2] is None

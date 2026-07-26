@@ -4,6 +4,11 @@ Unit tests for tracing helpers.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
+import pytest
+from opentelemetry import trace
+
 from pokemon_tcg_rag.monitoring.tracing import (
     current_trace_context,
     sanitize_attributes,
@@ -40,3 +45,59 @@ def test_traced_span_provides_trace_context() -> None:
     assert inner.trace_id == outer.trace_id
     assert inner.span_id is not None
     assert inner.span_id != outer.span_id
+
+
+def test_current_trace_context_handles_invalid_span_context(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        trace,
+        "get_current_span",
+        lambda: SimpleNamespace(get_span_context=lambda: SimpleNamespace(is_valid=False)),
+    )
+
+    context = current_trace_context()
+
+    assert context.trace_id is None
+    assert context.span_id is None
+
+
+def test_traced_span_records_exceptions(monkeypatch: pytest.MonkeyPatch) -> None:
+    recorded: dict[str, object] = {}
+
+    class FakeSpan:
+        def set_attribute(self, *_args: object, **_kwargs: object) -> None:
+            pass
+
+        def record_exception(self, exc: Exception) -> None:
+            recorded["exception"] = exc
+
+        def set_status(self, status: object) -> None:
+            recorded["status"] = status
+
+    class FakeSpanContext:
+        def __enter__(self) -> FakeSpan:
+            return FakeSpan()
+
+        def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            exc: BaseException | None,
+            tb: object | None,
+        ) -> bool:
+            return False
+
+    class FakeTracer:
+        def start_as_current_span(self, _name: str) -> FakeSpanContext:
+            return FakeSpanContext()
+
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.monitoring.tracing.get_tracer",
+        lambda: FakeTracer(),
+    )
+
+    with pytest.raises(RuntimeError, match="boom"), traced_span("test-span"):
+        raise RuntimeError("boom")
+
+    assert isinstance(recorded["exception"], RuntimeError)
+    assert recorded["status"] is not None

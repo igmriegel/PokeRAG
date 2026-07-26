@@ -53,6 +53,19 @@ def test_postgres_uri_composition() -> None:
 
 
 @pytest.mark.unit
+def test_postgres_owner_uri_composition() -> None:
+    """postgres_owner_uri must use the dedicated owner credentials."""
+    s = Settings(
+        POSTGRES_OWNER_USER="owner",
+        POSTGRES_OWNER_PASSWORD="owner-pass",
+        POSTGRES_HOST="db.example.com",
+        POSTGRES_PORT=5433,
+        POSTGRES_DB="testdb",
+    )
+    assert s.postgres_owner_uri == "postgresql://owner:owner-pass@db.example.com:5433/testdb"
+
+
+@pytest.mark.unit
 def test_postgres_runtime_and_migration_uri_composition() -> None:
     """Dedicated runtime and migration URIs must use their own credential sets."""
     s = Settings(
