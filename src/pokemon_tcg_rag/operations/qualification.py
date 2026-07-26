@@ -62,10 +62,7 @@ def run_qualification(
     load_questions = questions[warmup_count:] or questions
     start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=max(1, concurrency)) as executor:
-        futures = [
-            executor.submit(_timed_query, handler, question)
-            for question in load_questions
-        ]
+        futures = [executor.submit(_timed_query, handler, question) for question in load_questions]
         for future in futures:
             duration, failed = future.result()
             if failed:

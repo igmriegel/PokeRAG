@@ -109,9 +109,7 @@ def test_parse_current_definition_list_layout() -> None:
 
 
 @pytest.mark.unit
-def test_emits_documents_with_metadata(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_emits_documents_with_metadata(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-020: fetch_all_rulings must emit Documents with Pokegym metadata."""
 
     class DummyResponse:
@@ -126,13 +124,9 @@ def test_emits_documents_with_metadata(
     def fake_get(*args: object, **kwargs: object) -> DummyResponse:
         return DummyResponse(SAMPLE_HTML)
 
-    monkeypatch.setattr(
-        "pokemon_tcg_rag.ingestion.trust_boundary.requests.get", fake_get
-    )
+    monkeypatch.setattr("pokemon_tcg_rag.ingestion.trust_boundary.requests.get", fake_get)
 
-    crawler = PokegymCrawler(
-        raw_html_dir=tmp_path / "html", raw_json_dir=tmp_path / "json"
-    )
+    crawler = PokegymCrawler(raw_html_dir=tmp_path / "html", raw_json_dir=tmp_path / "json")
     documents = crawler.fetch_all_rulings()
 
     assert len(documents) == 1
@@ -152,9 +146,7 @@ def test_network_error_raises_ingestion_error(monkeypatch: pytest.MonkeyPatch) -
     def fake_get(*args: object, **kwargs: object) -> None:
         raise RuntimeError("network down")
 
-    monkeypatch.setattr(
-        "pokemon_tcg_rag.ingestion.trust_boundary.requests.get", fake_get
-    )
+    monkeypatch.setattr("pokemon_tcg_rag.ingestion.trust_boundary.requests.get", fake_get)
 
     crawler = PokegymCrawler()
     with pytest.raises(IngestionError):

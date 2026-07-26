@@ -45,16 +45,12 @@ class HybridRetriever:
 
         for rank, result in enumerate(dense_results, start=1):
             chunk_id = result.chunk.chunk_id
-            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(
-                rank
-            )
+            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(rank)
             chunk_map[chunk_id] = result
 
         for rank, result in enumerate(bm25_results, start=1):
             chunk_id = result.chunk.chunk_id
-            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(
-                rank
-            )
+            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(rank)
             chunk_map.setdefault(chunk_id, result)
 
         ordered_ids = sorted(
@@ -86,9 +82,7 @@ class HybridRetriever:
     ) -> list[RetrievedChunk]:
         """Call dense retrieval with compatibility for older fakes."""
         try:
-            return self.dense_retriever.retrieve(
-                query=query, top_k=top_k, filters=filters or None
-            )
+            return self.dense_retriever.retrieve(query=query, top_k=top_k, filters=filters or None)
         except TypeError as exc:
             if "unexpected keyword argument 'filters'" not in str(exc):
                 raise

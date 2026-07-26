@@ -44,9 +44,9 @@ def test_all_seven_services_declared() -> None:
         config = yaml.safe_load(fh)
 
     declared_services = set(config.get("services", {}).keys())
-    assert (
-        declared_services == EXPECTED_SERVICES
-    ), f"Service mismatch.\n  Expected: {sorted(EXPECTED_SERVICES)}\n  Found:    {sorted(declared_services)}"
+    assert declared_services == EXPECTED_SERVICES, (
+        f"Service mismatch.\n  Expected: {sorted(EXPECTED_SERVICES)}\n  Found:    {sorted(declared_services)}"
+    )
 
 
 @pytest.mark.smoke
@@ -57,9 +57,9 @@ def test_all_services_have_network() -> None:
 
     for service_name, service_cfg in config["services"].items():
         networks = service_cfg.get("networks", [])
-        assert (
-            "pokemon_net" in networks
-        ), f"Service '{service_name}' must be attached to 'pokemon_net' network"
+        assert "pokemon_net" in networks, (
+            f"Service '{service_name}' must be attached to 'pokemon_net' network"
+        )
 
 
 @pytest.mark.smoke
@@ -78,9 +78,9 @@ def test_postgres_uses_version_16() -> None:
     with open(COMPOSE_FILE) as fh:
         config = yaml.safe_load(fh)
     pg_image: str = config["services"]["postgres"]["image"]
-    assert pg_image.startswith(
-        "postgres:16"
-    ), f"postgres image must be postgres:16-*, got '{pg_image}'"
+    assert pg_image.startswith("postgres:16"), (
+        f"postgres image must be postgres:16-*, got '{pg_image}'"
+    )
 
 
 @pytest.mark.smoke
@@ -99,12 +99,8 @@ def test_internal_services_are_not_publicly_published() -> None:
 
     for service_name in ("qdrant", "postgres", "prometheus", "grafana"):
         service_cfg = config["services"][service_name]
-        assert (
-            "ports" not in service_cfg
-        ), f"{service_name} must not publish host ports by default"
-        assert (
-            "expose" in service_cfg
-        ), f"{service_name} must expose its port internally"
+        assert "ports" not in service_cfg, f"{service_name} must not publish host ports by default"
+        assert "expose" in service_cfg, f"{service_name} must expose its port internally"
 
 
 @pytest.mark.smoke

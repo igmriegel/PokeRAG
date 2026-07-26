@@ -23,10 +23,8 @@ from pokemon_tcg_rag.evaluation.dataset import (
 )
 from pokemon_tcg_rag.evaluation.evaluator import (
     EvaluationReport,
-    LLMConfigurationResult,
     LLMEvaluationSample,
     RAGEvaluator,
-    RetrievalStrategyResult,
 )
 from pokemon_tcg_rag.evaluation.factories import build_production_retrieval_handlers
 from pokemon_tcg_rag.evaluation.metrics import (
@@ -221,9 +219,7 @@ def test_evaluator_runs_retrieval_and_llm_comparisons(
     retrieval_report = evaluator.evaluate_retrieval_strategies()
     llm_report = evaluator.evaluate_llm_configurations()
     combined = EvaluationReport(
-        total_questions=max(
-            retrieval_report.total_questions, llm_report.total_questions
-        ),
+        total_questions=max(retrieval_report.total_questions, llm_report.total_questions),
         retrieval_results=retrieval_report.retrieval_results,
         llm_results=llm_report.llm_results,
         best_retrieval_strategy=retrieval_report.best_retrieval_strategy,

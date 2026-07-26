@@ -26,6 +26,4 @@ def test_ci_uses_runtime_matrix_and_coverage_gate() -> None:
 
     coverage_job = config["jobs"]["coverage-gate"]
     coverage_steps = [step.get("name", "") for step in coverage_job["steps"]]
-    assert (
-        "Execute Unit and Integration Tests with Coverage (Min 90%)" in coverage_steps
-    )
+    assert "Execute Unit and Integration Tests with Coverage (Min 90%)" in coverage_steps

@@ -69,9 +69,7 @@ class RAGChain:
                 "rag.prompt",
                 attributes={"retrieval.chunk_count": len(chunks)},
             ):
-                answer = (
-                    self.llm_client.generate_answer(prompt).strip() or "I don't know."
-                )
+                answer = self.llm_client.generate_answer(prompt).strip() or "I don't know."
             if self._contains_invalid_citations(answer, len(chunks)):
                 answer = "I don't know."
             latency = time.time() - start

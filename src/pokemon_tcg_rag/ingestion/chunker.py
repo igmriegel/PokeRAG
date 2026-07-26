@@ -61,9 +61,7 @@ class DocumentChunker:
 
         return chunks
 
-    def _build_chunk(
-        self, document: Document, index: int, token_window: list[str]
-    ) -> Chunk:
+    def _build_chunk(self, document: Document, index: int, token_window: list[str]) -> Chunk:
         text = " ".join(token_window).strip()
         return Chunk(
             chunk_id=f"{document.doc_id}#{index}",

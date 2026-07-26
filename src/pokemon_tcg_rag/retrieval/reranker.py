@@ -31,14 +31,12 @@ class BGEReranker:
         if self._reranker_model is None:
             if CrossEncoder is None:
                 try:
-                    from sentence_transformers import (
-                        CrossEncoder as cross_encoder_cls,
-                    )
+                    from sentence_transformers import CrossEncoder as CrossEncoder_
                 except Exception as exc:  # pragma: no cover - import-time fallback
                     raise RuntimeError(
                         "sentence-transformers is unavailable in the current runtime"
                     ) from exc
-                cross_encoder = cross_encoder_cls(self.model_name)
+                cross_encoder = CrossEncoder_(self.model_name)
             else:
                 cross_encoder = CrossEncoder(self.model_name)
             try:
@@ -72,20 +70,14 @@ class BGEReranker:
             },
         ):
             if self._disabled_reason is not None:
-                ordered = sorted(
-                    candidate_chunks, key=lambda item: item.score, reverse=True
-                )
+                ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
                 return list(ordered[:limit])
 
             pairs = [(query, item.chunk.text) for item in candidate_chunks]
             try:
-                scores = list(
-                    cast(Any, self.model.predict)(pairs, convert_to_numpy=True)
-                )
+                scores = list(cast(Any, self.model.predict)(pairs, convert_to_numpy=True))
             except Exception:
-                ordered = sorted(
-                    candidate_chunks, key=lambda item: item.score, reverse=True
-                )
+                ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
                 return list(ordered[:limit])
 
             reranked = [

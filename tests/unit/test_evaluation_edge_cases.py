@@ -4,8 +4,6 @@ Unit tests for evaluation helper edge cases and normalization branches.
 
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 import pytest
 from pydantic import ValidationError
 
@@ -19,8 +17,8 @@ from pokemon_tcg_rag.domain.models import (
 )
 from pokemon_tcg_rag.evaluation.dataset import EvalTestCase, EvaluationDatasetLoader
 from pokemon_tcg_rag.evaluation.evaluator import (
-    LLMEvaluationSample,
     LLMConfigurationResult,
+    LLMEvaluationSample,
     RAGEvaluator,
     RetrievalStrategyResult,
 )
@@ -246,10 +244,7 @@ def test_evaluator_handles_default_handlers_and_normalization_edges() -> None:
         hit_rate_at_10=0.1,
     )
     assert (
-        evaluator._select_best_retrieval_strategy(
-            {"a": retrieval_result, "b": other_result}
-        )
-        == "a"
+        evaluator._select_best_retrieval_strategy({"a": retrieval_result, "b": other_result}) == "a"
     )
 
     llm_result = LLMConfigurationResult(
@@ -268,12 +263,7 @@ def test_evaluator_handles_default_handlers_and_normalization_edges() -> None:
         citation_quality=0.3,
         completeness=0.2,
     )
-    assert (
-        evaluator._select_best_llm_configuration(
-            {"a": llm_result, "b": other_llm_result}
-        )
-        == "a"
-    )
+    assert evaluator._select_best_llm_configuration({"a": llm_result, "b": other_llm_result}) == "a"
 
     empty_evaluator = RAGEvaluator(dataset_loader=Loader())
     with pytest.raises(ValueError):

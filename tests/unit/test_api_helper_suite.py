@@ -13,8 +13,9 @@ from pydantic import ValidationError
 
 from pokemon_tcg_rag.api import auth as api_auth
 from pokemon_tcg_rag.api import routes as api_routes
-from pokemon_tcg_rag.api.auth import Principal, _extract_bearer_token
 from pokemon_tcg_rag.api.auth import (
+    Principal,
+    _extract_bearer_token,
     authorize_request,
     create_access_token,
     decode_access_token,
@@ -26,7 +27,6 @@ from pokemon_tcg_rag.api.schemas import (
     CitationSchema,
     FeedbackRequest,
     QueryRequest,
-    QueryResponse,
 )
 from pokemon_tcg_rag.config.settings import Settings, get_settings
 from pokemon_tcg_rag.domain.exceptions import LLMError
@@ -291,9 +291,11 @@ def test_request_guard_enforces_body_size_and_concurrency() -> None:
 
     guard._inflight.acquire(blocking=False)
     try:
-        with pytest.raises(HTTPException) as concurrency_error:
-            with guard.admit(principal, _request("POST"), "query"):
-                pass
+        with (
+            pytest.raises(HTTPException) as concurrency_error,
+            guard.admit(principal, _request("POST"), "query"),
+        ):
+            pass
         assert concurrency_error.value.status_code == 429
     finally:
         guard._inflight.release()
@@ -316,9 +318,11 @@ def test_request_guard_rate_limit_rejects_repeated_requests() -> None:
     with guard.admit(principal, request, "query"):
         pass
 
-    with pytest.raises(HTTPException) as rate_error:
-        with guard.admit(principal, request, "query"):
-            pass
+    with (
+        pytest.raises(HTTPException) as rate_error,
+        guard.admit(principal, request, "query"),
+    ):
+        pass
     assert rate_error.value.status_code == 429
 
 
@@ -441,9 +445,7 @@ def test_submit_feedback_rejects_duplicate_and_owner_mismatch() -> None:
         latency_seconds=0.1,
     )
 
-    assert (
-        api_routes.submit_feedback(payload, principal=principal)["status"] == "success"
-    )
+    assert api_routes.submit_feedback(payload, principal=principal)["status"] == "success"
 
     with pytest.raises(HTTPException) as duplicate_error:
         api_routes.submit_feedback(payload, principal=principal)
@@ -499,7 +501,5 @@ def test_llm_client_circuit_breaker_and_quota_helper() -> None:
         client.generate_answer("prompt")
 
     assert _is_insufficient_quota(SimpleNamespace(code="insufficient_quota"))
-    assert _is_insufficient_quota(
-        SimpleNamespace(body={"error": {"code": "insufficient_quota"}})
-    )
+    assert _is_insufficient_quota(SimpleNamespace(body={"error": {"code": "insufficient_quota"}}))
     assert _is_insufficient_quota(RuntimeError("insufficient_quota"))

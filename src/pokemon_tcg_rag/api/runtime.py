@@ -176,13 +176,9 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
     manifest = load_corpus_manifest(active_settings.DATA_CHUNKS_DIR)
     chunks: list[Chunk] = load_chunks(active_settings.DATA_CHUNKS_DIR)
     if active_settings.ENVIRONMENT == "production" and manifest is None:
-        raise ConfigurationError(
-            "Corpus manifest is required in production runtime startup"
-        )
+        raise ConfigurationError("Corpus manifest is required in production runtime startup")
     if active_settings.ENVIRONMENT == "production" and not chunks:
-        raise ConfigurationError(
-            "Corpus chunks are required in production runtime startup"
-        )
+        raise ConfigurationError("Corpus chunks are required in production runtime startup")
     bm25_retriever = BM25Retriever(chunks)
     vector_db: VectorDatabase | OfflineVectorDatabase = VectorDatabase()
     dense_retriever: DenseRetriever | OfflineDenseRetriever = DenseRetriever(vector_db)
@@ -195,16 +191,12 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
         query_rewriter_client = llm_client
     else:
         if active_settings.ENVIRONMENT == "production":
-            raise ConfigurationError(
-                "OPENAI_API_KEY is required in production runtime startup"
-            )
+            raise ConfigurationError("OPENAI_API_KEY is required in production runtime startup")
         llm_client = OfflineAnswerClient()
         query_rewriter_client = OfflineQueryRewriterClient()
 
     try:
-        vector_db.init_collection(
-            metadata=manifest.to_collection_metadata() if manifest else None
-        )
+        vector_db.init_collection(metadata=manifest.to_collection_metadata() if manifest else None)
     except Exception as exc:
         if active_settings.ENVIRONMENT == "production":
             raise ConfigurationError(f"Qdrant initialization failed: {exc}") from exc
@@ -214,14 +206,10 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
     relational_db = RelationalDatabase()
     try:
         relational_db.init_db()
-        feedback_store: FeedbackStore | OfflineFeedbackStore = FeedbackStore(
-            relational_db
-        )
+        feedback_store: FeedbackStore | OfflineFeedbackStore = FeedbackStore(relational_db)
     except Exception as exc:
         if active_settings.ENVIRONMENT == "production":
-            raise ConfigurationError(
-                f"PostgreSQL initialization failed: {exc}"
-            ) from exc
+            raise ConfigurationError(f"PostgreSQL initialization failed: {exc}") from exc
         feedback_store = OfflineFeedbackStore()
 
     retrieval_pipeline = RetrievalPipeline(

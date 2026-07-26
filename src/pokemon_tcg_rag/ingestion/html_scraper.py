@@ -85,9 +85,7 @@ class HTMLPageScraper:
                     allowed_content_types=("text/html", "application/xhtml+xml"),
                 )
             except Exception as exc:
-                raise IngestionError(
-                    f"Failed to fetch HTML page {page['url']}: {exc}"
-                ) from exc
+                raise IngestionError(f"Failed to fetch HTML page {page['url']}: {exc}") from exc
 
             html = html_bytes.decode("utf-8", errors="ignore")
             self._persist_raw_html(page["source"], html)
@@ -144,9 +142,7 @@ class HTMLPageScraper:
                 reason="instruction-poisoning",
                 payload=content,
             )
-            raise IngestionError(
-                "Suspicious instruction-like content detected in HTML body"
-            )
+            raise IngestionError("Suspicious instruction-like content detected in HTML body")
         return content
 
     def _dump_json_summary(self, documents: list[Document]) -> Path:
@@ -163,7 +159,5 @@ class HTMLPageScraper:
                     "rule_type": document.metadata.rule_type.value,
                 }
             )
-        path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
         return path

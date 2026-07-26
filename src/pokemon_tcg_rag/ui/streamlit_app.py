@@ -167,13 +167,9 @@ def send_feedback(
 
 
 def main() -> None:
-    st.set_page_config(
-        page_title="Pokemon TCG Rules Specialist", page_icon="⚡", layout="wide"
-    )
+    st.set_page_config(page_title="Pokemon TCG Rules Specialist", page_icon="⚡", layout="wide")
     st.title("⚡ Pokemon TCG Rules Expert Assistant")
-    st.caption(
-        "Official Rulebooks, Tournament Handbooks, Errata & Pokegym Rulings Specialist"
-    )
+    st.caption("Official Rulebooks, Tournament Handbooks, Errata & Pokegym Rulings Specialist")
 
     st.session_state.setdefault("last_response", None)
     st.session_state.setdefault("last_summary", None)
@@ -223,9 +219,7 @@ def main() -> None:
                 st.session_state["last_response"] = response
                 st.session_state["last_summary"] = summary
                 st.session_state["last_error"] = None
-                history = cast(
-                    list[dict[str, Any]], st.session_state.get("history", [])
-                )
+                history = cast(list[dict[str, Any]], st.session_state.get("history", []))
                 history.insert(0, build_history_entry(user_query, summary))
                 st.session_state["history"] = history[:10]
             except BackendAPIError as exc:  # pragma: no cover - UI boundary
@@ -255,13 +249,9 @@ def main() -> None:
             st.success(last_summary["answer"])
 
         col1, col2, col3 = st.columns(3)
-        col1.metric(
-            "Tempo de Resposta", f"{last_summary['metrics']['latency_seconds']:.2f}s"
-        )
+        col1.metric("Tempo de Resposta", f"{last_summary['metrics']['latency_seconds']:.2f}s")
         col2.metric("Modelo Utilizado", last_summary["metrics"]["model_name"])
-        col3.metric(
-            "Documentos Consultados", last_summary["metrics"]["retrieved_count"]
-        )
+        col3.metric("Documentos Consultados", last_summary["metrics"]["retrieved_count"])
 
         if last_summary.get("rewritten_query"):
             st.info(
@@ -282,9 +272,7 @@ def main() -> None:
 
         st.divider()
         st.markdown("### 👍 Avalie esta resposta")
-        comment = st.text_area(
-            "Comentário opcional", max_chars=1000, key="feedback_comment"
-        )
+        comment = st.text_area("Comentário opcional", max_chars=1000, key="feedback_comment")
         fb_col1, fb_col2 = st.columns(2)
         with fb_col1:
             if st.button("👍 Resposta Precisa"):
@@ -311,14 +299,10 @@ def main() -> None:
                     latency_seconds=last_summary["metrics"]["latency_seconds"],
                     comment=comment or None,
                 )
-                st.error(
-                    "Obrigado pelo seu feedback. Registramos a falha para revisão."
-                )
+                st.error("Obrigado pelo seu feedback. Registramos a falha para revisão.")
 
     elif st.session_state.get("last_error"):
-        st.warning(
-            "Nenhuma resposta pode ser exibida porque a última tentativa falhou."
-        )
+        st.warning("Nenhuma resposta pode ser exibida porque a última tentativa falhou.")
 
 
 if __name__ == "__main__":

@@ -97,9 +97,7 @@ class PDFParser:
                             f"Suspicious instruction-like content detected in PDF {path}"
                         )
 
-                    section_title = self._extract_section_title(
-                        page_text, markdown_text
-                    )
+                    section_title = self._extract_section_title(page_text, markdown_text)
                     document = Document(
                         doc_id=f"{path.stem}_p{page_number + 1}",
                         content=page_text,

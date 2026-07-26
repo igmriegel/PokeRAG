@@ -144,12 +144,9 @@ class QueryResponse(BaseModel):
             query=response.query,
             rewritten_query=response.rewritten_query,
             answer=response.answer,
-            citations=[
-                CitationSchema.from_metadata(item) for item in response.citations
-            ],
+            citations=[CitationSchema.from_metadata(item) for item in response.citations],
             retrieved_chunks=[
-                ChunkSnippetSchema.from_retrieved_chunk(item)
-                for item in response.retrieved_chunks
+                ChunkSnippetSchema.from_retrieved_chunk(item) for item in response.retrieved_chunks
             ],
             model_name=response.model_name,
             latency_seconds=response.latency_seconds,

@@ -21,12 +21,7 @@ def test_record_query_increments() -> None:
         sources=["rulebook_pdf", "pokegym_rulings"],
     )
 
-    assert (
-        collector.query_counter.labels(
-            model="gpt-4o-mini", status="success"
-        )._value.get()
-        == 1.0
-    )
+    assert collector.query_counter.labels(model="gpt-4o-mini", status="success")._value.get() == 1.0
     assert collector.retrieved_docs._sum.get() == 3.0
     assert collector.source_counter.labels(source="rulebook_pdf")._value.get() == 1.0
     assert collector.source_counter.labels(source="pokegym_rulings")._value.get() == 1.0
@@ -56,12 +51,6 @@ def test_record_provider_usage_tracks_tokens_and_cost() -> None:
     )
 
     assert (
-        collector.provider_tokens.labels(
-            model="gpt-4o-mini", stage="answer"
-        )._value.get()
-        == 25.0
+        collector.provider_tokens.labels(model="gpt-4o-mini", stage="answer")._value.get() == 25.0
     )
-    assert (
-        collector.provider_cost.labels(model="gpt-4o-mini", stage="answer")._value.get()
-        == 0.024
-    )
+    assert collector.provider_cost.labels(model="gpt-4o-mini", stage="answer")._value.get() == 0.024
