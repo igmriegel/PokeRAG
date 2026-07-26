@@ -87,7 +87,14 @@ git clone git@github.com:igmriegel/PokeRAG.git
 cd PokeRAG
 cp .env.example .env
 ```
-Edit `.env` and provide your `OPENAI_API_KEY`.
+Edit `.env` and provide at least these values before running Docker Compose:
+- `OPENAI_API_KEY`
+- `POSTGRES_DB`
+- `GRAFANA_ADMIN_USER`
+- `GRAFANA_ADMIN_PASSWORD`
+
+The template in `.env.example` also documents the optional API auth, Qdrant, and model
+settings used by the local and containerized flows.
 
 ### Step 2: Run via Docker Compose (Recommended)
 Launch the always-on services in isolated containers:
@@ -128,14 +135,17 @@ make install
 # 3. Run Quality Checks (Linter, Typing, Tests with Coverage)
 make quality
 
-# 4. Seed Databases & Run Ingestion
-make seed
+# 4. Build the knowledge base
 make ingest
+make seed
 
 # 5. Launch Local Backend & UI
 make run-api &
 make run-ui
 ```
+
+`make ingest` runs the ingestion pipeline and writes the processed chunks/artifacts to
+`data/`. `make seed` then embeds those chunks and pushes them to Qdrant.
 
 ---
 
@@ -155,8 +165,9 @@ make eval
 | **Hybrid Search (Dense + BM25)** | 88.4% | 93.1% | 0.81 | 90.2% | 0.18s |
 | **Hybrid + BGE Reranker (Selected)** | **94.8%** | **98.2%** | **0.91** | **96.5%** | **0.32s** |
 
-> These benchmark numbers are historical reference from the bundled evaluation artifacts.
-> Re-run `make eval` to regenerate current evidence for the checked-in corpus.
+> These benchmark numbers are historical reference from the bundled evaluation artifacts
+> checked into the repository. Re-run `make eval` to regenerate current evidence for the
+> checked-in corpus and compare it with the saved baseline artifacts.
 
 ---
 
