@@ -6,10 +6,8 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from typing import Any
-
-from qdrant_client import QdrantClient
-from qdrant_client.http import models as qmodels
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import VectorStoreError
@@ -21,6 +19,9 @@ from pokemon_tcg_rag.domain.models import (
     RuleType,
 )
 
+if TYPE_CHECKING:
+    from qdrant_client import QdrantClient
+
 
 class VectorDatabase:
     """Qdrant vector-store wrapper for dense retrieval."""
@@ -31,15 +32,20 @@ class VectorDatabase:
 
     def __init__(self, client: QdrantClient | None = None) -> None:
         settings = get_settings()
-        self.client = client or QdrantClient(
+        self.client = client or self._create_client(settings)
+        self.collection_name = settings.QDRANT_COLLECTION_NAME
+        self.vector_dim = settings.EMBEDDING_DIMENSION
+
+    def _create_client(self, settings: Any) -> QdrantClient:
+        from qdrant_client import QdrantClient
+
+        return QdrantClient(
             host=settings.QDRANT_HOST,
             port=settings.QDRANT_PORT,
             grpc_port=settings.QDRANT_GRPC_PORT,
             api_key=settings.QDRANT_API_KEY or None,
             timeout=60,
         )
-        self.collection_name = settings.QDRANT_COLLECTION_NAME
-        self.vector_dim = settings.EMBEDDING_DIMENSION
 
     def close(self) -> None:
         """Release the underlying Qdrant client resources."""
@@ -50,6 +56,8 @@ class VectorDatabase:
 
         If the collection already exists, verify manifest metadata when provided.
         """
+        from qdrant_client.http import models as qmodels
+
         try:
             if self.client.collection_exists(self.collection_name):
                 if metadata is not None:
@@ -89,6 +97,8 @@ class VectorDatabase:
         return {}
 
     def _write_collection_metadata(self, metadata: dict[str, Any]) -> None:
+        from qdrant_client.http import models as qmodels
+
         self.client.upsert(
             collection_name=self.collection_name,
             points=[
@@ -116,6 +126,8 @@ class VectorDatabase:
 
     def upsert_chunks(self, chunks: Sequence[Chunk], batch_size: int = 64) -> None:
         """Upsert embedded chunks into Qdrant."""
+        from qdrant_client.http import models as qmodels
+
         if batch_size < 1:
             raise ValueError("batch_size must be at least 1")
         try:
@@ -146,6 +158,8 @@ class VectorDatabase:
         filters: dict[str, str] | None = None,
     ) -> list[RetrievedChunk]:
         """Search dense vectors and map Qdrant hits back into domain chunks."""
+        from qdrant_client.http import models as qmodels
+
         try:
             query_filter = self._build_filter(filters)
             response = self.client.query_points(
@@ -177,6 +191,8 @@ class VectorDatabase:
         }
 
     def _build_filter(self, filters: dict[str, str] | None) -> qmodels.Filter | None:
+        from qdrant_client.http import models as qmodels
+
         return qmodels.Filter(
             must=[
                 qmodels.FieldCondition(
