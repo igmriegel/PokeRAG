@@ -7,14 +7,12 @@ from __future__ import annotations
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 
 import pytest
 from qdrant_client import QdrantClient
 from sqlalchemy import create_engine, text
 
-from pokemon_tcg_rag.domain.models import FeedbackRecord
-from pokemon_tcg_rag.storage.relational_db import Base, FeedbackORM
+from pokemon_tcg_rag.storage.relational_db import Base
 
 
 def _env_or_skip(name: str) -> str:
@@ -65,7 +63,7 @@ class _ProviderHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(payload)
 
-    def log_message(self, format: str, *args: object) -> None:  # noqa: A003
+    def log_message(self, format_str: str, *args: object) -> None:  # noqa: A002
         return None
 
 
