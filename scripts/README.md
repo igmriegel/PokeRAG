@@ -5,3 +5,4 @@ Contains executable CLI scripts for data ingestion pipelines, database seeding, 
 - `run_evaluation.py`: Runs baseline evaluation over 100 benchmark questions and prints Recall@K / MRR metrics.
 - `seed_db.py`: Seeds Qdrant and Postgres databases with baseline test data.
 - `check_quality.sh`: Runs linters, static type checkers, and test suite.
+- `ci-check.sh`: Runs the full local pre-push gate mirroring the GitHub Actions jobs and prints a step-by-step summary.
