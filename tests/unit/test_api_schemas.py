@@ -67,6 +67,21 @@ def test_query_request_validation() -> None:
 
 
 @pytest.mark.unit
+def test_query_request_metadata_filters_normalization() -> None:
+    """Query metadata filters must drop unsupported keys and blanks."""
+    request = QueryRequest(
+        question="Can I use Rare Candy?",
+        metadata_filters={
+            "source": "  rulebook_pdf  ",
+            "ignored": "value",
+            "card_name": "  ",
+        },
+    )
+    assert request.metadata_filters == {"source": "rulebook_pdf"}
+    assert QueryRequest(question="Can I use Rare Candy?", metadata_filters=None).metadata_filters is None
+
+
+@pytest.mark.unit
 def test_answer_response_maps_to_schema() -> None:
     """TEST-091: AnswerResponse must map cleanly into QueryResponse."""
     response = QueryResponse.from_answer_response(_answer_response())

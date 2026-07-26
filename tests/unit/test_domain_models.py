@@ -93,6 +93,19 @@ def test_chunk_rejects_empty_text() -> None:
 
 
 @pytest.mark.unit
+def test_document_content_rejects_empty_text() -> None:
+    """Document validator must reject empty content."""
+    meta = DocumentMetadata(
+        source=DocumentSource.RULEBOOK_PDF,
+        document_title="Test Doc",
+    )
+    with pytest.raises(ValidationError, match="must not be empty"):
+        from pokemon_tcg_rag.domain.models import Document
+
+        Document(doc_id="d1", content="   ", metadata=meta)
+
+
+@pytest.mark.unit
 def test_chunk_json_serializable(sample_chunk: Chunk) -> None:
     """Chunk must serialize to JSON without error."""
     payload = sample_chunk.model_dump_json()
@@ -143,6 +156,26 @@ def test_retrieved_chunk_has_score(sample_chunk: Chunk) -> None:
     assert hasattr(rc, "score")
     assert rc.score == pytest.approx(0.87)
     assert rc.retrieval_method == "dense"
+
+
+@pytest.mark.unit
+def test_model_alias_properties() -> None:
+    """Backward-compatible alias properties must stay available."""
+    meta = DocumentMetadata(
+        source=DocumentSource.POKEGYM,
+        document_title="Compendium",
+    )
+    chunk = Chunk(chunk_id="c-alias", doc_id="d-alias", text="ok", metadata=meta)
+    response = AnswerResponse(
+        query="test?",
+        answer="yes",
+        citations=[meta],
+        retrieved_chunks=[RetrievedChunk(chunk=chunk, score=1.0, retrieval_method="dense")],
+        model_name="gpt-4o-mini",
+        latency_seconds=0.1,
+    )
+    assert chunk.document_id == "d-alias"
+    assert len(response.chunks) == 1
 
 
 @pytest.mark.unit
