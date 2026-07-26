@@ -122,14 +122,25 @@ def test_build_runtime_container_uses_offline_fallback_without_openai(
 ) -> None:
     """Development startup must degrade when OpenAI, Qdrant and Postgres are unavailable."""
 
-    def fail_qdrant(self) -> None:
-        raise RuntimeError("qdrant down")
+    class FailingVectorDatabase:
+        def __init__(self) -> None:
+            self.collection_name = "test"
 
-    def fail_postgres(self) -> None:
-        raise RuntimeError("postgres down")
+        def init_collection(self, metadata: dict[str, object] | None = None) -> None:
+            raise RuntimeError("qdrant down")
 
-    monkeypatch.setattr(api_runtime.VectorDatabase, "init_collection", fail_qdrant)
-    monkeypatch.setattr(api_runtime.RelationalDatabase, "init_db", fail_postgres)
+        def close(self) -> None:
+            return None
+
+    class FailingRelationalDatabase:
+        def __init__(self) -> None:
+            self.engine = SimpleNamespace(dispose=lambda: None)
+
+        def init_db(self) -> None:
+            raise RuntimeError("postgres down")
+
+    monkeypatch.setattr(api_runtime, "VectorDatabase", FailingVectorDatabase)
+    monkeypatch.setattr(api_runtime, "RelationalDatabase", FailingRelationalDatabase)
     monkeypatch.setattr(api_runtime, "load_chunks", lambda *_args, **_kwargs: [])
 
     container = api_runtime.build_runtime_container(

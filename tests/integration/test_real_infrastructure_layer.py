@@ -49,7 +49,10 @@ def test_qdrant_collection_contract_with_real_client() -> None:
         pytest.skip("POKERAG_INTEGRATION_QDRANT_HOST is not configured")
     port = int(pytest.importorskip("os").environ.get("POKERAG_INTEGRATION_QDRANT_PORT", "6333"))
     client = QdrantClient(host=host, port=port, prefer_grpc=False)
-    assert client.get_collections() is not None
+    try:
+        assert client.get_collections() is not None
+    finally:
+        client.close()
 
 
 class _ProviderHandler(BaseHTTPRequestHandler):

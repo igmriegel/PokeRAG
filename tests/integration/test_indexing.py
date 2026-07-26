@@ -7,7 +7,6 @@ Integration tests for embedding and indexing chunks into Qdrant.
 from __future__ import annotations
 
 import pytest
-from qdrant_client import QdrantClient
 
 from pokemon_tcg_rag.domain.models import (
     Chunk,
@@ -21,7 +20,6 @@ from pokemon_tcg_rag.storage.indexing import (
     _record_to_chunk,
     seed_chunks,
 )
-from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 
 
 class FakeSentenceTransformer:
@@ -132,8 +130,22 @@ def test_seed_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
         lambda *args, **kwargs: FakeSentenceTransformer(),
     )
 
-    qdrant = QdrantClient(location=":memory:")
-    vector_db = VectorDatabase(client=qdrant)
+    class DummyVectorDb:
+        def __init__(self) -> None:
+            self.collection_initialized = False
+            self.points_by_id: dict[str, Chunk] = {}
+
+        def init_collection(self, metadata=None) -> None:
+            self.collection_initialized = True
+
+        def upsert_chunks(self, chunks):
+            for chunk in chunks:
+                self.points_by_id[chunk.chunk_id] = chunk
+
+        def count(self) -> int:
+            return len(self.points_by_id)
+
+    vector_db = DummyVectorDb()
     chunks = [_make_chunk("chunk-1"), _make_chunk("chunk-2")]
 
     first_total = seed_chunks(chunks, vector_db=vector_db, embedder=ChunkEmbedder())
@@ -141,4 +153,5 @@ def test_seed_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert first_total == 2
     assert second_total == 2
-    assert qdrant.count(collection_name=vector_db.collection_name).count == 2
+    assert vector_db.collection_initialized is True
+    assert vector_db.count() == 2

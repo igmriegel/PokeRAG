@@ -11,9 +11,6 @@ import hashlib
 import re
 from pathlib import Path
 
-import fitz
-import pymupdf4llm
-
 from pokemon_tcg_rag.domain.exceptions import ParsingError
 from pokemon_tcg_rag.domain.models import (
     Document,
@@ -78,6 +75,8 @@ class PDFParser:
             raise ParsingError(f"PDF file not found: {path}")
 
         try:
+            import fitz
+
             with fitz.open(path) as pdf_doc:
                 markdown_text = self._render_markdown(path)
                 documents: list[Document] = []
@@ -124,6 +123,8 @@ class PDFParser:
 
     def _render_markdown(self, path: Path) -> str:
         try:
+            import pymupdf4llm
+
             rendered = pymupdf4llm.to_markdown(str(path))
         except Exception:  # pragma: no cover - optional extraction path
             return ""

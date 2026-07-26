@@ -42,6 +42,7 @@ class RuntimeContainer:
 
     def close(self) -> None:
         """Release resources created for the runtime graph."""
+        self.vector_db.close()
         self.relational_db.engine.dispose()
 
 
@@ -114,6 +115,10 @@ class OfflineVectorDatabase(VectorDatabase):
     def upsert_chunks(self, chunks: Sequence[Chunk], batch_size: int = 64) -> None:
         """Ignore writes in degraded mode."""
 
+    def close(self) -> None:
+        """No-op for the in-memory fallback."""
+        return None
+
 
 class OfflineDenseRetriever(DenseRetriever):
     """Local fallback dense retriever that avoids model loading and returns no hits."""
@@ -171,7 +176,6 @@ class OfflineFeedbackStore(FeedbackStore):
 def build_runtime_container(settings: Settings | None = None) -> RuntimeContainer:
     """Build the real dependency graph used by the API and UI."""
     active_settings = settings or get_settings()
-    relational_db = RelationalDatabase()
 
     manifest = load_corpus_manifest(active_settings.DATA_CHUNKS_DIR)
     chunks: list[Chunk] = load_chunks(active_settings.DATA_CHUNKS_DIR)
@@ -198,6 +202,7 @@ def build_runtime_container(settings: Settings | None = None) -> RuntimeContaine
     try:
         vector_db.init_collection(metadata=manifest.to_collection_metadata() if manifest else None)
     except Exception as exc:
+        vector_db.close()
         if active_settings.ENVIRONMENT == "production":
             raise ConfigurationError(f"Qdrant initialization failed: {exc}") from exc
         vector_db = OfflineVectorDatabase(active_settings.QDRANT_COLLECTION_NAME)

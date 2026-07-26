@@ -11,6 +11,7 @@ from pokemon_tcg_rag.domain.models import (
     DocumentSource,
     RuleType,
 )
+from pokemon_tcg_rag.monitoring.tracing import shutdown_tracing
 
 
 @pytest.fixture
@@ -40,3 +41,8 @@ def sample_chunk(sample_document: Document) -> Chunk:
         metadata=sample_document.metadata,
         embedding=[0.1] * 1024,
     )
+
+
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
+    """Release tracing resources after the test session ends."""
+    shutdown_tracing()

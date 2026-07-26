@@ -41,6 +41,10 @@ class VectorDatabase:
         self.collection_name = settings.QDRANT_COLLECTION_NAME
         self.vector_dim = settings.EMBEDDING_DIMENSION
 
+    def close(self) -> None:
+        """Release the underlying Qdrant client resources."""
+        self.client.close()
+
     def init_collection(self, metadata: dict[str, Any] | None = None) -> None:
         """Create the target collection if it does not already exist.
 

@@ -61,8 +61,8 @@ run_step "Black format check" python -m black --check src/ tests/
 run_step "MyPy types" mypy src/
 run_step "Secret scan" python scripts/scan_secrets.py
 run_step "Harness consistency" python scripts/check_harness_consistency.py
-run_step "Pytest unit + integration" python -m pytest -p no:rerunfailures tests/unit/ tests/integration/
-run_step "Pytest coverage gate" python -m pytest -p no:rerunfailures tests/unit/ tests/integration/ --cov=pokemon_tcg_rag --cov-fail-under=90 --cov-report=xml
+run_step "Pytest unit + integration" env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -p pytest_cov -p asyncio tests/unit/ tests/integration/
+run_step "Pytest coverage gate" env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -p pytest_cov -p asyncio tests/unit/ tests/integration/ --cov=pokemon_tcg_rag --cov-fail-under=90 --cov-report=xml
 run_step "pip-audit" pip-audit -r requirements.runtime.txt --no-deps --disable-pip
 run_step "CycloneDX SBOM" cyclonedx-py environment --output-format json --output-file sbom.json
 

@@ -44,6 +44,7 @@ env/
 .cache
 nosetests.xml
 coverage.xml
+sbom.json
 *.cover
 *.py:gcov
 .hypothesis/

@@ -4,6 +4,7 @@ OpenTelemetry helpers for correlated tracing.
 
 from __future__ import annotations
 
+import atexit
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -13,10 +14,11 @@ from typing import IO, Any, cast
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
 from opentelemetry.trace import Status, StatusCode
 
 _TRACER_PROVIDER_INITIALIZED = False
+_TRACER_PROVIDER: TracerProvider | None = None
 _TRACER_NAME = "pokemon_tcg_rag"
 _SAFE_ATTRIBUTE_PREFIXES = (
     "query.",
@@ -43,14 +45,15 @@ def initialize_tracing(service_name: str = "pokemon-tcg-rag") -> None:
     require an external collector. If an OTLP exporter is available and configured by
     environment, it can be added without making startup brittle.
     """
-    global _TRACER_PROVIDER_INITIALIZED
+    global _TRACER_PROVIDER_INITIALIZED, _TRACER_PROVIDER
     if _TRACER_PROVIDER_INITIALIZED:
         return
 
     provider = TracerProvider(resource=Resource.create({"service.name": service_name}))
     stdout = cast(IO[Any], sys.__stdout__ or sys.stdout)
-    provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter(out=stdout)))
+    provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter(out=stdout)))
     trace.set_tracer_provider(provider)
+    _TRACER_PROVIDER = provider
     _TRACER_PROVIDER_INITIALIZED = True
 
 
@@ -58,6 +61,21 @@ def get_tracer() -> trace.Tracer:
     """Return the shared application tracer."""
     initialize_tracing()
     return trace.get_tracer(_TRACER_NAME)
+
+
+def shutdown_tracing() -> None:
+    """Shut down the configured tracer provider if this process initialized one."""
+    global _TRACER_PROVIDER, _TRACER_PROVIDER_INITIALIZED
+    if _TRACER_PROVIDER is None:
+        return
+    try:
+        _TRACER_PROVIDER.shutdown()
+    finally:
+        _TRACER_PROVIDER = None
+        _TRACER_PROVIDER_INITIALIZED = False
+
+
+atexit.register(shutdown_tracing)
 
 
 @contextmanager
