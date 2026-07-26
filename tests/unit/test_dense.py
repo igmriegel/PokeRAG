@@ -9,6 +9,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from pokemon_tcg_rag.domain.exceptions import RetrievalError
 from pokemon_tcg_rag.domain.models import (
     Chunk,
     DocumentMetadata,
@@ -143,3 +144,23 @@ def test_search_dense_falls_back_without_filters(monkeypatch: pytest.MonkeyPatch
     assert output[0].chunk.chunk_id == "c1"
     assert db.calls[0][2] == {"source": "rulebook_pdf"}
     assert db.calls[1][2] is None
+
+
+@pytest.mark.unit
+def test_query_embedding_dimension_mismatch_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    """TEST-059: invalid query embedding dimensions must fail closed."""
+
+    class WrongShapeModel:
+        def encode(self, inputs, **kwargs):
+            return tuple([0.1] * 1023)
+
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer",
+        lambda *args, **kwargs: WrongShapeModel(),
+    )
+
+    db = FakeVectorDB([_make_retrieved("c1", 0.5)])
+    retriever = DenseRetriever(db)
+
+    with pytest.raises(RetrievalError, match="Query embedding dimension mismatch"):
+        retriever.retrieve("Rare Candy", top_k=1)

@@ -25,6 +25,48 @@ from pokemon_tcg_rag.monitoring.tracing import initialize_tracing
 LOGGER = get_logger(__name__)
 
 
+def live() -> dict[str, str]:
+    """Expose a liveness probe that only checks process availability."""
+    return {"status": "alive", "version": "0.1.0"}
+
+
+def health_check() -> HealthResponse:
+    """Expose a root health check for external probes."""
+    rag_ready, feedback_ready = dependency_status()
+    return HealthResponse(
+        status="healthy",
+        version="0.1.0",
+        rag_chain_ready=rag_ready,
+        feedback_store_ready=feedback_ready,
+    )
+
+
+def ready_check() -> HealthResponse:
+    """Expose a readiness probe that reflects dependency availability."""
+    rag_ready, feedback_ready = dependency_status()
+    if not rag_ready or not feedback_ready:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Dependencies not ready",
+        )
+    return HealthResponse(
+        status="healthy",
+        version="0.1.0",
+        rag_chain_ready=rag_ready,
+        feedback_store_ready=feedback_ready,
+    )
+
+
+def _register_root_routes(app: FastAPI) -> None:
+    app.get("/live")(live)
+    app.get("/health", response_model=HealthResponse)(health_check)
+    app.get(
+        "/ready",
+        response_model=HealthResponse,
+        dependencies=[Depends(authorize_request("rag:diagnostics"))],
+    )(ready_check)
+
+
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     setup_logging()
@@ -47,6 +89,7 @@ def create_app() -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
     )
     app.include_router(router, prefix="/api/v1")
+    _register_root_routes(app)
 
     @app.middleware("http")
     async def request_size_limiter(
@@ -103,42 +146,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-
-
-@app.get("/live")
-def live() -> dict[str, str]:
-    """Expose a liveness probe that only checks process availability."""
-    return {"status": "alive", "version": "0.1.0"}
-
-
-@app.get("/health", response_model=HealthResponse)
-def health_check() -> HealthResponse:
-    """Expose a root health check for external probes."""
-    rag_ready, feedback_ready = dependency_status()
-    return HealthResponse(
-        status="healthy",
-        version="0.1.0",
-        rag_chain_ready=rag_ready,
-        feedback_store_ready=feedback_ready,
-    )
-
-
-@app.get(
-    "/ready",
-    response_model=HealthResponse,
-    dependencies=[Depends(authorize_request("rag:diagnostics"))],
-)
-def ready_check() -> HealthResponse:
-    """Expose a readiness probe that reflects dependency availability."""
-    rag_ready, feedback_ready = dependency_status()
-    if not rag_ready or not feedback_ready:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Dependencies not ready",
-        )
-    return HealthResponse(
-        status="healthy",
-        version="0.1.0",
-        rag_chain_ready=rag_ready,
-        feedback_store_ready=feedback_ready,
-    )

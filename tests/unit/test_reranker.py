@@ -120,3 +120,22 @@ def test_rerank_degrades_when_model_unavailable(
     )
 
     assert [item.chunk.chunk_id for item in output] == ["c1", "c2"]
+
+
+@pytest.mark.unit
+def test_rerank_uses_score_fallback_when_disabled() -> None:
+    """TEST-067: disabled reranker must return candidates ordered by score."""
+    reranker = BGEReranker()
+    reranker._disabled_reason = "offline"
+
+    output = reranker.rerank(
+        "Rare Candy",
+        [
+            _make_candidate("c1", "a").model_copy(update={"score": 0.3}),
+            _make_candidate("c2", "b").model_copy(update={"score": 0.9}),
+            _make_candidate("c3", "c").model_copy(update={"score": 0.5}),
+        ],
+        top_k=2,
+    )
+
+    assert [item.chunk.chunk_id for item in output] == ["c2", "c3"]
