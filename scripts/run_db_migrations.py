@@ -3,9 +3,10 @@
 
 from __future__ import annotations
 
+from sqlalchemy import create_engine
+
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.storage.relational_db import Base
-from sqlalchemy import create_engine
 
 
 def main() -> None:

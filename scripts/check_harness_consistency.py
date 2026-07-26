@@ -21,7 +21,6 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 TASK_INDEX = ROOT / "docs/03_tasks/TASK_INDEX.md"
 TRACEABILITY_MATRIX = ROOT / "docs/05_agent_harness/TRACEABILITY_MATRIX.md"
