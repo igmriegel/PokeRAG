@@ -109,7 +109,7 @@ filterwarnings = [
     "ignore:builtin type SwigPyObject has no __module__ attribute:DeprecationWarning",
     "ignore:builtin type swigvarlink has no __module__ attribute:DeprecationWarning",
 ]
-addopts = "--strict-markers -p no:rerunfailures -p no:pytest_rerunfailures -p no:langsmith -p no:deepeval -p no:repeat -p no:xdist --cov=pokemon_tcg_rag --cov-report=term-missing --cov-report=html --cov-fail-under=90"
+addopts = "--strict-markers -p no:rerunfailures -p no:pytest_rerunfailures -p no:langsmith_plugin -p no:langsmith -p no:deepeval -p no:repeat -p no:xdist -p no:xdist.looponfail --cov=pokemon_tcg_rag --cov-report=term-missing --cov-report=html --cov-fail-under=90"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",

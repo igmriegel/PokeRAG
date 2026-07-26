@@ -13,13 +13,16 @@ def _is_pytest_process() -> bool:
 
 
 if _is_pytest_process():
+    os.environ.setdefault("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
     extra_opts = (
         "-p no:rerunfailures "
         "-p no:pytest_rerunfailures "
+        "-p no:langsmith_plugin "
         "-p no:langsmith "
         "-p no:deepeval "
         "-p no:repeat "
-        "-p no:xdist"
+        "-p no:xdist "
+        "-p no:xdist.looponfail"
     )
     current_opts = os.environ.get("PYTEST_ADDOPTS", "").strip()
     if extra_opts not in current_opts:
