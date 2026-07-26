@@ -10,6 +10,8 @@ import pytest
 from pydantic import ValidationError
 
 from pokemon_tcg_rag.api.schemas import (
+    CitationSchema,
+    ChunkSnippetSchema,
     FeedbackRequest,
     QueryRequest,
     QueryResponse,
@@ -75,6 +77,50 @@ def test_answer_response_maps_to_schema() -> None:
     assert response.citations[0].document_title == "Official Rulebook"
     assert response.retrieved_chunks[0].chunk_id == "chunk-1"
     assert response.retrieved_chunks[0].source == DocumentSource.RULEBOOK_PDF.value
+
+
+@pytest.mark.unit
+def test_schema_helpers_normalize_and_truncate() -> None:
+    """Schema helpers must preserve citation metadata and truncate long snippets."""
+    metadata = DocumentMetadata(
+        source=DocumentSource.RULEBOOK_PDF,
+        document_title="Official Rulebook",
+        page_number=12,
+        section_title="Setup",
+        card_name="Rare Candy",
+        rule_type=RuleType.GENERAL_RULE,
+        publication_date="2026-07-24",
+        source_url="https://example.com/rulebook.pdf",
+    )
+    citation = CitationSchema.from_metadata(metadata)
+    assert citation.page_number == 12
+    assert citation.card_name == "Rare Candy"
+    assert citation.source_url == "https://example.com/rulebook.pdf"
+
+    chunk = Chunk(
+        chunk_id="chunk-long",
+        doc_id="doc-long",
+        text="x" * 400,
+        token_count=100,
+        metadata=metadata,
+    )
+    retrieved = RetrievedChunk(chunk=chunk, score=0.5, retrieval_method="dense")
+    snippet = ChunkSnippetSchema.from_retrieved_chunk(retrieved)
+    assert len(snippet.text) == 323
+    assert snippet.text.endswith("...")
+
+    short_chunk = Chunk(
+        chunk_id="chunk-short",
+        doc_id="doc-short",
+        text="Rare Candy text",
+        token_count=3,
+        metadata=metadata,
+    )
+    short_snippet = ChunkSnippetSchema.from_retrieved_chunk(
+        RetrievedChunk(chunk=short_chunk, score=0.75, retrieval_method="bm25")
+    )
+    assert short_snippet.text == "Rare Candy text"
+    assert short_snippet.retrieval_method == "bm25"
 
 
 @pytest.mark.unit
