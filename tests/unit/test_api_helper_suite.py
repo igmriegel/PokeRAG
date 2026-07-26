@@ -161,7 +161,12 @@ def test_decode_access_token_and_principal_scopes() -> None:
 @pytest.mark.parametrize(
     "token,settings,required_algorithms,expected_status",
     [
-        ("abc", Settings(ENVIRONMENT="production", API_AUTH_SECRET="secret"), None, 401),
+        (
+            "abc",
+            Settings(ENVIRONMENT="production", API_AUTH_SECRET="secret"),
+            None,
+            401,
+        ),
         (
             create_access_token(
                 "user-a",
@@ -234,7 +239,9 @@ def test_decode_access_token_rejects_invalid_tokens(
     assert exc_info.value.status_code == expected_status
 
 
-def test_authorize_request_uses_development_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_authorize_request_uses_development_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("ENVIRONMENT", "development")
     monkeypatch.setenv("API_AUTH_SECRET", "")
     get_settings.cache_clear()
@@ -264,15 +271,11 @@ def test_request_guard_enforces_body_size_and_concurrency() -> None:
     guard.enforce_request_size(_request("GET"))
 
     with pytest.raises(HTTPException) as size_error:
-        guard.enforce_request_size(
-            _request("POST", headers={"content-length": "25"})
-        )
+        guard.enforce_request_size(_request("POST", headers={"content-length": "25"}))
     assert size_error.value.status_code == 413
 
     with pytest.raises(HTTPException) as header_error:
-        guard.enforce_request_size(
-            _request("POST", headers={"content-length": "bad"})
-        )
+        guard.enforce_request_size(_request("POST", headers={"content-length": "bad"}))
     assert header_error.value.status_code == 400
 
     principal = Principal(
@@ -438,7 +441,9 @@ def test_submit_feedback_rejects_duplicate_and_owner_mismatch() -> None:
         latency_seconds=0.1,
     )
 
-    assert api_routes.submit_feedback(payload, principal=principal)["status"] == "success"
+    assert (
+        api_routes.submit_feedback(payload, principal=principal)["status"] == "success"
+    )
 
     with pytest.raises(HTTPException) as duplicate_error:
         api_routes.submit_feedback(payload, principal=principal)

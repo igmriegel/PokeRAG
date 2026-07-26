@@ -167,7 +167,9 @@ def test_dataset_loader_rejects_invalid_payloads(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
-def test_evaluator_runs_retrieval_and_llm_comparisons(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_evaluator_runs_retrieval_and_llm_comparisons(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     cases = _cases()
     loader = EvaluationDatasetLoader()
     monkeypatch.setattr(loader, "load_dataset", lambda: cases)
@@ -262,8 +264,8 @@ def test_factory_handlers_delegate_to_dependencies() -> None:
         def execute_retrieval(
             self, raw_query: str, top_k: int = 10
         ) -> tuple[str, list[RetrievedChunk]]:
-                self.calls.append((raw_query, top_k))
-                return "rewritten", [_retrieved("doc-a"), _retrieved("doc-b")]
+            self.calls.append((raw_query, top_k))
+            return "rewritten", [_retrieved("doc-a"), _retrieved("doc-b")]
 
     class FakeHybridRetriever:
         def __init__(self, bm25_retriever: FakeBM25) -> None:

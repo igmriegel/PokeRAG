@@ -78,9 +78,7 @@ def test_offline_runtime_clients_cover_fallback_behaviour() -> None:
 
     assert answerer.generate_answer("Question without context") == "I don't know."
     assert (
-        answerer.generate_answer(
-            "Contexto:\n[1] Demo Reference\n\nPergunta:\n?"
-        )
+        answerer.generate_answer("Contexto:\n[1] Demo Reference\n\nPergunta:\n?")
         == "Com base no contexto recuperado: [1] Demo Reference"
     )
     assert (
@@ -261,7 +259,9 @@ def test_manifest_helpers_handle_missing_paths(tmp_path: Path) -> None:
     assert load_corpus_manifest(empty_dir) is None
 
 
-def test_manifest_derived_count_and_missing_manifest(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_manifest_derived_count_and_missing_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     manifest = CorpusManifest.from_dict(
         {
             "corpus_id": "demo-corpus",
@@ -283,7 +283,9 @@ def test_manifest_derived_count_and_missing_manifest(tmp_path: Path, monkeypatch
         ChunkEmbedder()
 
 
-def test_load_chunks_without_manifest_and_parquet_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_load_chunks_without_manifest_and_parquet_branch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     jsonl_path = tmp_path / "plain.jsonl"
     jsonl_path.write_text(
         "\n".join(
@@ -334,7 +336,9 @@ def test_load_chunks_without_manifest_and_parquet_branch(tmp_path: Path, monkeyp
     assert parquet_chunks[0].metadata.page_number == 7
 
 
-def test_seed_helpers_and_parser_main(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_seed_helpers_and_parser_main(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     chunk = _chunk("Rare Candy lets you evolve faster.")
     assert seed_chunks([], vector_db=api_runtime.OfflineVectorDatabase("pokemon")) == 0
 
@@ -356,13 +360,18 @@ def test_seed_helpers_and_parser_main(monkeypatch: pytest.MonkeyPatch, tmp_path:
 
     monkeypatch.setattr(indexing_module, "load_chunks", fake_load_chunks)
     monkeypatch.setattr(indexing_module, "seed_chunks", fake_seed_chunks)
-    assert indexing_module.seed_from_directory(
-        tmp_path,
-        vector_db=SimpleNamespace(name="vector"),
-        embedder=SimpleNamespace(name="embedder"),
-        batch_size=4,
-    ) == 1
-    assert seed_calls == [(SimpleNamespace(name="vector"), SimpleNamespace(name="embedder"))]
+    assert (
+        indexing_module.seed_from_directory(
+            tmp_path,
+            vector_db=SimpleNamespace(name="vector"),
+            embedder=SimpleNamespace(name="embedder"),
+            batch_size=4,
+        )
+        == 1
+    )
+    assert seed_calls == [
+        (SimpleNamespace(name="vector"), SimpleNamespace(name="embedder"))
+    ]
 
     parser = indexing_module.build_parser()
     args = parser.parse_args(["--chunks-dir", str(tmp_path), "--batch-size", "8"])
@@ -370,7 +379,9 @@ def test_seed_helpers_and_parser_main(monkeypatch: pytest.MonkeyPatch, tmp_path:
     assert args.batch_size == 8
 
     monkeypatch.setattr(indexing_module, "setup_logging", lambda: None)
-    monkeypatch.setattr(indexing_module, "seed_from_directory", lambda *args, **kwargs: 2)
+    monkeypatch.setattr(
+        indexing_module, "seed_from_directory", lambda *args, **kwargs: 2
+    )
     assert indexing_module.main([]) == 0
     assert "Seeded 2 chunks into Qdrant." in capsys.readouterr().out
 
