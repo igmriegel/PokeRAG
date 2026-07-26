@@ -43,7 +43,7 @@ class APIRequestGuard:
                 if int(content_length) > self.max_body_bytes:
                     self._record_rejection("body_too_large")
                     raise HTTPException(
-                        status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                        status_code=413,
                         detail="Request body too large",
                     )
             except ValueError:

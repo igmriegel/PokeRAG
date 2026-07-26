@@ -6,10 +6,13 @@ Security integration tests for API authentication and authorization.
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from types import SimpleNamespace
 
+import httpx
 import pytest
-from fastapi.testclient import TestClient
+import pytest_asyncio
 
 from pokemon_tcg_rag.api import main as api_main
 from pokemon_tcg_rag.api import runtime as api_runtime
@@ -81,8 +84,20 @@ class FakeRuntimeContainer:
         self.closed = True
 
 
-@pytest.fixture()
-def security_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+@asynccontextmanager
+async def _client_for_app(app: object) -> AsyncIterator[httpx.AsyncClient]:
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app),
+            base_url="http://testserver",
+        ) as client:
+            yield client
+
+
+@pytest_asyncio.fixture()
+async def security_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> AsyncIterator[httpx.AsyncClient]:
     monkeypatch.setenv("ENVIRONMENT", "production")
     monkeypatch.setenv("API_AUTH_SECRET", "unit-test-secret")
     monkeypatch.setenv("API_AUTH_ISSUER", "poketcg-rag")
@@ -95,11 +110,12 @@ def security_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     set_dependencies(None, None)
     app = api_main.app
 
-    with TestClient(app) as client:
-        yield client
-
-    set_dependencies(None, None)
-    get_settings.cache_clear()
+    try:
+        async with _client_for_app(app) as client:
+            yield client
+    finally:
+        set_dependencies(None, None)
+        get_settings.cache_clear()
 
 
 def _token(subject: str, scopes: tuple[str, ...]) -> str:
@@ -115,9 +131,13 @@ def _token(subject: str, scopes: tuple[str, ...]) -> str:
     )
 
 
-def test_openapi_declares_bearer_security(security_client: TestClient) -> None:
+@pytest.mark.asyncio
+async def test_openapi_declares_bearer_security(
+    security_client: httpx.AsyncClient,
+) -> None:
     """Protected endpoints must advertise bearer auth in OpenAPI."""
-    schema = security_client.get("/openapi.json").json()
+    response = await security_client.get("/openapi.json")
+    schema = response.json()
     query_security = schema["paths"]["/api/v1/query"]["post"]["security"]
     feedback_security = schema["paths"]["/api/v1/feedback"]["post"]["security"]
     assert query_security
@@ -134,27 +154,31 @@ def test_openapi_declares_bearer_security(security_client: TestClient) -> None:
         ("/ready", "get"),
     ],
 )
-def test_protected_routes_reject_missing_token(
-    security_client: TestClient, path: str, method: str
+@pytest.mark.asyncio
+async def test_protected_routes_reject_missing_token(
+    security_client: httpx.AsyncClient, path: str, method: str
 ) -> None:
     """Anonymous access must be rejected for protected API operations."""
     if method == "post":
-        response = security_client.post(
+        response = await security_client.post(
             path,
             json={"question": "Can I use Rare Candy?"},
         )
     else:
-        response = security_client.get(path)
+        response = await security_client.get(path)
     assert response.status_code == 401
 
 
-def test_scope_matrix_and_ownership_enforced(security_client: TestClient) -> None:
+@pytest.mark.asyncio
+async def test_scope_matrix_and_ownership_enforced(
+    security_client: httpx.AsyncClient,
+) -> None:
     """Scope checks and object ownership must be enforced consistently."""
     query_token = _token("user-a", ("rag:query",))
     feedback_token = _token("user-b", ("rag:feedback",))
     full_token = _token("user-a", ("rag:query", "rag:feedback", "rag:metrics", "rag:diagnostics"))
 
-    query_response = security_client.post(
+    query_response = await security_client.post(
         "/api/v1/query",
         json={"question": "Can I use Rare Candy?", "top_k": 5},
         headers={"Authorization": f"Bearer {query_token}"},
@@ -162,7 +186,7 @@ def test_scope_matrix_and_ownership_enforced(security_client: TestClient) -> Non
     assert query_response.status_code == 200
     payload = query_response.json()
 
-    denied_feedback = security_client.post(
+    denied_feedback = await security_client.post(
         "/api/v1/feedback",
         json={
             "query_id": payload["query_id"],
@@ -176,7 +200,7 @@ def test_scope_matrix_and_ownership_enforced(security_client: TestClient) -> Non
     )
     assert denied_feedback.status_code == 403
 
-    allowed_feedback = security_client.post(
+    allowed_feedback = await security_client.post(
         "/api/v1/feedback",
         json={
             "query_id": payload["query_id"],
@@ -190,13 +214,13 @@ def test_scope_matrix_and_ownership_enforced(security_client: TestClient) -> Non
     )
     assert allowed_feedback.status_code == 201
 
-    metrics_response = security_client.get(
+    metrics_response = await security_client.get(
         "/metrics",
         headers={"Authorization": f"Bearer {full_token}"},
     )
     assert metrics_response.status_code == 200
 
-    diagnostics_response = security_client.get(
+    diagnostics_response = await security_client.get(
         "/ready",
         headers={"Authorization": f"Bearer {full_token}"},
     )

@@ -6,10 +6,13 @@ Security/load tests for API payload, rate and body-size controls.
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from types import SimpleNamespace
 
+import httpx
 import pytest
-from fastapi.testclient import TestClient
+import pytest_asyncio
 
 from pokemon_tcg_rag.api import main as api_main
 from pokemon_tcg_rag.api import routes as api_routes
@@ -78,8 +81,20 @@ class FakeRuntimeContainer:
         return None
 
 
-@pytest.fixture()
-def guarded_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+@asynccontextmanager
+async def _client_for_app(app: object) -> AsyncIterator[httpx.AsyncClient]:
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app),
+            base_url="http://testserver",
+        ) as client:
+            yield client
+
+
+@pytest_asyncio.fixture()
+async def guarded_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> AsyncIterator[httpx.AsyncClient]:
     monkeypatch.setenv("ENVIRONMENT", "production")
     monkeypatch.setenv("API_AUTH_SECRET", "unit-test-secret")
     monkeypatch.setenv("API_AUTH_ISSUER", "poketcg-rag")
@@ -96,7 +111,7 @@ def guarded_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setattr(api_runtime, "build_runtime_container", lambda: FakeRuntimeContainer())
     set_dependencies(None, None)
     app = api_main.create_app()
-    with TestClient(app) as client:
+    async with _client_for_app(app) as client:
         yield client
 
     set_dependencies(None, None)
@@ -116,11 +131,12 @@ def _token(scopes: tuple[str, ...]) -> str:
     )
 
 
-def test_payload_schema_limits_reject_unknown_fields(
-    guarded_client: TestClient,
+@pytest.mark.asyncio
+async def test_payload_schema_limits_reject_unknown_fields(
+    guarded_client: httpx.AsyncClient,
 ) -> None:
     """Unknown request fields must be rejected."""
-    response = guarded_client.post(
+    response = await guarded_client.post(
         "/api/v1/query",
         json={"question": "Can I use Rare Candy?", "top_k": 5, "unexpected": True},
         headers={"Authorization": f"Bearer {_token(('rag:query',))}"},
@@ -128,11 +144,12 @@ def test_payload_schema_limits_reject_unknown_fields(
     assert response.status_code == 422
 
 
-def test_payload_schema_limits_reject_oversized_question(
-    guarded_client: TestClient,
+@pytest.mark.asyncio
+async def test_payload_schema_limits_reject_oversized_question(
+    guarded_client: httpx.AsyncClient,
 ) -> None:
     """Question text must be bounded."""
-    response = guarded_client.post(
+    response = await guarded_client.post(
         "/api/v1/query",
         json={"question": "x" * 600, "top_k": 5},
         headers={"Authorization": f"Bearer {_token(('rag:query',))}"},
@@ -140,9 +157,12 @@ def test_payload_schema_limits_reject_oversized_question(
     assert response.status_code == 422
 
 
-def test_request_body_size_limit_returns_413(guarded_client: TestClient) -> None:
+@pytest.mark.asyncio
+async def test_request_body_size_limit_returns_413(
+    guarded_client: httpx.AsyncClient,
+) -> None:
     """Large request bodies must be rejected before model execution."""
-    response = guarded_client.post(
+    response = await guarded_client.post(
         "/api/v1/query",
         json={"question": "x" * 5000, "top_k": 5},
         headers={"Authorization": f"Bearer {_token(('rag:query',))}"},
@@ -150,17 +170,18 @@ def test_request_body_size_limit_returns_413(guarded_client: TestClient) -> None
     assert response.status_code == 413
 
 
-def test_rate_limit_returns_429(guarded_client: TestClient) -> None:
+@pytest.mark.asyncio
+async def test_rate_limit_returns_429(guarded_client: httpx.AsyncClient) -> None:
     """Per-principal request limits must be enforced."""
     headers = {"Authorization": f"Bearer {_token(('rag:query',))}"}
-    first = guarded_client.post(
+    first = await guarded_client.post(
         "/api/v1/query",
         json={"question": "Can I use Rare Candy?", "top_k": 5},
         headers=headers,
     )
     assert first.status_code == 200
 
-    second = guarded_client.post(
+    second = await guarded_client.post(
         "/api/v1/query",
         json={"question": "Can I use Rare Candy?", "top_k": 5},
         headers=headers,

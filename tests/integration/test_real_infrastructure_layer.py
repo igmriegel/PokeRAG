@@ -82,3 +82,4 @@ def test_http_provider_stub_contract() -> None:
     finally:
         server.shutdown()
         thread.join(timeout=5)
+        server.server_close()
