@@ -61,13 +61,17 @@ def test_log_level_from_settings(
     # DEBUG message must be suppressed when level is WARNING
     logger.debug("debug_message_suppressed")
     captured_debug = capsys.readouterr()
-    debug_lines = [ln for ln in captured_debug.out.splitlines() if "debug_message_suppressed" in ln]
+    debug_lines = [
+        ln for ln in captured_debug.out.splitlines() if "debug_message_suppressed" in ln
+    ]
     assert not debug_lines, "DEBUG messages must be suppressed at WARNING level"
 
     # WARNING message must appear
     logger.warning("warning_message_visible")
     captured_warn = capsys.readouterr()
-    warning_lines = [ln for ln in captured_warn.out.splitlines() if "warning_message_visible" in ln]
+    warning_lines = [
+        ln for ln in captured_warn.out.splitlines() if "warning_message_visible" in ln
+    ]
     assert warning_lines, "WARNING messages must be visible at WARNING level"
 
     get_settings.cache_clear()

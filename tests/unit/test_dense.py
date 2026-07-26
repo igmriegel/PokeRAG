@@ -127,7 +127,9 @@ def test_results_ordered_by_score(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.unit
-def test_search_dense_falls_back_without_filters(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_search_dense_falls_back_without_filters(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """TEST-058: dense retriever must retry when older fakes do not accept filters."""
     fake_model = FakeModel()
     monkeypatch.setattr(
@@ -139,7 +141,9 @@ def test_search_dense_falls_back_without_filters(monkeypatch: pytest.MonkeyPatch
     db = FakeVectorDBWithFilterFallback(results)
     retriever = DenseRetriever(db)
 
-    output = retriever.retrieve("Rare Candy", top_k=1, filters={"source": "rulebook_pdf"})
+    output = retriever.retrieve(
+        "Rare Candy", top_k=1, filters={"source": "rulebook_pdf"}
+    )
 
     assert output[0].chunk.chunk_id == "c1"
     assert db.calls[0][2] == {"source": "rulebook_pdf"}
@@ -147,7 +151,9 @@ def test_search_dense_falls_back_without_filters(monkeypatch: pytest.MonkeyPatch
 
 
 @pytest.mark.unit
-def test_query_embedding_dimension_mismatch_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_query_embedding_dimension_mismatch_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """TEST-059: invalid query embedding dimensions must fail closed."""
 
     class WrongShapeModel:

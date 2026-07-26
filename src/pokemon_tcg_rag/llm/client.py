@@ -26,7 +26,9 @@ class LLMClient:
         self.request_timeout_seconds = settings.API_PROVIDER_TIMEOUT_SECONDS
         self.max_retries = settings.API_PROVIDER_MAX_RETRIES
         self.circuit_breaker_threshold = settings.API_PROVIDER_CIRCUIT_BREAKER_THRESHOLD
-        self.circuit_breaker_reset_seconds = settings.API_PROVIDER_CIRCUIT_BREAKER_RESET_SECONDS
+        self.circuit_breaker_reset_seconds = (
+            settings.API_PROVIDER_CIRCUIT_BREAKER_RESET_SECONDS
+        )
         self.client = client or OpenAI(
             api_key=settings.OPENAI_API_KEY,
             timeout=self.request_timeout_seconds,
@@ -58,7 +60,11 @@ class LLMClient:
                         temperature=self.temperature,
                         timeout=self.request_timeout_seconds,
                     )
-                    content = response.choices[0].message.content if response.choices else None
+                    content = (
+                        response.choices[0].message.content
+                        if response.choices
+                        else None
+                    )
                     if not content or not content.strip():
                         raise LLMError("LLM returned an empty response")
                     usage = getattr(response, "usage", None)
@@ -74,7 +80,9 @@ class LLMClient:
                     )
                     self._record_success()
                     return content.strip()
-                except Exception as exc:  # pragma: no cover - network / provider boundary
+                except (
+                    Exception
+                ) as exc:  # pragma: no cover - network / provider boundary
                     last_error = exc
                     self._record_failure()
                     if _is_insufficient_quota(exc):
@@ -82,7 +90,10 @@ class LLMClient:
                             "OpenAI API quota is unavailable; review API billing and credits"
                         ) from exc
                     if attempt < self.retries - 1:
-                        time.sleep((self.retry_delay * (attempt + 1)) + random.uniform(0.0, 0.05))
+                        time.sleep(
+                            (self.retry_delay * (attempt + 1))
+                            + random.uniform(0.0, 0.05)
+                        )
                         continue
                     raise LLMError(f"LLM generation failed: {exc}") from exc
 
@@ -99,7 +110,9 @@ class LLMClient:
     def _record_failure(self) -> None:
         self._failure_count += 1
         if self._failure_count >= self.circuit_breaker_threshold:
-            self._circuit_open_until = time.monotonic() + self.circuit_breaker_reset_seconds
+            self._circuit_open_until = (
+                time.monotonic() + self.circuit_breaker_reset_seconds
+            )
             self._failure_count = 0
 
 

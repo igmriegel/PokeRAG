@@ -74,7 +74,9 @@ class VectorDatabase:
             if metadata is not None:
                 self._write_collection_metadata(metadata)
         except Exception as exc:  # pragma: no cover - defensive wrapper
-            raise VectorStoreError(f"Failed to initialize Qdrant collection: {exc}") from exc
+            raise VectorStoreError(
+                f"Failed to initialize Qdrant collection: {exc}"
+            ) from exc
 
     def collection_metadata(self) -> dict[str, Any]:
         """Return the current collection metadata if available."""
@@ -86,7 +88,9 @@ class VectorDatabase:
                 with_vectors=False,
             )
         except Exception as exc:  # pragma: no cover - defensive wrapper
-            raise VectorStoreError(f"Failed to inspect Qdrant collection: {exc}") from exc
+            raise VectorStoreError(
+                f"Failed to inspect Qdrant collection: {exc}"
+            ) from exc
 
         if not points:
             return {}
@@ -227,7 +231,9 @@ class VectorDatabase:
             token_count=len(payload.get("text", "").split()),
             metadata=metadata,
         )
-        return RetrievedChunk(chunk=chunk, score=float(point.score), retrieval_method="dense")
+        return RetrievedChunk(
+            chunk=chunk, score=float(point.score), retrieval_method="dense"
+        )
 
     def _point_id(self, chunk_id: str) -> str:
         return str(uuid.uuid5(uuid.NAMESPACE_URL, chunk_id))

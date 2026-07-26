@@ -31,7 +31,9 @@ class DenseRetriever:
         if self._embedding_model is None:
             if SentenceTransformer is None:
                 try:
-                    from sentence_transformers import SentenceTransformer as SentenceTransformer_
+                    from sentence_transformers import (
+                        SentenceTransformer as SentenceTransformer_,
+                    )
                 except Exception as exc:  # pragma: no cover - import-time fallback
                     raise RetrievalError(
                         "sentence-transformers is unavailable in the current runtime"
@@ -64,7 +66,9 @@ class DenseRetriever:
         return sorted(results, key=lambda item: item.score, reverse=True)[:limit]
 
     def _encode_query(self, query: str) -> list[float]:
-        vector = self.model.encode(query, convert_to_numpy=True, normalize_embeddings=True)
+        vector = self.model.encode(
+            query, convert_to_numpy=True, normalize_embeddings=True
+        )
         if hasattr(vector, "tolist"):
             query_vector = vector.tolist()
         elif isinstance(vector, Sequence):

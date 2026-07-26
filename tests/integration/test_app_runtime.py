@@ -48,7 +48,9 @@ def _answer_response() -> AnswerResponse:
         rewritten_query="Pokemon TCG Rare Candy legality",
         answer="Yes.",
         citations=[metadata],
-        retrieved_chunks=[RetrievedChunk(chunk=chunk, score=0.9, retrieval_method="dense")],
+        retrieved_chunks=[
+            RetrievedChunk(chunk=chunk, score=0.9, retrieval_method="dense")
+        ],
         model_name="gpt-4o-mini",
         latency_seconds=0.42,
     )
@@ -105,7 +107,9 @@ def test_lifespan_bootstraps_real_dependencies(monkeypatch) -> None:
             assert health_response.rag_chain_ready is True
             assert health_response.feedback_store_ready is True
 
-            query_response = query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
+            query_response = query_rag(
+                QueryRequest(question="Can I use Rare Candy?", top_k=5)
+            )
             assert query_response.answer == "Yes."
 
             ready_response = api_main.ready_check()
@@ -196,8 +200,12 @@ def test_build_runtime_container_requires_openai_in_production(monkeypatch) -> N
         def __init__(self) -> None:
             self.collection_name = "test"
 
-    monkeypatch.setattr(api_runtime, "load_corpus_manifest", lambda *_args, **_kwargs: dummy_manifest)
-    monkeypatch.setattr(api_runtime, "load_chunks", lambda *_args, **_kwargs: [dummy_chunk])
+    monkeypatch.setattr(
+        api_runtime, "load_corpus_manifest", lambda *_args, **_kwargs: dummy_manifest
+    )
+    monkeypatch.setattr(
+        api_runtime, "load_chunks", lambda *_args, **_kwargs: [dummy_chunk]
+    )
     monkeypatch.setattr(api_runtime, "VectorDatabase", FakeVectorDatabase)
     settings = SimpleNamespace(
         ENVIRONMENT="production",

@@ -102,7 +102,9 @@ class IngestionPipeline:
         if errors:
             raise IngestionError("; ".join(errors))
 
-        normalized_documents = [self.normalizer.normalize(document) for document in documents]
+        normalized_documents = [
+            self.normalizer.normalize(document) for document in documents
+        ]
         chunks = self._chunk_documents(normalized_documents)
         ingestion_state = self._build_ingestion_state(normalized_documents, chunks)
         diff = self._diff_ingestion_state(ingestion_state)
@@ -113,7 +115,12 @@ class IngestionPipeline:
         self._persist_ingestion_state(ingestion_state, diff)
         self._log_source_counts(normalized_documents)
 
-        if incremental and not diff["added"] and not diff["updated"] and not diff["deleted"]:
+        if (
+            incremental
+            and not diff["added"]
+            and not diff["updated"]
+            and not diff["deleted"]
+        ):
             LOGGER.info("ingestion_incremental_noop", sources=sorted(selected))
 
         if index:
@@ -152,7 +159,9 @@ class IngestionPipeline:
         documents: list[Document] = []
         for _, (url, source, rule_type) in self.pdf_parser.PDF_SOURCES.items():
             pdf_path = self._download_pdf(url)
-            documents.extend(self.pdf_parser.parse_pdf_file(pdf_path, source, rule_type))
+            documents.extend(
+                self.pdf_parser.parse_pdf_file(pdf_path, source, rule_type)
+            )
         return documents
 
     def _download_pdf(self, url: str) -> Path:
@@ -176,7 +185,9 @@ class IngestionPipeline:
         jsonl_path = self.processed_dir / "documents.jsonl"
         with jsonl_path.open("w", encoding="utf-8") as fh:
             for document in documents:
-                fh.write(json.dumps(document.model_dump(mode="json"), ensure_ascii=False))
+                fh.write(
+                    json.dumps(document.model_dump(mode="json"), ensure_ascii=False)
+                )
                 fh.write("\n")
 
         parquet_path = self.processed_dir / "documents.parquet"
@@ -184,7 +195,9 @@ class IngestionPipeline:
         if flattened_records:
             pd.DataFrame(flattened_records).to_parquet(parquet_path, index=False)
         else:
-            pd.DataFrame(columns=self._document_columns()).to_parquet(parquet_path, index=False)
+            pd.DataFrame(columns=self._document_columns()).to_parquet(
+                parquet_path, index=False
+            )
 
     def _persist_chunk_documents(self, chunks: list[Chunk]) -> dict[str, object]:
         self.chunks_dir.mkdir(parents=True, exist_ok=True)
@@ -193,7 +206,9 @@ class IngestionPipeline:
         if flattened_records:
             pd.DataFrame(flattened_records).to_parquet(parquet_path, index=False)
         else:
-            pd.DataFrame(columns=self._chunk_columns()).to_parquet(parquet_path, index=False)
+            pd.DataFrame(columns=self._chunk_columns()).to_parquet(
+                parquet_path, index=False
+            )
         digest = hashlib.sha256(parquet_path.read_bytes()).hexdigest()
         manifest = CorpusManifest(
             corpus_id="pokemon-tcg-official-corpus",
@@ -249,7 +264,9 @@ class IngestionPipeline:
             "documents": state,
             "diff": diff,
         }
-        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        path.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
     def _flatten_document(self, document: Document) -> dict[str, object]:
         return {

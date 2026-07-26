@@ -86,7 +86,9 @@ class EvaluationReport(BaseModel):
                     f"{retrieval_result.mrr:.4f} | {retrieval_result.hit_rate_at_5:.4f} | {retrieval_result.hit_rate_at_10:.4f} |"
                 )
             lines.append("")
-            lines.append(f"Best retrieval strategy: {self.best_retrieval_strategy or 'n/a'}")
+            lines.append(
+                f"Best retrieval strategy: {self.best_retrieval_strategy or 'n/a'}"
+            )
             lines.append("")
 
         if self.llm_results:
@@ -102,7 +104,9 @@ class EvaluationReport(BaseModel):
                     f"{llm_result.citation_quality:.4f} | {llm_result.completeness:.4f} |"
                 )
             lines.append("")
-            lines.append(f"Best LLM configuration: {self.best_llm_configuration or 'n/a'}")
+            lines.append(
+                f"Best LLM configuration: {self.best_llm_configuration or 'n/a'}"
+            )
 
         return "\n".join(lines).strip() + "\n"
 
@@ -129,7 +133,9 @@ class LLMEvaluationSample(BaseModel):
     completeness: float | None = None
 
 
-LLMHandler = Callable[[EvalTestCase], LLMEvaluationSample | RetrievedChunk | dict[str, object]]
+LLMHandler = Callable[
+    [EvalTestCase], LLMEvaluationSample | RetrievedChunk | dict[str, object]
+]
 
 
 class RAGEvaluator:
@@ -154,7 +160,9 @@ class RAGEvaluator:
         """Run all retrieval handlers on the benchmark and compare their metrics."""
         cases = self.dataset_loader.load_dataset()
         handlers = dict(
-            strategy_handlers or self.retrieval_handlers or self._default_retrieval_handlers()
+            strategy_handlers
+            or self.retrieval_handlers
+            or self._default_retrieval_handlers()
         )
         if not handlers:
             raise ValueError("No retrieval handlers available for evaluation")
@@ -213,8 +221,12 @@ class RAGEvaluator:
 
         for case in cases:
             retrieved = handler(case.question, 10)
-            recall_5.append(calculate_recall_at_k(retrieved, case.ground_truth_doc_ids, 5))
-            recall_10.append(calculate_recall_at_k(retrieved, case.ground_truth_doc_ids, 10))
+            recall_5.append(
+                calculate_recall_at_k(retrieved, case.ground_truth_doc_ids, 5)
+            )
+            recall_10.append(
+                calculate_recall_at_k(retrieved, case.ground_truth_doc_ids, 10)
+            )
             mrr_scores.append(calculate_mrr(retrieved, case.ground_truth_doc_ids))
             hit_5.append(calculate_hit_rate(retrieved, case.ground_truth_doc_ids, 5))
             hit_10.append(calculate_hit_rate(retrieved, case.ground_truth_doc_ids, 10))
@@ -315,7 +327,9 @@ class RAGEvaluator:
         LOGGER.info("best_retrieval_strategy_selected strategy=%s", best_name)
         return best_name
 
-    def _select_best_llm_configuration(self, results: Mapping[str, LLMConfigurationResult]) -> str:
+    def _select_best_llm_configuration(
+        self, results: Mapping[str, LLMConfigurationResult]
+    ) -> str:
         best_name = max(
             results,
             key=lambda name: (

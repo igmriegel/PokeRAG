@@ -120,7 +120,9 @@ class Settings(BaseSettings):
     def postgres_migration_uri(self) -> str:
         """Connection URI for the migration role, falling back to the owner role when unset."""
         migration_user = self.POSTGRES_MIGRATION_USER or self.POSTGRES_OWNER_USER
-        migration_password = self.POSTGRES_MIGRATION_PASSWORD or self.POSTGRES_OWNER_PASSWORD
+        migration_password = (
+            self.POSTGRES_MIGRATION_PASSWORD or self.POSTGRES_OWNER_PASSWORD
+        )
         return (
             f"postgresql://{migration_user}:{migration_password}"
             f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"

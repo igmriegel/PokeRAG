@@ -56,7 +56,9 @@ class CorpusManifest:
                 path=str(entry["path"]),
                 sha256=str(entry["sha256"]),
                 chunk_count=(
-                    int(entry["chunk_count"]) if entry.get("chunk_count") is not None else None
+                    int(entry["chunk_count"])
+                    if entry.get("chunk_count") is not None
+                    else None
                 ),
             )
             for entry in data.get("files", [])
@@ -66,7 +68,9 @@ class CorpusManifest:
             version=str(data["version"]),
             description=str(data.get("description", "")),
             expected_chunk_count=(
-                int(data["chunk_count"]) if data.get("chunk_count") is not None else None
+                int(data["chunk_count"])
+                if data.get("chunk_count") is not None
+                else None
             ),
             files=files,
         )
@@ -87,7 +91,9 @@ class CorpusManifest:
         }
 
     def manifest_sha256(self) -> str:
-        canonical = json.dumps(self.canonical_payload(), sort_keys=True, separators=(",", ":"))
+        canonical = json.dumps(
+            self.canonical_payload(), sort_keys=True, separators=(",", ":")
+        )
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def chunk_count(self) -> int:
@@ -122,7 +128,9 @@ class ChunkEmbedder:
         else:
             if SentenceTransformer is None:
                 try:
-                    from sentence_transformers import SentenceTransformer as SentenceTransformer_
+                    from sentence_transformers import (
+                        SentenceTransformer as SentenceTransformer_,
+                    )
                 except Exception as exc:  # pragma: no cover - import-time fallback
                     raise IngestionError(
                         "sentence-transformers is unavailable in the current runtime"
@@ -131,7 +139,9 @@ class ChunkEmbedder:
             else:
                 self._model = SentenceTransformer(self.model_name)
 
-    def embed_texts(self, texts: Sequence[str], batch_size: int = 32) -> list[list[float]]:
+    def embed_texts(
+        self, texts: Sequence[str], batch_size: int = 32
+    ) -> list[list[float]]:
         vectors = self._model.encode(
             list(texts),
             batch_size=batch_size,
@@ -140,7 +150,8 @@ class ChunkEmbedder:
             normalize_embeddings=True,
         )
         return [
-            vector.tolist() if hasattr(vector, "tolist") else list(vector) for vector in vectors
+            vector.tolist() if hasattr(vector, "tolist") else list(vector)
+            for vector in vectors
         ]
 
 
@@ -174,7 +185,9 @@ def load_chunks(chunks_dir: str | Path | None = None) -> list[Chunk]:
             file_path = directory / entry["path"]
             _assert_file_hash(file_path, entry["sha256"])
             loaded = _load_chunks_from_path(file_path)
-            if entry.get("chunk_count") is not None and len(loaded) != int(entry["chunk_count"]):
+            if entry.get("chunk_count") is not None and len(loaded) != int(
+                entry["chunk_count"]
+            ):
                 raise IngestionError(
                     f"Corpus manifest chunk count mismatch for {file_path.name}: "
                     f"expected {entry['chunk_count']}, got {len(loaded)}"
@@ -269,7 +282,9 @@ def seed_from_directory(
     batch_size: int = 32,
 ) -> int:
     chunks = load_chunks(chunks_dir)
-    return seed_chunks(chunks, vector_db=vector_db, embedder=embedder, batch_size=batch_size)
+    return seed_chunks(
+        chunks, vector_db=vector_db, embedder=embedder, batch_size=batch_size
+    )
 
 
 def _record_to_chunk(record: dict[str, object]) -> Chunk:

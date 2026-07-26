@@ -29,10 +29,14 @@ def build_scorecard(
 ) -> ScorecardResult:
     missing = [name for name, path in required_artifacts.items() if not path.exists()]
     summary = {
-        "required_artifacts": {name: str(path) for name, path in required_artifacts.items()},
+        "required_artifacts": {
+            name: str(path) for name, path in required_artifacts.items()
+        },
         "evidence": evidence,
     }
-    return ScorecardResult(passed=not missing, missing_artifacts=missing, summary=summary)
+    return ScorecardResult(
+        passed=not missing, missing_artifacts=missing, summary=summary
+    )
 
 
 def load_evidence(path: Path) -> dict[str, Any]:

@@ -60,7 +60,9 @@ def calculate_hit_rate(
     return 1.0 if top_k.intersection(relevant) else 0.0
 
 
-def calculate_faithfulness(answer: str, context_chunks: Sequence[RetrievedChunk]) -> float:
+def calculate_faithfulness(
+    answer: str, context_chunks: Sequence[RetrievedChunk]
+) -> float:
     """Score how strongly the answer is supported by the provided context."""
     answer_tokens = _token_set(answer)
     context_tokens = _token_set(" ".join(item.chunk.text for item in context_chunks))
@@ -104,7 +106,9 @@ def calculate_citation_quality(
         return 0.0
 
     context_keys = {_citation_key(item.chunk.metadata) for item in context_chunks}
-    matches = sum(1 for citation in citations if _citation_key(citation) in context_keys)
+    matches = sum(
+        1 for citation in citations if _citation_key(citation) in context_keys
+    )
     return round(matches / len(citations), 4)
 
 
@@ -120,7 +124,9 @@ def calculate_completeness(answer: str, reference_answer: str) -> float:
     return round(len(overlap) / len(reference_tokens), 4)
 
 
-def _top_k_doc_ids(retrieved_chunks: Sequence[RetrievedChunk | str], k: int) -> set[str]:
+def _top_k_doc_ids(
+    retrieved_chunks: Sequence[RetrievedChunk | str], k: int
+) -> set[str]:
     doc_ids: set[str] = set()
     for item in retrieved_chunks[:k]:
         doc_id = _extract_doc_id(item)

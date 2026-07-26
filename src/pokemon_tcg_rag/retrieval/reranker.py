@@ -70,14 +70,20 @@ class BGEReranker:
             },
         ):
             if self._disabled_reason is not None:
-                ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
+                ordered = sorted(
+                    candidate_chunks, key=lambda item: item.score, reverse=True
+                )
                 return list(ordered[:limit])
 
             pairs = [(query, item.chunk.text) for item in candidate_chunks]
             try:
-                scores = list(cast(Any, self.model.predict)(pairs, convert_to_numpy=True))
+                scores = list(
+                    cast(Any, self.model.predict)(pairs, convert_to_numpy=True)
+                )
             except Exception:
-                ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
+                ordered = sorted(
+                    candidate_chunks, key=lambda item: item.score, reverse=True
+                )
                 return list(ordered[:limit])
 
             reranked = [

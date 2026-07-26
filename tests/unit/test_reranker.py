@@ -110,7 +110,9 @@ def test_rerank_degrades_when_model_unavailable(
         def __init__(self, *args, **kwargs) -> None:
             raise RuntimeError("offline")
 
-    monkeypatch.setattr("pokemon_tcg_rag.retrieval.reranker.CrossEncoder", BrokenCrossEncoder)
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.retrieval.reranker.CrossEncoder", BrokenCrossEncoder
+    )
     reranker = BGEReranker()
 
     output = reranker.rerank(

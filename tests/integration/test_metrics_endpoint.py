@@ -65,7 +65,9 @@ def test_metrics_endpoint_exposes_prometheus() -> None:
     feedback_store = FakeFeedbackStore()
     set_dependencies(rag_chain=FakeRAGChain(), feedback_store=feedback_store)
     try:
-        query_response = query_rag(QueryRequest(question="Can I use Rare Candy?", top_k=5))
+        query_response = query_rag(
+            QueryRequest(question="Can I use Rare Candy?", top_k=5)
+        )
         assert query_response.query_id
         assert query_response.answer == "I don't know."
 

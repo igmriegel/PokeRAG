@@ -27,7 +27,9 @@ class DummyPipeline:
     def __init__(self, processed_dir: Path | None = None) -> None:
         self.processed_dir = processed_dir
 
-    def run(self, sources: list[str] | None = None, index: bool = False) -> list[Document]:
+    def run(
+        self, sources: list[str] | None = None, index: bool = False
+    ) -> list[Document]:
         return [
             Document(
                 doc_id="cli_doc_001",
@@ -61,7 +63,9 @@ def test_run_ingestion_cli_smoke(
 
     monkeypatch.setattr(run_ingestion, "IngestionPipeline", DummyPipeline)
 
-    exit_code = run_ingestion.main(["--sources", "pdf", "--out-dir", str(tmp_path / "processed")])
+    exit_code = run_ingestion.main(
+        ["--sources", "pdf", "--out-dir", str(tmp_path / "processed")]
+    )
 
     captured = capsys.readouterr()
     assert exit_code == 0

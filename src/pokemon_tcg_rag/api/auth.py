@@ -62,7 +62,9 @@ def create_access_token(
         "scope": " ".join(scopes),
     }
     header_segment = _b64url_encode(json.dumps(header, separators=(",", ":")).encode())
-    payload_segment = _b64url_encode(json.dumps(payload, separators=(",", ":")).encode())
+    payload_segment = _b64url_encode(
+        json.dumps(payload, separators=(",", ":")).encode()
+    )
     signing_input = f"{header_segment}.{payload_segment}".encode()
     signature = hmac.new(secret.encode(), signing_input, hashlib.sha256).digest()
     return f"{header_segment}.{payload_segment}.{_b64url_encode(signature)}"
@@ -74,12 +76,17 @@ def authorize_request(*required_scopes: str) -> Callable[[Request], Principal]:
     def dependency(request: Request) -> Principal:
         global _CURRENT_PRINCIPAL
         settings = get_settings()
-        if not settings.API_AUTH_SECRET.strip() and settings.ENVIRONMENT != "production":
+        if (
+            not settings.API_AUTH_SECRET.strip()
+            and settings.ENVIRONMENT != "production"
+        ):
             principal = Principal(
                 subject="anonymous",
                 issuer=settings.API_AUTH_ISSUER,
                 audience=settings.API_AUTH_AUDIENCE,
-                scopes=frozenset({"rag:query", "rag:feedback", "rag:metrics", "rag:diagnostics"}),
+                scopes=frozenset(
+                    {"rag:query", "rag:feedback", "rag:metrics", "rag:diagnostics"}
+                ),
             )
             request.state.principal = principal
             _CURRENT_PRINCIPAL = principal
@@ -112,7 +119,10 @@ def decode_access_token(
 ) -> Principal:
     """Decode and validate a signed JWT bearer token."""
     active_settings = settings or get_settings()
-    if not active_settings.API_AUTH_SECRET.strip() and active_settings.ENVIRONMENT != "production":
+    if (
+        not active_settings.API_AUTH_SECRET.strip()
+        and active_settings.ENVIRONMENT != "production"
+    ):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="API authentication is not configured",
@@ -131,7 +141,9 @@ def decode_access_token(
     if algorithm not in _ALLOWED_ALGORITHMS:
         _raise_unauthorized("Unsupported token algorithm")
 
-    expected_signature = _sign_token(parts[0], parts[1], active_settings.API_AUTH_SECRET)
+    expected_signature = _sign_token(
+        parts[0], parts[1], active_settings.API_AUTH_SECRET
+    )
     provided_signature = _b64url_decode(parts[2])
     if not hmac.compare_digest(expected_signature, provided_signature):
         _raise_unauthorized("Invalid bearer token signature")

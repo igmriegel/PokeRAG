@@ -40,7 +40,9 @@ def _build_document(
 
 
 @pytest.mark.integration
-def test_pipeline_aggregates_all_sources(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_pipeline_aggregates_all_sources(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """TEST-029: pipeline must aggregate docs from Pokegym, HTML, and PDF sources."""
 
     def fake_fetch_all_rulings(self: object) -> list[Document]:
@@ -146,7 +148,9 @@ def test_official_pdf_sources_use_approved_live_cdn_hosts() -> None:
 
 
 @pytest.mark.integration
-def test_download_dedup_by_checksum(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_download_dedup_by_checksum(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """TEST-030: downloading the same PDF bytes twice should deduplicate by checksum."""
 
     class DummyResponse:
@@ -179,7 +183,9 @@ def test_download_dedup_by_checksum(tmp_path: Path, monkeypatch: pytest.MonkeyPa
 
 
 @pytest.mark.integration
-def test_processed_persistence_written(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_processed_persistence_written(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """TEST-031: processed JSONL and Parquet artifacts must be written."""
 
     def fake_fetch_all_rulings(self: object) -> list[Document]:
@@ -222,7 +228,9 @@ def test_processed_persistence_written(tmp_path: Path, monkeypatch: pytest.Monke
 
 
 @pytest.mark.integration
-def test_pipeline_produces_chunks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_pipeline_produces_chunks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """TEST-052: pipeline must normalize and chunk all ingested documents."""
 
     monkeypatch.setattr(
@@ -301,7 +309,9 @@ def test_pipeline_produces_chunks(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
 
 
 @pytest.mark.integration
-def test_chunks_parquet_written(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_chunks_parquet_written(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """TEST-053: chunk parquet artifact must be written to the chunks directory."""
 
     monkeypatch.setattr(
@@ -343,7 +353,9 @@ def test_chunks_parquet_written(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
 
 
 @pytest.mark.integration
-def test_end_to_end_counts_consistent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_end_to_end_counts_consistent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """TEST-054: document, chunk, and indexed point counts must remain consistent."""
 
     monkeypatch.setattr(
@@ -375,7 +387,9 @@ def test_end_to_end_counts_consistent(tmp_path: Path, monkeypatch: pytest.Monkey
         indexed_counts.append(len(chunks))
         return len(chunks)
 
-    monkeypatch.setattr("pokemon_tcg_rag.ingestion.pipeline.seed_chunks", fake_seed_chunks)
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.ingestion.pipeline.seed_chunks", fake_seed_chunks
+    )
 
     pipeline = IngestionPipeline(
         raw_data_dir=tmp_path / "raw",

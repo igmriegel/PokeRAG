@@ -170,7 +170,9 @@ def test_model_alias_properties() -> None:
         query="test?",
         answer="yes",
         citations=[meta],
-        retrieved_chunks=[RetrievedChunk(chunk=chunk, score=1.0, retrieval_method="dense")],
+        retrieved_chunks=[
+            RetrievedChunk(chunk=chunk, score=1.0, retrieval_method="dense")
+        ],
         model_name="gpt-4o-mini",
         latency_seconds=0.1,
     )
