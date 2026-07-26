@@ -1,4 +1,3 @@
 """
 Operational qualification helpers.
 """
-

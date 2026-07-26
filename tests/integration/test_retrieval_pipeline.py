@@ -18,7 +18,9 @@ from pokemon_tcg_rag.domain.models import (
 from pokemon_tcg_rag.retrieval.pipeline import RetrievalPipeline
 
 
-def _make_retrieved(chunk_id: str, score: float, retrieval_method: str) -> RetrievedChunk:
+def _make_retrieved(
+    chunk_id: str, score: float, retrieval_method: str
+) -> RetrievedChunk:
     chunk = Chunk(
         chunk_id=chunk_id,
         doc_id=f"doc-{chunk_id}",
@@ -60,7 +62,9 @@ class FakeReranker:
         self, query: str, candidate_chunks: list[RetrievedChunk], top_k: int = 5
     ) -> list[RetrievedChunk]:
         self.calls.append((query, top_k))
-        return sorted(candidate_chunks, key=lambda item: item.score, reverse=True)[:top_k]
+        return sorted(candidate_chunks, key=lambda item: item.score, reverse=True)[
+            :top_k
+        ]
 
 
 @pytest.mark.integration
@@ -82,7 +86,9 @@ def test_pipeline_chains_stages() -> None:
         reranker=reranker,
     )
 
-    rewritten, final_chunks = pipeline.execute_retrieval("Can I use Rare Candy?", top_k=1)
+    rewritten, final_chunks = pipeline.execute_retrieval(
+        "Can I use Rare Candy?", top_k=1
+    )
 
     assert rewritten == "rewritten query"
     assert query_rewriter.calls == ["Can I use Rare Candy?"]
@@ -98,7 +104,9 @@ def test_returns_rewritten_query() -> None:
         dense_retriever=object(),  # type: ignore[arg-type]
         bm25_retriever=object(),  # type: ignore[arg-type]
         query_rewriter=FakeQueryRewriter(),
-        hybrid_retriever=FakeHybridRetriever([_make_retrieved("c1", 0.9, "hybrid_rrf")]),
+        hybrid_retriever=FakeHybridRetriever(
+            [_make_retrieved("c1", 0.9, "hybrid_rrf")]
+        ),
         reranker=FakeReranker(),
     )
 

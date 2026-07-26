@@ -23,7 +23,9 @@ class QueryRewriter:
             prompt = self._build_prompt(original_query)
             rewrite = self.client.generate_answer(prompt).strip()
             rewrite = self._sanitize(rewrite)
-            if not rewrite or self._normalized(rewrite) == self._normalized(original_query):
+            if not rewrite or self._normalized(rewrite) == self._normalized(
+                original_query
+            ):
                 return original_query
             return rewrite
 

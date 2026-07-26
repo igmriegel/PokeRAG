@@ -35,7 +35,9 @@ class BGEReranker:
             except Exception as exc:  # pragma: no cover - defensive fallback
                 self._disabled_reason = str(exc)
                 LOGGER.warning(
-                    "reranker_disabled", model=self.model_name, reason=self._disabled_reason
+                    "reranker_disabled",
+                    model=self.model_name,
+                    reason=self._disabled_reason,
                 )
                 raise
         return self._reranker_model
@@ -53,17 +55,26 @@ class BGEReranker:
         limit = top_k or self.default_top_k
         with traced_span(
             "retrieval.rerank",
-            attributes={"retrieval.top_k": limit, "candidate_count": len(candidate_chunks)},
+            attributes={
+                "retrieval.top_k": limit,
+                "candidate_count": len(candidate_chunks),
+            },
         ):
             if self._disabled_reason is not None:
-                ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
+                ordered = sorted(
+                    candidate_chunks, key=lambda item: item.score, reverse=True
+                )
                 return list(ordered[:limit])
 
             pairs = [(query, item.chunk.text) for item in candidate_chunks]
             try:
-                scores = list(cast(Any, self.model.predict)(pairs, convert_to_numpy=True))
+                scores = list(
+                    cast(Any, self.model.predict)(pairs, convert_to_numpy=True)
+                )
             except Exception:
-                ordered = sorted(candidate_chunks, key=lambda item: item.score, reverse=True)
+                ordered = sorted(
+                    candidate_chunks, key=lambda item: item.score, reverse=True
+                )
                 return list(ordered[:limit])
 
             reranked = [

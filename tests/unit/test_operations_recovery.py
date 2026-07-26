@@ -6,7 +6,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pokemon_tcg_rag.operations.recovery import calculate_dora_metrics, run_recovery_drill
+from pokemon_tcg_rag.operations.recovery import (
+    calculate_dora_metrics,
+    run_recovery_drill,
+)
 
 
 def test_calculate_dora_metrics() -> None:

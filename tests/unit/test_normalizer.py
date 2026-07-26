@@ -10,7 +10,12 @@ import hashlib
 
 import pytest
 
-from pokemon_tcg_rag.domain.models import Document, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.domain.models import (
+    Document,
+    DocumentMetadata,
+    DocumentSource,
+    RuleType,
+)
 from pokemon_tcg_rag.ingestion.normalizer import DocumentNormalizer
 
 

@@ -17,7 +17,12 @@ from sentence_transformers import SentenceTransformer
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import IngestionError
-from pokemon_tcg_rag.domain.models import Chunk, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.domain.models import (
+    Chunk,
+    DocumentMetadata,
+    DocumentSource,
+    RuleType,
+)
 from pokemon_tcg_rag.monitoring.logger import get_logger, setup_logging
 from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 
@@ -50,9 +55,11 @@ class CorpusManifest:
             CorpusManifestFile(
                 path=str(entry["path"]),
                 sha256=str(entry["sha256"]),
-                chunk_count=int(entry["chunk_count"])
-                if entry.get("chunk_count") is not None
-                else None,
+                chunk_count=(
+                    int(entry["chunk_count"])
+                    if entry.get("chunk_count") is not None
+                    else None
+                ),
             )
             for entry in data.get("files", [])
         )
@@ -60,9 +67,11 @@ class CorpusManifest:
             corpus_id=str(data["corpus_id"]),
             version=str(data["version"]),
             description=str(data.get("description", "")),
-            expected_chunk_count=int(data["chunk_count"])
-            if data.get("chunk_count") is not None
-            else None,
+            expected_chunk_count=(
+                int(data["chunk_count"])
+                if data.get("chunk_count") is not None
+                else None
+            ),
             files=files,
         )
 
@@ -82,7 +91,9 @@ class CorpusManifest:
         }
 
     def manifest_sha256(self) -> str:
-        canonical = json.dumps(self.canonical_payload(), sort_keys=True, separators=(",", ":"))
+        canonical = json.dumps(
+            self.canonical_payload(), sort_keys=True, separators=(",", ":")
+        )
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def chunk_count(self) -> int:
@@ -116,7 +127,9 @@ class ChunkEmbedder:
         self.model_name = model_name or settings.EMBEDDING_MODEL_PRIMARY
         self._model = model or SentenceTransformer(self.model_name)
 
-    def embed_texts(self, texts: Sequence[str], batch_size: int = 32) -> list[list[float]]:
+    def embed_texts(
+        self, texts: Sequence[str], batch_size: int = 32
+    ) -> list[list[float]]:
         vectors = self._model.encode(
             list(texts),
             batch_size=batch_size,
@@ -125,7 +138,8 @@ class ChunkEmbedder:
             normalize_embeddings=True,
         )
         return [
-            vector.tolist() if hasattr(vector, "tolist") else list(vector) for vector in vectors
+            vector.tolist() if hasattr(vector, "tolist") else list(vector)
+            for vector in vectors
         ]
 
 
@@ -159,7 +173,9 @@ def load_chunks(chunks_dir: str | Path | None = None) -> list[Chunk]:
             file_path = directory / entry["path"]
             _assert_file_hash(file_path, entry["sha256"])
             loaded = _load_chunks_from_path(file_path)
-            if entry.get("chunk_count") is not None and len(loaded) != int(entry["chunk_count"]):
+            if entry.get("chunk_count") is not None and len(loaded) != int(
+                entry["chunk_count"]
+            ):
                 raise IngestionError(
                     f"Corpus manifest chunk count mismatch for {file_path.name}: "
                     f"expected {entry['chunk_count']}, got {len(loaded)}"
@@ -254,7 +270,9 @@ def seed_from_directory(
     batch_size: int = 32,
 ) -> int:
     chunks = load_chunks(chunks_dir)
-    return seed_chunks(chunks, vector_db=vector_db, embedder=embedder, batch_size=batch_size)
+    return seed_chunks(
+        chunks, vector_db=vector_db, embedder=embedder, batch_size=batch_size
+    )
 
 
 def _record_to_chunk(record: dict[str, object]) -> Chunk:

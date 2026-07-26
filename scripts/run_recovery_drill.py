@@ -18,10 +18,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--backup-dir", type=Path, default=Path("data/backups"))
     parser.add_argument("--restore-dir", type=Path, default=Path("data/restores"))
     parser.add_argument("--events", type=Path, default=None)
-    parser.add_argument("--output", type=Path, default=Path("data/evaluation/reports/recovery.json"))
+    parser.add_argument(
+        "--output", type=Path, default=Path("data/evaluation/reports/recovery.json")
+    )
     args = parser.parse_args(argv)
 
-    result = run_recovery_drill(args.source_dir, args.backup_dir, args.restore_dir, args.events)
+    result = run_recovery_drill(
+        args.source_dir, args.backup_dir, args.restore_dir, args.events
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps(result, indent=2))

@@ -18,7 +18,9 @@ from pokemon_tcg_rag.domain.models import (
 from pokemon_tcg_rag.retrieval.hybrid import HybridRetriever
 
 
-def _make_retrieved(chunk_id: str, score: float, retrieval_method: str) -> RetrievedChunk:
+def _make_retrieved(
+    chunk_id: str, score: float, retrieval_method: str
+) -> RetrievedChunk:
     chunk = Chunk(
         chunk_id=chunk_id,
         doc_id=f"doc-{chunk_id}",
@@ -52,8 +54,12 @@ class FakeBM25:
 @pytest.mark.unit
 def test_rrf_fusion_formula() -> None:
     """TEST-061: RRF score must follow 1 / (k + rank)."""
-    dense = FakeDense([_make_retrieved("c1", 0.8, "dense"), _make_retrieved("c2", 0.7, "dense")])
-    bm25 = FakeBM25([_make_retrieved("c2", 2.0, "bm25"), _make_retrieved("c1", 1.0, "bm25")])
+    dense = FakeDense(
+        [_make_retrieved("c1", 0.8, "dense"), _make_retrieved("c2", 0.7, "dense")]
+    )
+    bm25 = FakeBM25(
+        [_make_retrieved("c2", 2.0, "bm25"), _make_retrieved("c1", 1.0, "bm25")]
+    )
     retriever = HybridRetriever(dense, bm25, rrf_k=60)
 
     results = retriever.retrieve("Rare Candy", top_k=2)
@@ -82,10 +88,16 @@ def test_dedup_across_retrievers() -> None:
 def test_hybrid_beats_single_on_fixture() -> None:
     """TEST-063: hybrid retrieval should keep the strongest merged candidate first."""
     dense = FakeDense(
-        [_make_retrieved("dense_best", 0.9, "dense"), _make_retrieved("shared", 0.8, "dense")]
+        [
+            _make_retrieved("dense_best", 0.9, "dense"),
+            _make_retrieved("shared", 0.8, "dense"),
+        ]
     )
     bm25 = FakeBM25(
-        [_make_retrieved("shared", 2.0, "bm25"), _make_retrieved("lexical_best", 1.0, "bm25")]
+        [
+            _make_retrieved("shared", 2.0, "bm25"),
+            _make_retrieved("lexical_best", 1.0, "bm25"),
+        ]
     )
     retriever = HybridRetriever(dense, bm25, rrf_k=60)
 

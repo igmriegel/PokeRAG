@@ -26,7 +26,15 @@ SENSITIVE_KEYS = {
     "SSH_PRIVATE_KEY",
 }
 
-SAFE_PLACEHOLDERS = ("change_me", "your_", "example", "placeholder", "todo", "dummy", "")
+SAFE_PLACEHOLDERS = (
+    "change_me",
+    "your_",
+    "example",
+    "placeholder",
+    "todo",
+    "dummy",
+    "",
+)
 INCLUDE_SUFFIXES = {
     ".py",
     ".yml",
@@ -49,7 +57,9 @@ PATTERNS = [
 
 
 def tracked_files() -> list[Path]:
-    result = subprocess.run(["git", "ls-files"], check=True, capture_output=True, text=True)
+    result = subprocess.run(
+        ["git", "ls-files"], check=True, capture_output=True, text=True
+    )
     return [Path(line) for line in result.stdout.splitlines() if line]
 
 
@@ -60,7 +70,10 @@ def is_safe_value(value: str) -> bool:
 
 def scan_file(path: Path) -> list[str]:
     findings: list[str] = []
-    if path.suffix.lower() not in INCLUDE_SUFFIXES and path.name not in {".env", "Dockerfile"}:
+    if path.suffix.lower() not in INCLUDE_SUFFIXES and path.name not in {
+        ".env",
+        "Dockerfile",
+    }:
         return findings
 
     try:
@@ -81,7 +94,9 @@ def scan_file(path: Path) -> list[str]:
         if key not in SENSITIVE_KEYS:
             continue
         if not is_safe_value(value):
-            findings.append(f"{path}:{line_number}: {key} appears to contain a real secret")
+            findings.append(
+                f"{path}:{line_number}: {key} appears to contain a real secret"
+            )
 
     return findings
 

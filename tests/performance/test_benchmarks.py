@@ -10,7 +10,12 @@ from pathlib import Path
 
 import pytest
 
-from pokemon_tcg_rag.domain.models import Chunk, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.domain.models import (
+    Chunk,
+    DocumentMetadata,
+    DocumentSource,
+    RuleType,
+)
 from pokemon_tcg_rag.evaluation.evaluator import (
     EvaluationReport,
     LLMConfigurationResult,
@@ -50,7 +55,9 @@ def test_bm25_retrieval_speed_benchmark() -> None:
 
 
 class _FakeEvaluator:
-    def __init__(self, retrieval_report: EvaluationReport, llm_report: EvaluationReport) -> None:
+    def __init__(
+        self, retrieval_report: EvaluationReport, llm_report: EvaluationReport
+    ) -> None:
         self.retrieval_handlers = {"dense": lambda query, top_k: []}
         self.llm_handlers = {"prompt_a_gpt-4o-mini": lambda case: None}
         self._retrieval_report = retrieval_report
@@ -107,7 +114,9 @@ def test_cli_runs_and_writes_report(tmp_path: Path) -> None:
     assert (tmp_path / "evaluation_report.md").exists()
     assert (tmp_path / "latency_summary.json").exists()
 
-    payload = json.loads((tmp_path / "latency_summary.json").read_text(encoding="utf-8"))
+    payload = json.loads(
+        (tmp_path / "latency_summary.json").read_text(encoding="utf-8")
+    )
     assert payload["p50"] == pytest.approx(0.25)
     assert payload["p95"] == pytest.approx(0.385)
     assert payload["p99"] == pytest.approx(0.397)
@@ -147,7 +156,9 @@ def test_regression_gate_fails_below_threshold(tmp_path: Path) -> None:
     fake_evaluator = _FakeEvaluator(retrieval_report, llm_report)
 
     exit_code = main(
-        ["--report-dir", str(tmp_path)], evaluator=fake_evaluator, latency_samples=[0.1, 0.2]
+        ["--report-dir", str(tmp_path)],
+        evaluator=fake_evaluator,
+        latency_samples=[0.1, 0.2],
     )  # type: ignore[arg-type]
 
     assert exit_code == 1

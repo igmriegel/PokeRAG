@@ -101,7 +101,9 @@ def test_get_settings_cached() -> None:
 
 
 @pytest.mark.unit
-def test_settings_environment_literal_includes_test(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_settings_environment_literal_includes_test(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """ENVIRONMENT Literal must accept 'test' as a valid value."""
     monkeypatch.setenv("ENVIRONMENT", "test")
     s = Settings()

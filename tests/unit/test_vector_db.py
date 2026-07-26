@@ -11,7 +11,12 @@ from types import SimpleNamespace
 import pytest
 
 from pokemon_tcg_rag.domain.exceptions import VectorStoreError
-from pokemon_tcg_rag.domain.models import Chunk, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.domain.models import (
+    Chunk,
+    DocumentMetadata,
+    DocumentSource,
+    RuleType,
+)
 from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 
 

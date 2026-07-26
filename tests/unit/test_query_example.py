@@ -71,7 +71,9 @@ def test_example_runs_with_mocked_chain(capsys: pytest.CaptureFixture[str]) -> N
     """TEST-100: example must run with a mocked chain."""
     query_example = _load_example_module()
     chain = FakeChain()
-    exit_code = query_example.main(["--question", "Can I use Rare Candy?"], rag_chain=chain)
+    exit_code = query_example.main(
+        ["--question", "Can I use Rare Candy?"], rag_chain=chain
+    )
 
     captured = capsys.readouterr()
     assert exit_code == 0

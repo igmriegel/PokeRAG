@@ -14,8 +14,14 @@ from pokemon_tcg_rag.operations.scorecard import build_scorecard, load_evidence
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Generate a production scorecard.")
-    parser.add_argument("--evidence", type=Path, default=Path("docs/05_agent_harness/SECURITY_CLOSURE.md"))
-    parser.add_argument("--output", type=Path, default=Path("data/evaluation/reports/scorecard.json"))
+    parser.add_argument(
+        "--evidence",
+        type=Path,
+        default=Path("docs/05_agent_harness/SECURITY_CLOSURE.md"),
+    )
+    parser.add_argument(
+        "--output", type=Path, default=Path("data/evaluation/reports/scorecard.json")
+    )
     args = parser.parse_args(argv)
 
     required_artifacts = {
@@ -24,7 +30,11 @@ def main(argv: list[str] | None = None) -> int:
         "capacity_report": Path("data/evaluation/reports/capacity.json"),
         "recovery_report": Path("data/evaluation/reports/recovery.json"),
     }
-    evidence = load_evidence(args.evidence) if args.evidence.exists() and args.evidence.suffix == ".json" else {"path": str(args.evidence)}
+    evidence = (
+        load_evidence(args.evidence)
+        if args.evidence.exists() and args.evidence.suffix == ".json"
+        else {"path": str(args.evidence)}
+    )
     scorecard = build_scorecard(required_artifacts, evidence)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(scorecard.to_dict(), indent=2), encoding="utf-8")

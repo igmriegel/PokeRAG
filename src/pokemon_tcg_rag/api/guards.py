@@ -49,7 +49,8 @@ class APIRequestGuard:
             except ValueError:
                 self._record_rejection("bad_content_length")
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Content-Length header"
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid Content-Length header",
                 ) from None
 
     @contextmanager
@@ -70,7 +71,9 @@ class APIRequestGuard:
         finally:
             self._inflight.release()
 
-    def _enforce_rate(self, principal: Principal, request: Request | None, operation: str) -> None:
+    def _enforce_rate(
+        self, principal: Principal, request: Request | None, operation: str
+    ) -> None:
         key = self._principal_key(principal, request, operation)
         now = time.monotonic()
         with self._lock:
@@ -85,7 +88,9 @@ class APIRequestGuard:
                 )
             window.append(now)
 
-    def _principal_key(self, principal: Principal, request: Request | None, operation: str) -> str:
+    def _principal_key(
+        self, principal: Principal, request: Request | None, operation: str
+    ) -> str:
         client_host = request.client.host if request and request.client else "local"
         return f"{principal.subject}:{client_host}:{operation}"
 

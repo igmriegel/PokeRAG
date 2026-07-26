@@ -41,7 +41,9 @@ def test_render_answer_helper() -> None:
 
 def test_feedback_payload_built() -> None:
     """TEST-098: feedback payload must include the key API fields."""
-    payload = build_feedback_payload("qid-1", "q", "a", 1, "gpt-4o-mini", 0.5, "comment")
+    payload = build_feedback_payload(
+        "qid-1", "q", "a", 1, "gpt-4o-mini", 0.5, "comment"
+    )
 
     assert payload["rating"] == 1
     assert payload["query_id"] == "qid-1"
@@ -54,8 +56,12 @@ def test_sources_and_metrics_displayed() -> None:
     summary = render_answer(
         {
             "answer": "Yes.",
-            "citations": [{"document_title": "Official Rulebook", "source": "rulebook_pdf"}],
-            "retrieved_chunks": [{"text": "chunk text", "score": 0.9, "retrieval_method": "dense"}],
+            "citations": [
+                {"document_title": "Official Rulebook", "source": "rulebook_pdf"}
+            ],
+            "retrieved_chunks": [
+                {"text": "chunk text", "score": 0.9, "retrieval_method": "dense"}
+            ],
             "latency_seconds": 1.0,
             "model_name": "gpt-4o-mini",
         }
@@ -87,14 +93,18 @@ def test_history_entry_is_bounded_and_sanitized() -> None:
     assert entry["citations"] == ["Official Rulebook"]
 
 
-def test_backend_api_url_comes_from_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_backend_api_url_comes_from_configuration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """TEST-132: the backend URL must be sourced from trusted configuration."""
     monkeypatch.setenv("POKERAG_API_URL", "http://api:8000/api/v1")
 
     assert get_backend_api_url() == "http://api:8000/api/v1"
 
 
-@pytest.mark.parametrize("url", ["ftp://localhost:8000", "http://user:pass@localhost:8000"])
+@pytest.mark.parametrize(
+    "url", ["ftp://localhost:8000", "http://user:pass@localhost:8000"]
+)
 def test_backend_api_url_rejects_unsupported_values(
     monkeypatch: pytest.MonkeyPatch, url: str
 ) -> None:

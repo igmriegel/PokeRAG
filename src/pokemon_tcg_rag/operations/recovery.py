@@ -49,12 +49,22 @@ def restore_directory(snapshot_dir: Path, restore_dir: Path) -> Path:
 def calculate_dora_metrics(events: list[dict[str, Any]]) -> DORAMetrics:
     deployments = [event for event in events if event.get("type") == "deploy"]
     failures = [event for event in events if event.get("type") == "change_failure"]
-    mttr_values = [float(event.get("mttr_minutes", 0.0)) for event in events if event.get("type") == "incident"]
-    lead_times = [float(event.get("lead_time_hours", 0.0)) for event in deployments if event.get("lead_time_hours")]
+    mttr_values = [
+        float(event.get("mttr_minutes", 0.0))
+        for event in events
+        if event.get("type") == "incident"
+    ]
+    lead_times = [
+        float(event.get("lead_time_hours", 0.0))
+        for event in deployments
+        if event.get("lead_time_hours")
+    ]
 
     deployment_frequency = float(len(deployments))
     lead_time_hours = round(sum(lead_times) / len(lead_times), 4) if lead_times else 0.0
-    change_failure_rate = round(len(failures) / len(deployments), 4) if deployments else 0.0
+    change_failure_rate = (
+        round(len(failures) / len(deployments), 4) if deployments else 0.0
+    )
     mttr_minutes = round(sum(mttr_values) / len(mttr_values), 4) if mttr_values else 0.0
     return DORAMetrics(
         deployment_frequency=deployment_frequency,
@@ -65,7 +75,10 @@ def calculate_dora_metrics(events: list[dict[str, Any]]) -> DORAMetrics:
 
 
 def run_recovery_drill(
-    source_dir: Path, backup_root: Path, restore_root: Path, events_path: Path | None = None
+    source_dir: Path,
+    backup_root: Path,
+    restore_root: Path,
+    events_path: Path | None = None,
 ) -> dict[str, Any]:
     start = time.perf_counter()
     snapshot_dir = snapshot_directory(source_dir, backup_root)

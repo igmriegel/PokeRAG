@@ -37,7 +37,11 @@ def _retrieved(doc_id: str, score: float) -> RetrievedChunk:
 
 @pytest.mark.evaluation
 def test_recall_at_k_value() -> None:
-    retrieved = [_retrieved("doc_a", 0.95), _retrieved("doc_b", 0.9), _retrieved("doc_c", 0.8)]
+    retrieved = [
+        _retrieved("doc_a", 0.95),
+        _retrieved("doc_b", 0.9),
+        _retrieved("doc_c", 0.8),
+    ]
 
     score = calculate_recall_at_k(retrieved, ["doc_a", "doc_c"], k=2)
 
@@ -46,7 +50,11 @@ def test_recall_at_k_value() -> None:
 
 @pytest.mark.evaluation
 def test_mrr_value() -> None:
-    retrieved = [_retrieved("doc_x", 0.95), _retrieved("doc_b", 0.9), _retrieved("doc_c", 0.8)]
+    retrieved = [
+        _retrieved("doc_x", 0.95),
+        _retrieved("doc_b", 0.9),
+        _retrieved("doc_c", 0.8),
+    ]
 
     score = calculate_mrr(retrieved, ["doc_c", "doc_z"])
 
@@ -55,7 +63,11 @@ def test_mrr_value() -> None:
 
 @pytest.mark.evaluation
 def test_hit_rate_value() -> None:
-    retrieved = [_retrieved("doc_x", 0.95), _retrieved("doc_b", 0.9), _retrieved("doc_c", 0.8)]
+    retrieved = [
+        _retrieved("doc_x", 0.95),
+        _retrieved("doc_b", 0.9),
+        _retrieved("doc_c", 0.8),
+    ]
 
     score = calculate_hit_rate(retrieved, ["doc_c"], k=3)
 

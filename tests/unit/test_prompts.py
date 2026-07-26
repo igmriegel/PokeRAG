@@ -73,7 +73,9 @@ def test_idk_instruction_present() -> None:
     prompt = manager.build_prompt("Unknown question", [])
 
     assert "I don't know." in prompt
-    assert "não invente" not in prompt.lower() or "Não invente".lower() in prompt.lower()
+    assert (
+        "não invente" not in prompt.lower() or "Não invente".lower() in prompt.lower()
+    )
 
 
 @pytest.mark.unit

@@ -47,7 +47,9 @@ def initialize_tracing(service_name: str = "pokemon-tcg-rag") -> None:
         return
 
     provider = TracerProvider(resource=Resource.create({"service.name": service_name}))
-    provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter(out=sys.__stdout__)))
+    provider.add_span_processor(
+        BatchSpanProcessor(ConsoleSpanExporter(out=sys.__stdout__))
+    )
     trace.set_tracer_provider(provider)
     _TRACER_PROVIDER_INITIALIZED = True
 
@@ -59,7 +61,9 @@ def get_tracer():
 
 
 @contextmanager
-def traced_span(name: str, *, attributes: dict[str, object] | None = None) -> Iterator[None]:
+def traced_span(
+    name: str, *, attributes: dict[str, object] | None = None
+) -> Iterator[None]:
     """Create a child span with sanitized, low-cardinality attributes."""
     tracer = get_tracer()
     with tracer.start_as_current_span(name) as span:
@@ -82,7 +86,9 @@ def current_trace_context() -> TraceContext:
     context = span.get_span_context()
     if context is None or not context.is_valid:
         return TraceContext(trace_id=None, span_id=None)
-    return TraceContext(trace_id=f"{context.trace_id:032x}", span_id=f"{context.span_id:016x}")
+    return TraceContext(
+        trace_id=f"{context.trace_id:032x}", span_id=f"{context.span_id:016x}"
+    )
 
 
 def sanitize_attributes(attributes: dict[str, object] | None) -> dict[str, object]:

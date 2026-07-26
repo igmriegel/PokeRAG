@@ -18,7 +18,9 @@ RELEASE_TESTS = [
 def main() -> None:
     env = os.environ.copy()
     env["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
-    subprocess.run([sys.executable, "scripts/run_security_regression.py"], check=True, env=env)
+    subprocess.run(
+        [sys.executable, "scripts/run_security_regression.py"], check=True, env=env
+    )
     subprocess.run(
         [sys.executable, "-m", "pytest", "-o", "addopts=", "-q", *RELEASE_TESTS],
         check=True,

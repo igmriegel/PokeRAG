@@ -26,7 +26,9 @@ class _SyntheticHandler:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run capacity qualification.")
     parser.add_argument("--scenario", default="warm")
-    parser.add_argument("--output", type=Path, default=Path("data/evaluation/reports/capacity.json"))
+    parser.add_argument(
+        "--output", type=Path, default=Path("data/evaluation/reports/capacity.json")
+    )
     parser.add_argument("--concurrency", type=int, default=4)
     args = parser.parse_args(argv)
 

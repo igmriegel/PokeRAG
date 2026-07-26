@@ -42,7 +42,10 @@ class DenseRetriever:
         try:
             with traced_span(
                 "retrieval.dense",
-                attributes={"retrieval.top_k": limit, "query.length": len(query.strip())},
+                attributes={
+                    "retrieval.top_k": limit,
+                    "query.length": len(query.strip()),
+                },
             ):
                 query_vector = self._encode_query(query)
                 results = self.vector_db.search_dense(
@@ -55,7 +58,9 @@ class DenseRetriever:
         return sorted(results, key=lambda item: item.score, reverse=True)[:limit]
 
     def _encode_query(self, query: str) -> list[float]:
-        vector = self.model.encode(query, convert_to_numpy=True, normalize_embeddings=True)
+        vector = self.model.encode(
+            query, convert_to_numpy=True, normalize_embeddings=True
+        )
         if hasattr(vector, "tolist"):
             query_vector = vector.tolist()
         elif isinstance(vector, Sequence):

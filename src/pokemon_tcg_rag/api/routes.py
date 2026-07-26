@@ -79,11 +79,14 @@ def query_rag_route(payload: QueryRequest) -> QueryResponse:
     return query_rag(payload, principal=get_current_principal())
 
 
-def query_rag(payload: QueryRequest, principal: Principal | None = None) -> QueryResponse:
+def query_rag(
+    payload: QueryRequest, principal: Principal | None = None
+) -> QueryResponse:
     """Execute the RAG pipeline and map the response to the public schema."""
     if _rag_chain is None:
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="RAG chain unavailable"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="RAG chain unavailable",
         )
 
     try:
@@ -159,37 +162,54 @@ def query_rag(payload: QueryRequest, principal: Principal | None = None) -> Quer
 @router.post(
     "/feedback",
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Security(bearer_scheme()), Depends(authorize_request("rag:feedback"))],
+    dependencies=[
+        Security(bearer_scheme()),
+        Depends(authorize_request("rag:feedback")),
+    ],
 )
 def submit_feedback_route(payload: FeedbackRequest) -> dict[str, str]:
     """HTTP wrapper that enforces auth then delegates to the core feedback flow."""
     return submit_feedback(payload, principal=get_current_principal())
 
 
-def submit_feedback(payload: FeedbackRequest, principal: Principal | None = None) -> dict[str, str]:
+def submit_feedback(
+    payload: FeedbackRequest, principal: Principal | None = None
+) -> dict[str, str]:
     """Persist user feedback through the feedback store service."""
     if _feedback_store is None:
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Feedback store unavailable"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Feedback store unavailable",
         )
     if payload.query_id in _submitted_feedback:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Feedback already submitted for this query"
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Feedback already submitted for this query",
         )
     effective_principal = principal or _resolve_principal()
     stored_query = _query_sessions.get(payload.query_id)
     if stored_query is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown query_id")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Unknown query_id"
+        )
     if stored_query.owner_subject != effective_principal.subject:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Feedback owner mismatch")
-    if time.time() - stored_query.issued_at > get_settings().API_FEEDBACK_MAX_AGE_SECONDS:
-        raise HTTPException(status_code=status.HTTP_410_GONE, detail="Feedback window expired")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Feedback owner mismatch"
+        )
+    if (
+        time.time() - stored_query.issued_at
+        > get_settings().API_FEEDBACK_MAX_AGE_SECONDS
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE, detail="Feedback window expired"
+        )
     if (
         stored_query.response.query != payload.query
         or stored_query.response.answer != payload.answer
     ):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Feedback payload does not match query"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Feedback payload does not match query",
         )
 
     try:
@@ -247,5 +267,7 @@ def _resolve_principal() -> Principal:
         subject="anonymous",
         issuer="poketcg-rag",
         audience="poketcg-rag-api",
-        scopes=frozenset({"rag:query", "rag:feedback", "rag:metrics", "rag:diagnostics"}),
+        scopes=frozenset(
+            {"rag:query", "rag:feedback", "rag:metrics", "rag:diagnostics"}
+        ),
     )

@@ -16,7 +16,12 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup, Tag
 
 from pokemon_tcg_rag.domain.exceptions import IngestionError
-from pokemon_tcg_rag.domain.models import Document, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.domain.models import (
+    Document,
+    DocumentMetadata,
+    DocumentSource,
+    RuleType,
+)
 from pokemon_tcg_rag.ingestion.trust_boundary import (
     download_trusted_bytes,
     is_instruction_poisoned,
@@ -182,7 +187,9 @@ class PokegymCrawler:
                 if len(
                     [
                         part
-                        for part in cast(str, link.get("href", "")).split("/category/", 1)[-1].split("/")
+                        for part in cast(str, link.get("href", ""))
+                        .split("/category/", 1)[-1]
+                        .split("/")
                         if part
                     ]
                 )
@@ -191,7 +198,9 @@ class PokegymCrawler:
             source = container.find(id="source")
             source_text = source.get_text(" ", strip=True) if source else ""
             date_match = re.search(r"\((\d{4}-\d{2}-\d{2})\)", source_text)
-            ruling_link = container.find("a", href=lambda href: href and "/ruling/" in href)
+            ruling_link = container.find(
+                "a", href=lambda href: href and "/ruling/" in href
+            )
 
             records.append(
                 self._canonicalize_row(
@@ -204,9 +213,11 @@ class PokegymCrawler:
                         ),
                         "url": urljoin(
                             self.BASE_URL,
-                            cast(str, ruling_link.get("href"))
-                            if ruling_link is not None
-                            else self.BASE_URL,
+                            (
+                                cast(str, ruling_link.get("href"))
+                                if ruling_link is not None
+                                else self.BASE_URL
+                            ),
                         ),
                     }
                 )
@@ -224,7 +235,10 @@ class PokegymCrawler:
     def _extract_table_headers(self, table: Tag) -> list[str]:
         header_cells = table.find_all("th")
         if header_cells:
-            return [self._normalize_header(cell.get_text(" ", strip=True)) for cell in header_cells]
+            return [
+                self._normalize_header(cell.get_text(" ", strip=True))
+                for cell in header_cells
+            ]
         first_row = table.find("tr")
         if not first_row:
             return []
@@ -233,7 +247,9 @@ class PokegymCrawler:
             for cell in first_row.find_all(["th", "td"])
         ]
 
-    def _row_from_cells(self, headers: list[str], cells: list[Tag], tr: Tag) -> dict[str, str]:
+    def _row_from_cells(
+        self, headers: list[str], cells: list[Tag], tr: Tag
+    ) -> dict[str, str]:
         values = [cell.get_text(" ", strip=True) for cell in cells]
         data: dict[str, str] = {}
         for idx in range(min(len(headers), len(values))):

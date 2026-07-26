@@ -86,7 +86,9 @@ def run_evaluation(
 ) -> EvaluationReport:
     """Run retrieval and LLM evaluation, persist the report, and enforce thresholds."""
     active_evaluator = evaluator or _build_default_evaluator()
-    dataset_loader = getattr(active_evaluator, "dataset_loader", EvaluationDatasetLoader())
+    dataset_loader = getattr(
+        active_evaluator, "dataset_loader", EvaluationDatasetLoader()
+    )
     cases = dataset_loader.load_dataset()
     report_dir.mkdir(parents=True, exist_ok=True)
 
@@ -102,10 +104,14 @@ def run_evaluation(
         llm_handler_timings,
     )
 
-    retrieval_report = active_evaluator.evaluate_retrieval_strategies(retrieval_handlers)
+    retrieval_report = active_evaluator.evaluate_retrieval_strategies(
+        retrieval_handlers
+    )
     llm_report = active_evaluator.evaluate_llm_configurations(llm_handlers)
     combined_report = EvaluationReport(
-        total_questions=max(retrieval_report.total_questions, llm_report.total_questions),
+        total_questions=max(
+            retrieval_report.total_questions, llm_report.total_questions
+        ),
         retrieval_results=retrieval_report.retrieval_results,
         llm_results=llm_report.llm_results,
         best_retrieval_strategy=retrieval_report.best_retrieval_strategy,
@@ -141,7 +147,9 @@ def main(
     latency_samples: Sequence[float] | None = None,
 ) -> int:
     """CLI entrypoint."""
-    parser = argparse.ArgumentParser(description="Run the Pokemon TCG RAG evaluation suite.")
+    parser = argparse.ArgumentParser(
+        description="Run the Pokemon TCG RAG evaluation suite."
+    )
     parser.add_argument(
         "--report-dir",
         type=Path,
@@ -180,9 +188,11 @@ def main(
             report = run_evaluation(
                 report_dir=args.report_dir,
                 evaluator=evaluator,
-                latency_samples=latency_samples
-                if latency_samples is not None
-                else args.latency_samples,
+                latency_samples=(
+                    latency_samples
+                    if latency_samples is not None
+                    else args.latency_samples
+                ),
             )
         finally:
             if container is not None:
@@ -205,7 +215,9 @@ def _build_default_evaluator() -> RAGEvaluator:
     )
 
 
-def _build_default_retrieval_handlers(cases: Sequence[EvalTestCase]) -> dict[str, RetrievalHandler]:
+def _build_default_retrieval_handlers(
+    cases: Sequence[EvalTestCase],
+) -> dict[str, RetrievalHandler]:
     case_map = {case.question: case for case in cases}
 
     def _make_handler(
@@ -220,24 +232,34 @@ def _build_default_retrieval_handlers(cases: Sequence[EvalTestCase]) -> dict[str
             if relevant_first:
                 for index, doc_id in enumerate(relevant_docs, start=1):
                     chunks.append(
-                        _make_retrieved_chunk(doc_id, case.expected_source, strategy_name, index)
+                        _make_retrieved_chunk(
+                            doc_id, case.expected_source, strategy_name, index
+                        )
                     )
                 if lead_noise:
                     chunks.append(
                         _make_retrieved_chunk(
-                            f"noise-{case.question_id}", case.expected_source, strategy_name, 99
+                            f"noise-{case.question_id}",
+                            case.expected_source,
+                            strategy_name,
+                            99,
                         )
                     )
             else:
                 if lead_noise:
                     chunks.append(
                         _make_retrieved_chunk(
-                            f"noise-{case.question_id}", case.expected_source, strategy_name, 1
+                            f"noise-{case.question_id}",
+                            case.expected_source,
+                            strategy_name,
+                            1,
                         )
                     )
                 for index, doc_id in enumerate(relevant_docs, start=2):
                     chunks.append(
-                        _make_retrieved_chunk(doc_id, case.expected_source, strategy_name, index)
+                        _make_retrieved_chunk(
+                            doc_id, case.expected_source, strategy_name, index
+                        )
                     )
             return chunks[:top_k]
 
@@ -247,7 +269,9 @@ def _build_default_retrieval_handlers(cases: Sequence[EvalTestCase]) -> dict[str
         "dense": _make_handler("dense", lead_noise=True, relevant_first=False),
         "bm25": _make_handler("bm25", lead_noise=True, relevant_first=False),
         "hybrid": _make_handler("hybrid", lead_noise=True, relevant_first=True),
-        "hybrid_rerank": _make_handler("hybrid_rerank", lead_noise=False, relevant_first=True),
+        "hybrid_rerank": _make_handler(
+            "hybrid_rerank", lead_noise=False, relevant_first=True
+        ),
     }
 
 
@@ -327,7 +351,9 @@ def _timed_retrieval_handler(
     return wrapped
 
 
-def _timed_llm_handler(name: str, handler: LLMHandler, timings: list[float]) -> LLMHandler:
+def _timed_llm_handler(
+    name: str, handler: LLMHandler, timings: list[float]
+) -> LLMHandler:
     del name
 
     def wrapped(case: EvalTestCase) -> LLMEvaluationSample:
@@ -362,8 +388,12 @@ def _write_report_files(
     report: EvaluationReport, report_dir: Path, samples: Sequence[float]
 ) -> None:
     report_dir.mkdir(parents=True, exist_ok=True)
-    (report_dir / "evaluation_report.json").write_text(report.to_json(), encoding="utf-8")
-    (report_dir / "evaluation_report.md").write_text(report.to_markdown(), encoding="utf-8")
+    (report_dir / "evaluation_report.json").write_text(
+        report.to_json(), encoding="utf-8"
+    )
+    (report_dir / "evaluation_report.md").write_text(
+        report.to_markdown(), encoding="utf-8"
+    )
     latency_summary = calculate_latency_percentiles(samples)
     (report_dir / DEFAULT_LATENCY_REPORT).write_text(
         json.dumps(latency_summary.to_dict(), indent=2),
@@ -385,7 +415,10 @@ def _enforce_regression_gate(report: EvaluationReport) -> None:
         failures.append("best retrieval strategy was not selected")
 
     llm_result = None
-    if report.best_llm_configuration and report.best_llm_configuration in report.llm_results:
+    if (
+        report.best_llm_configuration
+        and report.best_llm_configuration in report.llm_results
+    ):
         llm_result = report.llm_results[report.best_llm_configuration]
         failures.extend(_check_llm_thresholds(llm_result))
     else:

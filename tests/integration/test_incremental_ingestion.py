@@ -9,7 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from pokemon_tcg_rag.domain.models import Document, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.domain.models import (
+    Document,
+    DocumentMetadata,
+    DocumentSource,
+    RuleType,
+)
 from pokemon_tcg_rag.ingestion.pipeline import IngestionPipeline
 
 
@@ -29,7 +34,9 @@ def _doc(doc_id: str, content: str, source: DocumentSource) -> Document:
 @pytest.mark.integration
 def test_incremental_manifest_tracks_diffs(tmp_path: Path) -> None:
     pipeline = IngestionPipeline(
-        raw_data_dir=tmp_path / "raw", processed_dir=tmp_path / "processed", chunks_dir=tmp_path / "chunks"
+        raw_data_dir=tmp_path / "raw",
+        processed_dir=tmp_path / "processed",
+        chunks_dir=tmp_path / "chunks",
     )
     documents = [_doc("doc-1", "one", DocumentSource.RULEBOOK_PDF)]
     chunks = pipeline._chunk_documents(documents)

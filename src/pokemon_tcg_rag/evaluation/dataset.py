@@ -99,7 +99,9 @@ class EvaluationDatasetLoader:
         question_id = item.get("question_id") or f"Q{index:03d}"
         question = item.get("question")
         expected_source = item.get("expected_source")
-        ground_truth_doc_ids = item.get("ground_truth_doc_ids") or item.get("expected_doc_ids")
+        ground_truth_doc_ids = item.get("ground_truth_doc_ids") or item.get(
+            "expected_doc_ids"
+        )
         reference_answer = item.get("reference_answer")
 
         if reference_answer is None:
@@ -119,5 +121,7 @@ class EvaluationDatasetLoader:
 
         missing = [field for field, value in normalized.items() if value is None]
         if missing:
-            raise ValueError(f"Case {index} is missing required fields: {', '.join(missing)}")
+            raise ValueError(
+                f"Case {index} is missing required fields: {', '.join(missing)}"
+            )
         return normalized

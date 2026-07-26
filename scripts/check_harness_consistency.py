@@ -33,9 +33,7 @@ TASK_INDEX_ROW = re.compile(
 TRACEABILITY_ROW = re.compile(
     r"^\| \[(?P<req>REQ-\d{3})\]\([^)]+\) .* \| (?P<status>[^|]+) \|$"
 )
-BACKLOG_ROW = re.compile(
-    r"^\| \*\*(?P<bl>BL-\d{3})\*\* \| .* \| (?P<status>[^|]+) \|$"
-)
+BACKLOG_ROW = re.compile(r"^\| \*\*(?P<bl>BL-\d{3})\*\* \| .* \| (?P<status>[^|]+) \|$")
 
 
 @dataclass(frozen=True)
@@ -50,7 +48,9 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def _parse_table(path: Path, pattern: re.Pattern[str], id_group: str, status_group: str) -> dict[str, str]:
+def _parse_table(
+    path: Path, pattern: re.Pattern[str], id_group: str, status_group: str
+) -> dict[str, str]:
     values: dict[str, str] = {}
     for line in _read(path).splitlines():
         match = pattern.match(line)
@@ -117,14 +117,18 @@ def _expected_traceability_statuses() -> dict[str, str]:
     return expected
 
 
-def _compare(actual: dict[str, str], expected: dict[str, str], document: str) -> list[Finding]:
+def _compare(
+    actual: dict[str, str], expected: dict[str, str], document: str
+) -> list[Finding]:
     findings: list[Finding] = []
     for identifier, expected_status in expected.items():
         found_status = actual.get(identifier)
         if found_status is None:
             findings.append(Finding(document, identifier, expected_status, "<missing>"))
         elif found_status != expected_status:
-            findings.append(Finding(document, identifier, expected_status, found_status))
+            findings.append(
+                Finding(document, identifier, expected_status, found_status)
+            )
     return findings
 
 

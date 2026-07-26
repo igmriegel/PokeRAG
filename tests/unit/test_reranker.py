@@ -53,7 +53,11 @@ def test_rerank_returns_top_k(monkeypatch: pytest.MonkeyPatch) -> None:
 
     output = reranker.rerank(
         "Rare Candy",
-        [_make_candidate("c1", "a"), _make_candidate("c2", "b"), _make_candidate("c3", "c")],
+        [
+            _make_candidate("c1", "a"),
+            _make_candidate("c2", "b"),
+            _make_candidate("c3", "c"),
+        ],
         top_k=2,
     )
 
@@ -71,7 +75,11 @@ def test_rerank_reorders_by_score(monkeypatch: pytest.MonkeyPatch) -> None:
 
     output = reranker.rerank(
         "Rare Candy",
-        [_make_candidate("c1", "a"), _make_candidate("c2", "b"), _make_candidate("c3", "c")],
+        [
+            _make_candidate("c1", "a"),
+            _make_candidate("c2", "b"),
+            _make_candidate("c3", "c"),
+        ],
         top_k=3,
     )
 
@@ -93,14 +101,18 @@ def test_fewer_candidates_than_k(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.unit
-def test_rerank_degrades_when_model_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_rerank_degrades_when_model_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """TASK-064: the local runtime must stay usable when the reranker model cannot load."""
 
     class BrokenCrossEncoder:
         def __init__(self, *args, **kwargs) -> None:
             raise RuntimeError("offline")
 
-    monkeypatch.setattr("pokemon_tcg_rag.retrieval.reranker.CrossEncoder", BrokenCrossEncoder)
+    monkeypatch.setattr(
+        "pokemon_tcg_rag.retrieval.reranker.CrossEncoder", BrokenCrossEncoder
+    )
     reranker = BGEReranker()
 
     output = reranker.rerank(

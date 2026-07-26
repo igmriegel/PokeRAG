@@ -6,7 +6,11 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from pokemon_tcg_rag.domain.models import AnswerResponse, DocumentMetadata, RetrievedChunk
+from pokemon_tcg_rag.domain.models import (
+    AnswerResponse,
+    DocumentMetadata,
+    RetrievedChunk,
+)
 
 
 class QueryRequest(BaseModel):
@@ -37,7 +41,13 @@ class QueryRequest(BaseModel):
     ) -> dict[str, str] | None:
         if value is None:
             return None
-        allowed_keys = {"source", "rule_type", "document_title", "card_name", "page_number"}
+        allowed_keys = {
+            "source",
+            "rule_type",
+            "document_title",
+            "card_name",
+            "page_number",
+        }
         cleaned: dict[str, str] = {}
         for key, item in value.items():
             cleaned_key = key.strip()
@@ -134,9 +144,12 @@ class QueryResponse(BaseModel):
             query=response.query,
             rewritten_query=response.rewritten_query,
             answer=response.answer,
-            citations=[CitationSchema.from_metadata(item) for item in response.citations],
+            citations=[
+                CitationSchema.from_metadata(item) for item in response.citations
+            ],
             retrieved_chunks=[
-                ChunkSnippetSchema.from_retrieved_chunk(item) for item in response.retrieved_chunks
+                ChunkSnippetSchema.from_retrieved_chunk(item)
+                for item in response.retrieved_chunks
             ],
             model_name=response.model_name,
             latency_seconds=response.latency_seconds,

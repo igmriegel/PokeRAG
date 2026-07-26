@@ -10,7 +10,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_runbooks_reference_safe_commands_and_owners() -> None:
-    content = (PROJECT_ROOT / "docs/06_operations/RUNBOOKS.md").read_text(encoding="utf-8")
+    content = (PROJECT_ROOT / "docs/06_operations/RUNBOOKS.md").read_text(
+        encoding="utf-8"
+    )
 
     assert "Tech Lead" in content
     assert "make run-api" in content

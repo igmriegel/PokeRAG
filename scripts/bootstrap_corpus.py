@@ -13,7 +13,9 @@ def main() -> int:
     setup_logging()
     chunks = load_chunks("data/chunks")
     if not chunks:
-        raise SystemExit(f"No chunks found in data/chunks (expected {CORPUS_MANIFEST_NAME}).")
+        raise SystemExit(
+            f"No chunks found in data/chunks (expected {CORPUS_MANIFEST_NAME})."
+        )
 
     print(f"Bootstrap corpus ready: {len(chunks)} chunks loaded from data/chunks.")
     return 0

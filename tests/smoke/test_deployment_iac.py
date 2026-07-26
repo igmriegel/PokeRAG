@@ -12,7 +12,15 @@ import yaml
 PROJECT_ROOT = pathlib.Path(__file__).parents[2]
 RENDER_FILE = PROJECT_ROOT / "deploy" / "render.yaml"
 K8S_FILE = PROJECT_ROOT / "deploy" / "k8s" / "stack.yaml"
-EXPECTED_SERVICE_NAMES = {"qdrant", "postgres", "api", "ui", "prometheus", "grafana", "ingestion"}
+EXPECTED_SERVICE_NAMES = {
+    "qdrant",
+    "postgres",
+    "api",
+    "ui",
+    "prometheus",
+    "grafana",
+    "ingestion",
+}
 
 
 @pytest.mark.smoke

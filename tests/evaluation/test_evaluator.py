@@ -31,7 +31,9 @@ def _case(
     )
 
 
-def _chunk(doc_id: str, source: DocumentSource, page_number: int | None = None) -> RetrievedChunk:
+def _chunk(
+    doc_id: str, source: DocumentSource, page_number: int | None = None
+) -> RetrievedChunk:
     chunk = Chunk(
         chunk_id=f"chunk-{doc_id}",
         doc_id=doc_id,
@@ -47,9 +49,9 @@ def _chunk(doc_id: str, source: DocumentSource, page_number: int | None = None) 
     return RetrievedChunk(chunk=chunk, score=1.0, retrieval_method="mock")
 
 
-def _retrieval_handlers() -> tuple[
-    dict[str, Callable[[str, int], list[RetrievedChunk]]], dict[str, int]
-]:
+def _retrieval_handlers() -> (
+    tuple[dict[str, Callable[[str, int], list[RetrievedChunk]]], dict[str, int]]
+):
     calls = {"dense": 0, "bm25": 0, "hybrid": 0, "hybrid_rerank": 0}
 
     def dense(_: str, __: int) -> list[RetrievedChunk]:
@@ -86,7 +88,12 @@ def _retrieval_handlers() -> tuple[
             _chunk("doc_noise_1", DocumentSource.RULEBOOK_PDF),
         ]
 
-    handlers = {"dense": dense, "bm25": bm25, "hybrid": hybrid, "hybrid_rerank": hybrid_rerank}
+    handlers = {
+        "dense": dense,
+        "bm25": bm25,
+        "hybrid": hybrid,
+        "hybrid_rerank": hybrid_rerank,
+    }
     return handlers, calls
 
 

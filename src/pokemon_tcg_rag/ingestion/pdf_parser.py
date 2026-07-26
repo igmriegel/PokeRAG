@@ -15,8 +15,16 @@ import fitz
 import pymupdf4llm
 
 from pokemon_tcg_rag.domain.exceptions import ParsingError
-from pokemon_tcg_rag.domain.models import Document, DocumentMetadata, DocumentSource, RuleType
-from pokemon_tcg_rag.ingestion.trust_boundary import is_instruction_poisoned, quarantine_payload
+from pokemon_tcg_rag.domain.models import (
+    Document,
+    DocumentMetadata,
+    DocumentSource,
+    RuleType,
+)
+from pokemon_tcg_rag.ingestion.trust_boundary import (
+    is_instruction_poisoned,
+    quarantine_payload,
+)
 from pokemon_tcg_rag.monitoring.logger import get_logger
 
 LOGGER = get_logger(__name__)
@@ -89,7 +97,9 @@ class PDFParser:
                             f"Suspicious instruction-like content detected in PDF {path}"
                         )
 
-                    section_title = self._extract_section_title(page_text, markdown_text)
+                    section_title = self._extract_section_title(
+                        page_text, markdown_text
+                    )
                     document = Document(
                         doc_id=f"{path.stem}_p{page_number + 1}",
                         content=page_text,

@@ -33,7 +33,9 @@ class FakeClient:
 
 
 def _completion(text: str):
-    return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=text))])
+    return SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content=text))]
+    )
 
 
 @pytest.mark.unit

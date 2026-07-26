@@ -47,12 +47,16 @@ class HybridRetriever:
 
         for rank, result in enumerate(dense_results, start=1):
             chunk_id = result.chunk.chunk_id
-            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(rank)
+            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(
+                rank
+            )
             chunk_map[chunk_id] = result
 
         for rank, result in enumerate(bm25_results, start=1):
             chunk_id = result.chunk.chunk_id
-            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(rank)
+            fused_scores[chunk_id] = fused_scores.get(chunk_id, 0.0) + self._rrf_score(
+                rank
+            )
             chunk_map.setdefault(chunk_id, result)
 
         ordered_ids = sorted(

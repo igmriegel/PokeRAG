@@ -42,7 +42,9 @@ def test_dockerignore_present() -> None:
 def test_k8s_stack_has_restricted_workloads() -> None:
     docs = list(yaml.safe_load_all(K8S_STACK_FILE.read_text(encoding="utf-8")))
     api = next(
-        doc for doc in docs if doc.get("kind") == "Deployment" and doc["metadata"]["name"] == "api"
+        doc
+        for doc in docs
+        if doc.get("kind") == "Deployment" and doc["metadata"]["name"] == "api"
     )
     api_spec = api["spec"]["template"]["spec"]
     api_container = api_spec["containers"][0]

@@ -33,9 +33,9 @@ class FeedbackStore:
             attributes={
                 "feedback.rating": rating,
                 "feedback.has_comment": bool(comment and comment.strip()),
-                "feedback.comment_length": len(comment.strip())
-                if comment and comment.strip()
-                else 0,
+                "feedback.comment_length": (
+                    len(comment.strip()) if comment and comment.strip() else 0
+                ),
             },
         ):
             normalized_comment = comment.strip() if comment else None

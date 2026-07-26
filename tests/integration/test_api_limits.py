@@ -48,7 +48,9 @@ def _answer_response() -> AnswerResponse:
         rewritten_query="Pokemon TCG Rare Candy legality",
         answer="Yes.",
         citations=[metadata],
-        retrieved_chunks=[RetrievedChunk(chunk=chunk, score=0.9, retrieval_method="dense")],
+        retrieved_chunks=[
+            RetrievedChunk(chunk=chunk, score=0.9, retrieval_method="dense")
+        ],
         model_name="gpt-4o-mini",
         latency_seconds=0.42,
     )
@@ -91,9 +93,13 @@ def guarded_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setattr(
         api_routes,
         "DEFAULT_REQUEST_GUARD",
-        APIRequestGuard(rate_limit_per_minute=1, max_concurrent_requests=1, max_body_bytes=4096),
+        APIRequestGuard(
+            rate_limit_per_minute=1, max_concurrent_requests=1, max_body_bytes=4096
+        ),
     )
-    monkeypatch.setattr(api_runtime, "build_runtime_container", lambda: FakeRuntimeContainer())
+    monkeypatch.setattr(
+        api_runtime, "build_runtime_container", lambda: FakeRuntimeContainer()
+    )
     set_dependencies(None, None)
     app = api_main.create_app()
     with TestClient(app) as client:
@@ -116,7 +122,9 @@ def _token(scopes: tuple[str, ...]) -> str:
     )
 
 
-def test_payload_schema_limits_reject_unknown_fields(guarded_client: TestClient) -> None:
+def test_payload_schema_limits_reject_unknown_fields(
+    guarded_client: TestClient,
+) -> None:
     """Unknown request fields must be rejected."""
     response = guarded_client.post(
         "/api/v1/query",
@@ -126,7 +134,9 @@ def test_payload_schema_limits_reject_unknown_fields(guarded_client: TestClient)
     assert response.status_code == 422
 
 
-def test_payload_schema_limits_reject_oversized_question(guarded_client: TestClient) -> None:
+def test_payload_schema_limits_reject_oversized_question(
+    guarded_client: TestClient,
+) -> None:
     """Question text must be bounded."""
     response = guarded_client.post(
         "/api/v1/query",

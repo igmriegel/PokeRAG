@@ -14,7 +14,9 @@ from pokemon_tcg_rag.monitoring.logger import setup_logging
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the Pokemon TCG ingestion pipeline")
+    parser = argparse.ArgumentParser(
+        description="Run the Pokemon TCG ingestion pipeline"
+    )
     parser.add_argument(
         "--sources",
         nargs="+",

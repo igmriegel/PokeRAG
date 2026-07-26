@@ -58,7 +58,8 @@ def test_dense_returns_top_k(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-055: dense retriever must return only the requested top_k results."""
     fake_model = FakeModel()
     monkeypatch.setattr(
-        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer", lambda *args, **kwargs: fake_model
+        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer",
+        lambda *args, **kwargs: fake_model,
     )
 
     results = [_make_retrieved("c1", 0.1), _make_retrieved("c2", 0.9)]
@@ -77,7 +78,8 @@ def test_query_encoded_to_1024(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-056: the query embedding must be 1024-dimensional."""
     fake_model = FakeModel()
     monkeypatch.setattr(
-        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer", lambda *args, **kwargs: fake_model
+        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer",
+        lambda *args, **kwargs: fake_model,
     )
 
     db = FakeVectorDB([_make_retrieved("c1", 0.5)])
@@ -94,10 +96,15 @@ def test_results_ordered_by_score(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-057: results must be sorted by descending score."""
     fake_model = FakeModel()
     monkeypatch.setattr(
-        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer", lambda *args, **kwargs: fake_model
+        "pokemon_tcg_rag.retrieval.dense.SentenceTransformer",
+        lambda *args, **kwargs: fake_model,
     )
 
-    results = [_make_retrieved("c1", 0.1), _make_retrieved("c2", 0.9), _make_retrieved("c3", 0.5)]
+    results = [
+        _make_retrieved("c1", 0.1),
+        _make_retrieved("c2", 0.9),
+        _make_retrieved("c3", 0.5),
+    ]
     db = FakeVectorDB(results)
     retriever = DenseRetriever(db)
 

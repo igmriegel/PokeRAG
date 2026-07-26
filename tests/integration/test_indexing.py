@@ -9,9 +9,18 @@ from __future__ import annotations
 import pytest
 from qdrant_client import QdrantClient
 
-from pokemon_tcg_rag.domain.models import Chunk, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.domain.models import (
+    Chunk,
+    DocumentMetadata,
+    DocumentSource,
+    RuleType,
+)
 from pokemon_tcg_rag.storage import indexing as seed_db
-from pokemon_tcg_rag.storage.indexing import ChunkEmbedder, _record_to_chunk, seed_chunks
+from pokemon_tcg_rag.storage.indexing import (
+    ChunkEmbedder,
+    _record_to_chunk,
+    seed_chunks,
+)
 from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 
 
@@ -45,7 +54,9 @@ def _make_chunk(chunk_id: str) -> Chunk:
 def test_embedding_dimension_1024(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-049: embeddings must be 1024-dimensional."""
     monkeypatch.setattr(
-        seed_db, "SentenceTransformer", lambda *args, **kwargs: FakeSentenceTransformer()
+        seed_db,
+        "SentenceTransformer",
+        lambda *args, **kwargs: FakeSentenceTransformer(),
     )
 
     embedder = ChunkEmbedder()
@@ -59,7 +70,9 @@ def test_embedding_dimension_1024(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_seed_upserts_all_chunks(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-050: all chunks must be embedded and upserted."""
     monkeypatch.setattr(
-        seed_db, "SentenceTransformer", lambda *args, **kwargs: FakeSentenceTransformer()
+        seed_db,
+        "SentenceTransformer",
+        lambda *args, **kwargs: FakeSentenceTransformer(),
     )
 
     class DummyVectorDb:
@@ -114,7 +127,9 @@ def test_parquet_nan_optional_fields_are_loaded_as_none() -> None:
 def test_seed_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
     """TEST-051: rerunning the seed job against the same chunks must not duplicate points."""
     monkeypatch.setattr(
-        seed_db, "SentenceTransformer", lambda *args, **kwargs: FakeSentenceTransformer()
+        seed_db,
+        "SentenceTransformer",
+        lambda *args, **kwargs: FakeSentenceTransformer(),
     )
 
     qdrant = QdrantClient(location=":memory:")

@@ -26,7 +26,9 @@ def test_package_importable() -> None:
 @pytest.mark.unit
 def test_requirements_are_pinned() -> None:
     """TEST-002: Every non-comment, non-blank line in requirements.txt must use == pinning."""
-    assert REQUIREMENTS_PATH.exists(), f"requirements.txt not found at {REQUIREMENTS_PATH}"
+    assert (
+        REQUIREMENTS_PATH.exists()
+    ), f"requirements.txt not found at {REQUIREMENTS_PATH}"
 
     unpinned: list[str] = []
     for raw_line in REQUIREMENTS_PATH.read_text().splitlines():
@@ -52,7 +54,11 @@ def test_requirements_are_pinned() -> None:
 @pytest.mark.unit
 def test_profile_locks_are_pinned() -> None:
     """Runtime, dev and evaluation locks must stay exact-pinned."""
-    for path in (RUNTIME_REQUIREMENTS_PATH, DEV_REQUIREMENTS_PATH, EVAL_REQUIREMENTS_PATH):
+    for path in (
+        RUNTIME_REQUIREMENTS_PATH,
+        DEV_REQUIREMENTS_PATH,
+        EVAL_REQUIREMENTS_PATH,
+    ):
         assert path.exists(), f"{path.name} not found at {path}"
         for raw_line in path.read_text().splitlines():
             line = raw_line.strip()

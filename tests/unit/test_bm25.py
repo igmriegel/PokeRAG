@@ -8,7 +8,12 @@ from __future__ import annotations
 
 import pytest
 
-from pokemon_tcg_rag.domain.models import Chunk, DocumentMetadata, DocumentSource, RuleType
+from pokemon_tcg_rag.domain.models import (
+    Chunk,
+    DocumentMetadata,
+    DocumentSource,
+    RuleType,
+)
 from pokemon_tcg_rag.retrieval.bm25 import BM25Retriever
 
 

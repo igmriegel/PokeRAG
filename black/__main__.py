@@ -22,8 +22,15 @@ def _ruff_executable() -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(add_help=True, prog="black")
-    parser.add_argument("--check", action="store_true", help="Check formatting without rewriting files")
-    parser.add_argument("paths", nargs="*", default=["src", "tests"], help="Files or directories to format")
+    parser.add_argument(
+        "--check", action="store_true", help="Check formatting without rewriting files"
+    )
+    parser.add_argument(
+        "paths",
+        nargs="*",
+        default=["src", "tests"],
+        help="Files or directories to format",
+    )
     args = parser.parse_args(argv)
 
     command = [_ruff_executable(), "format"]

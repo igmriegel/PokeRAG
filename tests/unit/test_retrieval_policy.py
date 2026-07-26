@@ -51,7 +51,9 @@ def test_normalize_metadata_filters_keeps_allowlisted_keys() -> None:
 def test_matches_metadata_filters_uses_allowlist() -> None:
     chunk = _chunk("doc-1", "Rare Candy lets you evolve faster.")
 
-    assert matches_metadata_filters(chunk, {"source": "rulebook_pdf", "page_number": "12"})
+    assert matches_metadata_filters(
+        chunk, {"source": "rulebook_pdf", "page_number": "12"}
+    )
     assert not matches_metadata_filters(chunk, {"source": "pokegym_rulings"})
 
 
