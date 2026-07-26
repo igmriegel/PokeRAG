@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pokemon-tcg-rag"
 version = "0.1.0"
-description = "Official Pokemon TCG Rules & Rulings Expert Assistant powered by Hybrid RAG"
+description = "Unofficial Pokemon TCG Rules & Rulings Expert Assistant powered by Hybrid RAG"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
-    { name = "Pokemon TCG RAG Engineering Team", email = "engineering@pokemontcg.rag" }
+    { name = "Igor Marcos Riegel", email = "igor.riegel@gmail.com" }
 ]
 classifiers = [
     "Programming Language :: Python :: 3.11",
