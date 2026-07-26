@@ -13,7 +13,10 @@ from pathlib import Path
 from typing import Any, cast
 
 import pandas as pd
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+except Exception:  # pragma: no cover - import-time fallback for broken wheels
+    SentenceTransformer = None  # type: ignore[assignment]
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import IngestionError
@@ -125,7 +128,14 @@ class ChunkEmbedder:
     ) -> None:
         settings = get_settings()
         self.model_name = model_name or settings.EMBEDDING_MODEL_PRIMARY
-        self._model = model or SentenceTransformer(self.model_name)
+        if model is not None:
+            self._model = model
+        else:
+            if SentenceTransformer is None:
+                raise IngestionError(
+                    "sentence-transformers is unavailable in the current runtime"
+                )
+            self._model = SentenceTransformer(self.model_name)
 
     def embed_texts(
         self, texts: Sequence[str], batch_size: int = 32

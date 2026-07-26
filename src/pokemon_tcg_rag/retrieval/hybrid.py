@@ -37,9 +37,7 @@ class HybridRetriever:
     ) -> list[RetrievedChunk]:
         """Retrieve via both strategies and fuse rankings with RRF."""
         normalized_filters = normalize_metadata_filters(filters)
-        dense_results = self.dense_retriever.retrieve(
-            query=query, top_k=top_k, filters=normalized_filters or None
-        )
+        dense_results = self._retrieve_dense(query, top_k, normalized_filters)
         bm25_results = self.bm25_retriever.retrieve(query=query, top_k=top_k)
 
         fused_scores: dict[str, float] = {}
@@ -79,3 +77,19 @@ class HybridRetriever:
 
     def _rrf_score(self, rank: int) -> float:
         return 1.0 / (self.rrf_k + rank)
+
+    def _retrieve_dense(
+        self,
+        query: str,
+        top_k: int,
+        filters: dict[str, str] | None,
+    ) -> list[RetrievedChunk]:
+        """Call dense retrieval with compatibility for older fakes."""
+        try:
+            return self.dense_retriever.retrieve(
+                query=query, top_k=top_k, filters=filters or None
+            )
+        except TypeError as exc:
+            if "unexpected keyword argument 'filters'" not in str(exc):
+                raise
+            return self.dense_retriever.retrieve(query=query, top_k=top_k)

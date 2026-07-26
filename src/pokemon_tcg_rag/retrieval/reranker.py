@@ -7,7 +7,10 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any, cast
 
-from sentence_transformers import CrossEncoder
+try:
+    from sentence_transformers import CrossEncoder
+except Exception:  # pragma: no cover - import-time fallback for broken wheels
+    CrossEncoder = None  # type: ignore[assignment]
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.models import RetrievedChunk
@@ -30,6 +33,10 @@ class BGEReranker:
     @property
     def model(self) -> CrossEncoder:
         if self._reranker_model is None:
+            if CrossEncoder is None:
+                raise RuntimeError(
+                    "sentence-transformers is unavailable in the current runtime"
+                )
             try:
                 self._reranker_model = CrossEncoder(self.model_name)
             except Exception as exc:  # pragma: no cover - defensive fallback

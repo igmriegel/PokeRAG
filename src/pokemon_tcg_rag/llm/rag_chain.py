@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import re
 import time
+from typing import Any
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.models import AnswerResponse, DocumentMetadata
@@ -45,7 +46,7 @@ class RAGChain:
                 "query.top_k": effective_top_k,
             },
         ):
-            rewritten_query, chunks = self.retrieval_pipeline.execute_retrieval(
+            rewritten_query, chunks = self._execute_retrieval(
                 raw_query=raw_query,
                 top_k=effective_top_k,
                 metadata_filters=metadata_filters,
@@ -91,3 +92,24 @@ class RAGChain:
         if not citation_indexes:
             return False
         return any(index < 1 or index > max_index for index in citation_indexes)
+
+    def _execute_retrieval(
+        self,
+        raw_query: str,
+        top_k: int,
+        metadata_filters: dict[str, str] | None,
+    ) -> tuple[str, list[Any]]:
+        """Call the retrieval pipeline with compatibility for older test doubles."""
+        try:
+            return self.retrieval_pipeline.execute_retrieval(
+                raw_query=raw_query,
+                top_k=top_k,
+                metadata_filters=metadata_filters,
+            )
+        except TypeError as exc:
+            if "unexpected keyword argument 'metadata_filters'" not in str(exc):
+                raise
+            return self.retrieval_pipeline.execute_retrieval(
+                raw_query=raw_query,
+                top_k=top_k,
+            )

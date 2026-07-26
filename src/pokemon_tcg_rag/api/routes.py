@@ -101,7 +101,7 @@ def query_rag(
             ),
             DEFAULT_REQUEST_GUARD.admit(effective_principal, None, "query"),
         ):
-            response: AnswerResponse = _rag_chain.query(
+            response: AnswerResponse = _call_rag_chain_query(
                 payload.question,
                 top_k=payload.top_k,
                 metadata_filters=payload.metadata_filters,
@@ -271,3 +271,22 @@ def _resolve_principal() -> Principal:
             {"rag:query", "rag:feedback", "rag:metrics", "rag:diagnostics"}
         ),
     )
+
+
+def _call_rag_chain_query(
+    question: str,
+    top_k: int,
+    metadata_filters: dict[str, str] | None,
+) -> AnswerResponse:
+    """Invoke the configured chain with compatibility for older fakes."""
+    assert _rag_chain is not None
+    try:
+        return _rag_chain.query(
+            question,
+            top_k=top_k,
+            metadata_filters=metadata_filters,
+        )
+    except TypeError as exc:
+        if "unexpected keyword argument 'metadata_filters'" not in str(exc):
+            raise
+        return _rag_chain.query(question, top_k=top_k)

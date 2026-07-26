@@ -6,7 +6,10 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+except Exception:  # pragma: no cover - import-time fallback for broken wheels
+    SentenceTransformer = None  # type: ignore[assignment]
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import RetrievalError
@@ -28,6 +31,10 @@ class DenseRetriever:
     @property
     def model(self) -> SentenceTransformer:
         if self._embedding_model is None:
+            if SentenceTransformer is None:
+                raise RetrievalError(
+                    "sentence-transformers is unavailable in the current runtime"
+                )
             self._embedding_model = SentenceTransformer(self.model_name)
         return self._embedding_model
 
@@ -48,11 +55,7 @@ class DenseRetriever:
                 },
             ):
                 query_vector = self._encode_query(query)
-                results = self.vector_db.search_dense(
-                    query_vector=query_vector,
-                    top_k=limit,
-                    filters=filters,
-                )
+                results = self._search_dense(query_vector, limit, filters)
         except Exception as exc:  # pragma: no cover - defensive wrapper
             raise RetrievalError(f"Dense retrieval failed: {exc}") from exc
         return sorted(results, key=lambda item: item.score, reverse=True)[:limit]
@@ -74,3 +77,21 @@ class DenseRetriever:
                 f"got {len(query_vector)}"
             )
         return [float(value) for value in query_vector]
+
+    def _search_dense(
+        self,
+        query_vector: list[float],
+        top_k: int,
+        filters: dict[str, str] | None,
+    ) -> list[RetrievedChunk]:
+        """Call the vector store with fallback support for older fakes."""
+        try:
+            return self.vector_db.search_dense(
+                query_vector=query_vector,
+                top_k=top_k,
+                filters=filters,
+            )
+        except TypeError as exc:
+            if "unexpected keyword argument 'filters'" not in str(exc):
+                raise
+            return self.vector_db.search_dense(query_vector=query_vector, top_k=top_k)

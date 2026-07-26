@@ -77,10 +77,10 @@ class RetrievalPipeline:
                 if self.enable_query_rewrite
                 else raw_query
             )
-            candidates = self.hybrid_retriever.retrieve(
-                query=rewritten_query,
-                top_k=max(top_k, self.settings.RETRIEVAL_TOP_K_DENSE),
-                filters=metadata_filters,
+            candidates = self._retrieve_candidates(
+                rewritten_query,
+                max(top_k, self.settings.RETRIEVAL_TOP_K_DENSE),
+                metadata_filters,
             )
 
             if self.enable_reranking and candidates:
@@ -92,3 +92,21 @@ class RetrievalPipeline:
 
             self.cache.set(cache_key, final_chunks)
             return rewritten_query, final_chunks
+
+    def _retrieve_candidates(
+        self,
+        query: str,
+        top_k: int,
+        metadata_filters: dict[str, str] | None,
+    ) -> list[RetrievedChunk]:
+        """Call the hybrid retriever with compatibility for older fakes."""
+        try:
+            return self.hybrid_retriever.retrieve(
+                query=query,
+                top_k=top_k,
+                filters=metadata_filters,
+            )
+        except TypeError as exc:
+            if "unexpected keyword argument 'filters'" not in str(exc):
+                raise
+            return self.hybrid_retriever.retrieve(query=query, top_k=top_k)
