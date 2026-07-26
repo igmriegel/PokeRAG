@@ -179,12 +179,34 @@ def test_build_runtime_container_uses_offline_fallback_without_openai(
 
 def test_build_runtime_container_requires_openai_in_production(monkeypatch) -> None:
     """Production startup must fail closed if OpenAI credentials are absent."""
-    monkeypatch.setattr(api_runtime.VectorDatabase, "init_collection", lambda self: None)
-    monkeypatch.setattr(api_runtime.RelationalDatabase, "init_db", lambda self: None)
-    monkeypatch.setattr(api_runtime, "load_chunks", lambda *_args, **_kwargs: [])
+    dummy_chunk = Chunk(
+        chunk_id="chunk-1",
+        doc_id="doc-1",
+        text="Rare Candy text",
+        token_count=3,
+        metadata=DocumentMetadata(
+            source=DocumentSource.RULEBOOK_PDF,
+            document_title="Official Rulebook",
+            rule_type=RuleType.GENERAL_RULE,
+        ),
+    )
+    dummy_manifest = SimpleNamespace(to_collection_metadata=lambda: {})
+
+    class FakeVectorDatabase:
+        def __init__(self) -> None:
+            self.collection_name = "test"
+
+    monkeypatch.setattr(api_runtime, "load_corpus_manifest", lambda *_args, **_kwargs: dummy_manifest)
+    monkeypatch.setattr(api_runtime, "load_chunks", lambda *_args, **_kwargs: [dummy_chunk])
+    monkeypatch.setattr(api_runtime, "VectorDatabase", FakeVectorDatabase)
+    settings = SimpleNamespace(
+        ENVIRONMENT="production",
+        OPENAI_API_KEY="",
+        DATA_CHUNKS_DIR="data/chunks",
+    )
 
     with pytest.raises(ConfigurationError):
-        api_runtime.build_runtime_container(Settings(ENVIRONMENT="production", OPENAI_API_KEY=""))
+        api_runtime.build_runtime_container(settings)
 
 
 def test_bootstrap_corpus_is_loadable() -> None:
