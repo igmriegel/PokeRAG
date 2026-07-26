@@ -6,8 +6,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import VectorStoreError
@@ -21,6 +20,7 @@ from pokemon_tcg_rag.domain.models import (
 
 if TYPE_CHECKING:
     from qdrant_client import QdrantClient
+    from qdrant_client.http import models as qmodels
 
 
 class VectorDatabase:
@@ -158,8 +158,6 @@ class VectorDatabase:
         filters: dict[str, str] | None = None,
     ) -> list[RetrievedChunk]:
         """Search dense vectors and map Qdrant hits back into domain chunks."""
-        from qdrant_client.http import models as qmodels
-
         try:
             query_filter = self._build_filter(filters)
             response = self.client.query_points(

@@ -10,8 +10,8 @@ import pytest
 from pydantic import ValidationError
 
 from pokemon_tcg_rag.api.schemas import (
-    CitationSchema,
     ChunkSnippetSchema,
+    CitationSchema,
     FeedbackRequest,
     QueryRequest,
     QueryResponse,
@@ -78,7 +78,10 @@ def test_query_request_metadata_filters_normalization() -> None:
         },
     )
     assert request.metadata_filters == {"source": "rulebook_pdf"}
-    assert QueryRequest(question="Can I use Rare Candy?", metadata_filters=None).metadata_filters is None
+    assert (
+        QueryRequest(question="Can I use Rare Candy?", metadata_filters=None).metadata_filters
+        is None
+    )
 
 
 @pytest.mark.unit
