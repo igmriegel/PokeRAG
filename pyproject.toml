@@ -64,7 +64,6 @@ dev = [
 ]
 
 eval = [
-    "ragas==0.2.15",
     "deepeval==2.7.6",
 ]
 
