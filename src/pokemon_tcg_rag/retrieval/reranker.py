@@ -7,17 +7,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any, cast
 
-try:
-    from sentence_transformers import CrossEncoder
-except Exception:  # pragma: no cover - import-time fallback for broken wheels
-    CrossEncoder = None  # type: ignore[assignment]
-
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.models import RetrievedChunk
 from pokemon_tcg_rag.monitoring.logger import get_logger
 from pokemon_tcg_rag.monitoring.tracing import traced_span
 
 LOGGER = get_logger(__name__)
+CrossEncoder: Any | None = None
 
 
 class BGEReranker:
@@ -27,18 +23,26 @@ class BGEReranker:
         settings = get_settings()
         self.model_name = settings.RERANKER_MODEL
         self.default_top_k = settings.RETRIEVAL_FINAL_TOP_K
-        self._reranker_model: CrossEncoder | None = None
+        self._reranker_model: Any | None = None
         self._disabled_reason: str | None = None
 
     @property
-    def model(self) -> CrossEncoder:
+    def model(self) -> Any:
         if self._reranker_model is None:
             if CrossEncoder is None:
-                raise RuntimeError(
-                    "sentence-transformers is unavailable in the current runtime"
-                )
+                try:
+                    from sentence_transformers import (
+                        CrossEncoder as cross_encoder_cls,
+                    )
+                except Exception as exc:  # pragma: no cover - import-time fallback
+                    raise RuntimeError(
+                        "sentence-transformers is unavailable in the current runtime"
+                    ) from exc
+                cross_encoder = cross_encoder_cls(self.model_name)
+            else:
+                cross_encoder = CrossEncoder(self.model_name)
             try:
-                self._reranker_model = CrossEncoder(self.model_name)
+                self._reranker_model = cross_encoder
             except Exception as exc:  # pragma: no cover - defensive fallback
                 self._disabled_reason = str(exc)
                 LOGGER.warning(

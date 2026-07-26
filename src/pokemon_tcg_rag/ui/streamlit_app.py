@@ -116,7 +116,7 @@ def _render_citation_reference(citation: dict[str, Any]) -> None:
     page_suffix = f" | Pág: {page_num}" if page_num else ""
     source_url = citation.get("source_url")
     st.markdown(f"- **{title}** ({source}) | Tipo: `{rule_type}`{page_suffix}")
-    if _is_safe_citation_url(source_url):
+    if isinstance(source_url, str) and _is_safe_citation_url(source_url):
         st.link_button("Abrir fonte oficial", source_url)
 
 

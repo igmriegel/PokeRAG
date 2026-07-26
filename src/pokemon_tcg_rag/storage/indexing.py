@@ -13,10 +13,6 @@ from pathlib import Path
 from typing import Any, cast
 
 import pandas as pd
-try:
-    from sentence_transformers import SentenceTransformer
-except Exception:  # pragma: no cover - import-time fallback for broken wheels
-    SentenceTransformer = None  # type: ignore[assignment]
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import IngestionError
@@ -31,6 +27,7 @@ from pokemon_tcg_rag.storage.vector_db import VectorDatabase
 
 LOGGER = get_logger(__name__)
 CORPUS_MANIFEST_NAME = "corpus_manifest.json"
+SentenceTransformer: Any | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,7 +121,7 @@ class ChunkEmbedder:
     """Encode chunk texts into 1024-dimensional vectors."""
 
     def __init__(
-        self, model_name: str | None = None, model: SentenceTransformer | None = None
+        self, model_name: str | None = None, model: Any | None = None
     ) -> None:
         settings = get_settings()
         self.model_name = model_name or settings.EMBEDDING_MODEL_PRIMARY
@@ -132,10 +129,15 @@ class ChunkEmbedder:
             self._model = model
         else:
             if SentenceTransformer is None:
-                raise IngestionError(
-                    "sentence-transformers is unavailable in the current runtime"
-                )
-            self._model = SentenceTransformer(self.model_name)
+                try:
+                    from sentence_transformers import SentenceTransformer as sentence_transformer_cls
+                except Exception as exc:  # pragma: no cover - import-time fallback
+                    raise IngestionError(
+                        "sentence-transformers is unavailable in the current runtime"
+                    ) from exc
+                self._model = sentence_transformer_cls(self.model_name)
+            else:
+                self._model = SentenceTransformer(self.model_name)
 
     def embed_texts(
         self, texts: Sequence[str], batch_size: int = 32

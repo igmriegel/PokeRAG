@@ -299,7 +299,7 @@ class PokegymCrawler:
     def _extract_labeled_value(self, block: Tag, labels: list[str]) -> str | None:
         lower_labels = tuple(label.lower() for label in labels)
         for candidate in block.find_all(["span", "div", "p", "li", "td", "th"]):
-            text = candidate.get_text(" ", strip=True)
+            text = cast(str, candidate.get_text(" ", strip=True))
             lowered = text.lower()
             for label in lower_labels:
                 if lowered.startswith(f"{label}:"):

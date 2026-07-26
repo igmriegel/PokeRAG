@@ -8,6 +8,7 @@ import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from typing import IO, Any, cast
 
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
@@ -47,14 +48,15 @@ def initialize_tracing(service_name: str = "pokemon-tcg-rag") -> None:
         return
 
     provider = TracerProvider(resource=Resource.create({"service.name": service_name}))
+    stdout = cast(IO[Any], sys.__stdout__ or sys.stdout)
     provider.add_span_processor(
-        BatchSpanProcessor(ConsoleSpanExporter(out=sys.__stdout__))
+        BatchSpanProcessor(ConsoleSpanExporter(out=stdout))
     )
     trace.set_tracer_provider(provider)
     _TRACER_PROVIDER_INITIALIZED = True
 
 
-def get_tracer():
+def get_tracer() -> trace.Tracer:
     """Return the shared application tracer."""
     initialize_tracing()
     return trace.get_tracer(_TRACER_NAME)
@@ -71,7 +73,20 @@ def traced_span(
         if safe_attributes:
             for key, value in safe_attributes.items():
                 if key and value is not None:
-                    span.set_attribute(str(key), value)
+                    span.set_attribute(
+                        str(key),
+                        cast(
+                            str
+                            | bool
+                            | int
+                            | float
+                            | list[str]
+                            | list[bool]
+                            | list[int]
+                            | list[float],
+                            value,
+                        ),
+                    )
         try:
             yield
         except Exception as exc:

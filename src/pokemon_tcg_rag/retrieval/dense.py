@@ -5,17 +5,15 @@ Dense vector retriever.
 from __future__ import annotations
 
 from collections.abc import Sequence
-
-try:
-    from sentence_transformers import SentenceTransformer
-except Exception:  # pragma: no cover - import-time fallback for broken wheels
-    SentenceTransformer = None  # type: ignore[assignment]
+from typing import Any
 
 from pokemon_tcg_rag.config.settings import get_settings
 from pokemon_tcg_rag.domain.exceptions import RetrievalError
 from pokemon_tcg_rag.domain.models import RetrievedChunk
 from pokemon_tcg_rag.monitoring.tracing import traced_span
 from pokemon_tcg_rag.storage.vector_db import VectorDatabase
+
+SentenceTransformer: Any | None = None
 
 
 class DenseRetriever:
@@ -26,16 +24,21 @@ class DenseRetriever:
         settings = get_settings()
         self.model_name = settings.EMBEDDING_MODEL_PRIMARY
         self.default_top_k = settings.RETRIEVAL_TOP_K_DENSE
-        self._embedding_model: SentenceTransformer | None = None
+        self._embedding_model: Any | None = None
 
     @property
-    def model(self) -> SentenceTransformer:
+    def model(self) -> Any:
         if self._embedding_model is None:
             if SentenceTransformer is None:
-                raise RetrievalError(
-                    "sentence-transformers is unavailable in the current runtime"
-                )
-            self._embedding_model = SentenceTransformer(self.model_name)
+                try:
+                    from sentence_transformers import SentenceTransformer as sentence_transformer_cls
+                except Exception as exc:  # pragma: no cover - import-time fallback
+                    raise RetrievalError(
+                        "sentence-transformers is unavailable in the current runtime"
+                    ) from exc
+                self._embedding_model = sentence_transformer_cls(self.model_name)
+            else:
+                self._embedding_model = SentenceTransformer(self.model_name)
         return self._embedding_model
 
     def retrieve(

@@ -111,7 +111,7 @@ class OfflineVectorDatabase(VectorDatabase):
         """Return no dense matches when the vector store is unavailable."""
         return []
 
-    def upsert_chunks(self, chunks: Sequence[Chunk]) -> None:
+    def upsert_chunks(self, chunks: Sequence[Chunk], batch_size: int = 64) -> None:
         """Ignore writes in degraded mode."""
 
 

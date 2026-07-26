@@ -8,6 +8,7 @@ observability (REQ-015).
 
 import logging
 import sys
+from collections.abc import Mapping, MutableMapping
 from typing import Any
 
 import structlog
@@ -17,8 +18,8 @@ from pokemon_tcg_rag.monitoring.tracing import current_trace_context
 
 
 def _inject_trace_context(
-    _: Any, __: str, event_dict: dict[str, Any]
-) -> dict[str, Any]:
+    _: Any, __: str, event_dict: MutableMapping[str, Any]
+) -> Mapping[str, Any]:
     context = current_trace_context()
     if context.trace_id:
         event_dict.setdefault("trace_id", context.trace_id)
