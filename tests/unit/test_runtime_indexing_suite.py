@@ -4,6 +4,7 @@ Unit tests for runtime fallbacks and corpus indexing helpers.
 
 from __future__ import annotations
 
+import builtins
 import hashlib
 import json
 from pathlib import Path
@@ -275,6 +276,14 @@ def test_manifest_derived_count_and_missing_manifest(
     assert load_corpus_manifest(tmp_path / "missing") is None
 
     monkeypatch.setattr(indexing_module, "SentenceTransformer", None)
+    original_import = builtins.__import__
+
+    def fake_import(name: str, *args: object, **kwargs: object):
+        if name == "sentence_transformers":
+            raise ImportError("sentence_transformers unavailable")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
     with pytest.raises(IngestionError):
         ChunkEmbedder()
 
