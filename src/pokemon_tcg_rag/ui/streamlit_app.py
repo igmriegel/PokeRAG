@@ -126,7 +126,7 @@ def fetch_answer(
     response = post(
         f"{api_url}/query",
         json=build_query_payload(question, top_k),
-        timeout=30,
+        timeout=120.0,
         allow_redirects=False,
     )
     try:
