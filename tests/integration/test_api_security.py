@@ -86,12 +86,14 @@ class FakeRuntimeContainer:
 
 @asynccontextmanager
 async def _client_for_app(app: object) -> AsyncIterator[httpx.AsyncClient]:
-    async with app.router.lifespan_context(app):
-        async with httpx.AsyncClient(
+    async with (
+        app.router.lifespan_context(app),
+        httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app),
             base_url="http://testserver",
-        ) as client:
-            yield client
+        ) as client,
+    ):
+        yield client
 
 
 @pytest_asyncio.fixture()
