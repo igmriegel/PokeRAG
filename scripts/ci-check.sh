@@ -22,7 +22,7 @@ run_step() {
   local name="$1"
   shift
   local log_file
-  log_file="$(mktemp "${TMPDIR}/ci-check.XXXXXX.log")"
+  log_file="$(mktemp "${TMP_DIR}/ci-check.XXXXXX.log")"
 
   printf '\n==> %s\n' "$name"
   if "$@" >"$log_file" 2>&1; then
