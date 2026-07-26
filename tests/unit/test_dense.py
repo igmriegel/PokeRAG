@@ -141,9 +141,7 @@ def test_search_dense_falls_back_without_filters(
     db = FakeVectorDBWithFilterFallback(results)
     retriever = DenseRetriever(db)
 
-    output = retriever.retrieve(
-        "Rare Candy", top_k=1, filters={"source": "rulebook_pdf"}
-    )
+    output = retriever.retrieve("Rare Candy", top_k=1, filters={"source": "rulebook_pdf"})
 
     assert output[0].chunk.chunk_id == "c1"
     assert db.calls[0][2] == {"source": "rulebook_pdf"}

@@ -445,9 +445,7 @@ def test_submit_feedback_rejects_duplicate_and_owner_mismatch() -> None:
         latency_seconds=0.1,
     )
 
-    assert (
-        api_routes.submit_feedback(payload, principal=principal)["status"] == "success"
-    )
+    assert api_routes.submit_feedback(payload, principal=principal)["status"] == "success"
 
     with pytest.raises(HTTPException) as duplicate_error:
         api_routes.submit_feedback(payload, principal=principal)
@@ -503,7 +501,5 @@ def test_llm_client_circuit_breaker_and_quota_helper() -> None:
         client.generate_answer("prompt")
 
     assert _is_insufficient_quota(SimpleNamespace(code="insufficient_quota"))
-    assert _is_insufficient_quota(
-        SimpleNamespace(body={"error": {"code": "insufficient_quota"}})
-    )
+    assert _is_insufficient_quota(SimpleNamespace(body={"error": {"code": "insufficient_quota"}}))
     assert _is_insufficient_quota(RuntimeError("insufficient_quota"))

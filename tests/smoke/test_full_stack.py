@@ -49,9 +49,7 @@ class FakeRAGChain:
             rewritten_query=question,
             answer="Grounded answer.",
             citations=[metadata],
-            retrieved_chunks=[
-                RetrievedChunk(chunk=chunk, score=0.9, retrieval_method="dense")
-            ],
+            retrieved_chunks=[RetrievedChunk(chunk=chunk, score=0.9, retrieval_method="dense")],
             model_name="gpt-4o-mini",
             latency_seconds=0.2,
         )

@@ -28,9 +28,7 @@ def _case(question_id: str, question: str) -> EvalTestCase:
     )
 
 
-def _chunk(
-    doc_id: str, source: DocumentSource = DocumentSource.RULEBOOK_PDF
-) -> RetrievedChunk:
+def _chunk(doc_id: str, source: DocumentSource = DocumentSource.RULEBOOK_PDF) -> RetrievedChunk:
     metadata = DocumentMetadata(
         source=source,
         document_title="Official Rulebook",

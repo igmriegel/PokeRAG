@@ -62,10 +62,7 @@ def test_postgres_owner_uri_composition() -> None:
         POSTGRES_PORT=5433,
         POSTGRES_DB="testdb",
     )
-    assert (
-        s.postgres_owner_uri
-        == "postgresql://owner:owner-pass@db.example.com:5433/testdb"
-    )
+    assert s.postgres_owner_uri == "postgresql://owner:owner-pass@db.example.com:5433/testdb"
 
 
 @pytest.mark.unit

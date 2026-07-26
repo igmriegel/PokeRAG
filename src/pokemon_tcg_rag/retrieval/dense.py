@@ -66,9 +66,7 @@ class DenseRetriever:
         return sorted(results, key=lambda item: item.score, reverse=True)[:limit]
 
     def _encode_query(self, query: str) -> list[float]:
-        vector = self.model.encode(
-            query, convert_to_numpy=True, normalize_embeddings=True
-        )
+        vector = self.model.encode(query, convert_to_numpy=True, normalize_embeddings=True)
         if hasattr(vector, "tolist"):
             query_vector = vector.tolist()
         elif isinstance(vector, Sequence):

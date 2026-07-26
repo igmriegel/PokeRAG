@@ -33,12 +33,12 @@ def test_exception_hierarchy() -> None:
         ConfigurationError,
     ]
     for exc_cls in subclasses:
-        assert issubclass(
-            exc_cls, PokemonRAGError
-        ), f"{exc_cls.__name__} must inherit from PokemonRAGError"
-        assert issubclass(
-            exc_cls, Exception
-        ), f"{exc_cls.__name__} must ultimately inherit from Exception"
+        assert issubclass(exc_cls, PokemonRAGError), (
+            f"{exc_cls.__name__} must inherit from PokemonRAGError"
+        )
+        assert issubclass(exc_cls, Exception), (
+            f"{exc_cls.__name__} must ultimately inherit from Exception"
+        )
 
 
 @pytest.mark.unit
@@ -66,9 +66,7 @@ def test_exceptions_carry_message() -> None:
     ]
     for exc_cls, msg in exceptions_and_messages:
         exc = exc_cls(msg)
-        assert hasattr(
-            exc, "message"
-        ), f"{exc_cls.__name__} must have a 'message' attribute"
+        assert hasattr(exc, "message"), f"{exc_cls.__name__} must have a 'message' attribute"
         assert exc.message == msg
         assert str(exc) == msg
 

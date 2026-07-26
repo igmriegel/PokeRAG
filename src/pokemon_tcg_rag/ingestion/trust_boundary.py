@@ -66,9 +66,7 @@ def download_trusted_bytes(
         and allowed_content_types
         and not any(token in content_type for token in allowed_content_types)
     ):
-        raise IngestionError(
-            f"Rejected source with unexpected content type: {content_type}"
-        )
+        raise IngestionError(f"Rejected source with unexpected content type: {content_type}")
 
     if hasattr(response, "iter_content"):
         chunks: list[bytes] = []
@@ -107,11 +105,7 @@ def quarantine_payload(
         payload if isinstance(payload, bytes) else payload.encode("utf-8")
     ).hexdigest()
     path = folder / f"quarantine_{timestamp}_{digest[:12]}.txt"
-    body = (
-        payload.decode("utf-8", errors="ignore")
-        if isinstance(payload, bytes)
-        else payload
-    )
+    body = payload.decode("utf-8", errors="ignore") if isinstance(payload, bytes) else payload
     path.write_text(
         "\n".join(
             [

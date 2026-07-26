@@ -12,9 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 def test_grafana_dashboard_includes_cost_and_tokens() -> None:
     dashboard = json.loads(
-        (PROJECT_ROOT / "docker/grafana/dashboards/pokemon_rag.json").read_text(
-            encoding="utf-8"
-        )
+        (PROJECT_ROOT / "docker/grafana/dashboards/pokemon_rag.json").read_text(encoding="utf-8")
     )
 
     titles = {panel["title"] for panel in dashboard["panels"]}

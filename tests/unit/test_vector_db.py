@@ -200,9 +200,7 @@ def test_upsert_splits_large_corpora_into_batches() -> None:
     client = DummyClient()
     db = VectorDatabase(client=client)  # type: ignore[arg-type]
     chunks = [
-        _make_chunk(embedding=[0.1] * 1024).model_copy(
-            update={"chunk_id": f"chunk-{index}"}
-        )
+        _make_chunk(embedding=[0.1] * 1024).model_copy(update={"chunk_id": f"chunk-{index}"})
         for index in range(130)
     ]
 

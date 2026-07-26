@@ -53,9 +53,7 @@ def test_current_trace_context_handles_invalid_span_context(
     monkeypatch.setattr(
         trace,
         "get_current_span",
-        lambda: SimpleNamespace(
-            get_span_context=lambda: SimpleNamespace(is_valid=False)
-        ),
+        lambda: SimpleNamespace(get_span_context=lambda: SimpleNamespace(is_valid=False)),
     )
 
     context = current_trace_context()

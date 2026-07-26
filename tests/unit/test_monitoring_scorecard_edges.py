@@ -55,9 +55,7 @@ def test_scorecard_roundtrip_and_validation(tmp_path: Path) -> None:
     evidence_payload = {"passed": True, "notes": ["ok"]}
     evidence_path.write_text(json.dumps(evidence_payload), encoding="utf-8")
 
-    scorecard = build_scorecard(
-        {"artifact": tmp_path / "artifact.txt"}, evidence_payload
-    )
+    scorecard = build_scorecard({"artifact": tmp_path / "artifact.txt"}, evidence_payload)
     assert scorecard.passed is False
     assert scorecard.missing_artifacts == ["artifact"]
     assert scorecard.to_dict()["summary"]["evidence"] == evidence_payload

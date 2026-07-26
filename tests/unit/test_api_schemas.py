@@ -79,9 +79,7 @@ def test_query_request_metadata_filters_normalization() -> None:
     )
     assert request.metadata_filters == {"source": "rulebook_pdf"}
     assert (
-        QueryRequest(
-            question="Can I use Rare Candy?", metadata_filters=None
-        ).metadata_filters
+        QueryRequest(question="Can I use Rare Candy?", metadata_filters=None).metadata_filters
         is None
     )
 

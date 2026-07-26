@@ -160,9 +160,7 @@ def test_manifest_helpers_and_directory_loading(tmp_path: Path) -> None:
             }
         ],
     }
-    (tmp_path / "corpus_manifest.json").write_text(
-        json.dumps(manifest), encoding="utf-8"
-    )
+    (tmp_path / "corpus_manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
 
     loaded_manifest = load_corpus_manifest(tmp_path)
     assert loaded_manifest is not None
@@ -215,9 +213,7 @@ def test_manifest_loading_rejects_bad_hash_and_count(tmp_path: Path) -> None:
             }
         ],
     }
-    (tmp_path / "corpus_manifest.json").write_text(
-        json.dumps(bad_manifest), encoding="utf-8"
-    )
+    (tmp_path / "corpus_manifest.json").write_text(json.dumps(bad_manifest), encoding="utf-8")
 
     with pytest.raises(IngestionError):
         load_chunks(tmp_path)
@@ -369,9 +365,7 @@ def test_seed_helpers_and_parser_main(
         )
         == 1
     )
-    assert seed_calls == [
-        (SimpleNamespace(name="vector"), SimpleNamespace(name="embedder"))
-    ]
+    assert seed_calls == [(SimpleNamespace(name="vector"), SimpleNamespace(name="embedder"))]
 
     parser = indexing_module.build_parser()
     args = parser.parse_args(["--chunks-dir", str(tmp_path), "--batch-size", "8"])
@@ -379,9 +373,7 @@ def test_seed_helpers_and_parser_main(
     assert args.batch_size == 8
 
     monkeypatch.setattr(indexing_module, "setup_logging", lambda: None)
-    monkeypatch.setattr(
-        indexing_module, "seed_from_directory", lambda *args, **kwargs: 2
-    )
+    monkeypatch.setattr(indexing_module, "seed_from_directory", lambda *args, **kwargs: 2)
     assert indexing_module.main([]) == 0
     assert "Seeded 2 chunks into Qdrant." in capsys.readouterr().out
 

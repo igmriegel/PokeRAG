@@ -31,9 +31,7 @@ def normalize_metadata_filters(filters: dict[str, str] | None) -> dict[str, str]
     return normalized
 
 
-def matches_metadata_filters(
-    chunk: RetrievedChunk, filters: dict[str, str] | None
-) -> bool:
+def matches_metadata_filters(chunk: RetrievedChunk, filters: dict[str, str] | None) -> bool:
     """Return True when a chunk satisfies the allowlisted filters."""
     normalized = normalize_metadata_filters(filters)
     if not normalized:
@@ -77,9 +75,7 @@ def apply_mmr(
         scored = [
             (
                 item.score * normalized_lambda
-                - _max_similarity(
-                    item.chunk.text, [picked.chunk.text for picked in selected]
-                )
+                - _max_similarity(item.chunk.text, [picked.chunk.text for picked in selected])
                 * (1.0 - normalized_lambda),
                 item,
             )

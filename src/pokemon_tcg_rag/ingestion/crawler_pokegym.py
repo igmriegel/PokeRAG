@@ -198,9 +198,7 @@ class PokegymCrawler:
             source = container.find(id="source")
             source_text = source.get_text(" ", strip=True) if source else ""
             date_match = re.search(r"\((\d{4}-\d{2}-\d{2})\)", source_text)
-            ruling_link = container.find(
-                "a", href=lambda href: href and "/ruling/" in href
-            )
+            ruling_link = container.find("a", href=lambda href: href and "/ruling/" in href)
 
             records.append(
                 self._canonicalize_row(
@@ -208,9 +206,7 @@ class PokegymCrawler:
                         "date": date_match.group(1) if date_match else "",
                         "card": specific_categories[0] if specific_categories else "",
                         "question": question.get_text(" ", strip=True),
-                        "answer": " ".join(
-                            answer.get_text(" ", strip=True) for answer in answers
-                        ),
+                        "answer": " ".join(answer.get_text(" ", strip=True) for answer in answers),
                         "url": urljoin(
                             self.BASE_URL,
                             (
@@ -235,10 +231,7 @@ class PokegymCrawler:
     def _extract_table_headers(self, table: Tag) -> list[str]:
         header_cells = table.find_all("th")
         if header_cells:
-            return [
-                self._normalize_header(cell.get_text(" ", strip=True))
-                for cell in header_cells
-            ]
+            return [self._normalize_header(cell.get_text(" ", strip=True)) for cell in header_cells]
         first_row = table.find("tr")
         if not first_row:
             return []
@@ -247,9 +240,7 @@ class PokegymCrawler:
             for cell in first_row.find_all(["th", "td"])
         ]
 
-    def _row_from_cells(
-        self, headers: list[str], cells: list[Tag], tr: Tag
-    ) -> dict[str, str]:
+    def _row_from_cells(self, headers: list[str], cells: list[Tag], tr: Tag) -> dict[str, str]:
         values = [cell.get_text(" ", strip=True) for cell in cells]
         data: dict[str, str] = {}
         for idx in range(min(len(headers), len(values))):

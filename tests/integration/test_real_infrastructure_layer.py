@@ -35,9 +35,7 @@ def test_postgres_feedback_roundtrip_with_real_engine() -> None:
                     "VALUES ('fb-test', 'qid-test', 'q', 'a', 1, 'ok', 'gpt-4o-mini', 0.1, CURRENT_TIMESTAMP)"
                 )
             )
-            rows = connection.execute(
-                text("SELECT query_id, rating FROM user_feedback")
-            ).fetchall()
+            rows = connection.execute(text("SELECT query_id, rating FROM user_feedback")).fetchall()
         assert rows
         assert rows[0][0] == "qid-test"
     finally:
@@ -49,9 +47,7 @@ def test_qdrant_collection_contract_with_real_client() -> None:
     host = pytest.importorskip("os").environ.get("POKERAG_INTEGRATION_QDRANT_HOST")
     if not host:
         pytest.skip("POKERAG_INTEGRATION_QDRANT_HOST is not configured")
-    port = int(
-        pytest.importorskip("os").environ.get("POKERAG_INTEGRATION_QDRANT_PORT", "6333")
-    )
+    port = int(pytest.importorskip("os").environ.get("POKERAG_INTEGRATION_QDRANT_PORT", "6333"))
     client = QdrantClient(host=host, port=port, prefer_grpc=False)
     try:
         assert client.get_collections() is not None

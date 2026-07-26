@@ -49,9 +49,7 @@ def _answer_response() -> AnswerResponse:
         rewritten_query="Pokemon TCG Rare Candy legality",
         answer="Yes.",
         citations=[metadata],
-        retrieved_chunks=[
-            RetrievedChunk(chunk=chunk, score=0.9, retrieval_method="dense")
-        ],
+        retrieved_chunks=[RetrievedChunk(chunk=chunk, score=0.9, retrieval_method="dense")],
         model_name="gpt-4o-mini",
         latency_seconds=0.42,
     )
@@ -180,9 +178,7 @@ async def test_scope_matrix_and_ownership_enforced(
     """Scope checks and object ownership must be enforced consistently."""
     query_token = _token("user-a", ("rag:query",))
     feedback_token = _token("user-b", ("rag:feedback",))
-    full_token = _token(
-        "user-a", ("rag:query", "rag:feedback", "rag:metrics", "rag:diagnostics")
-    )
+    full_token = _token("user-a", ("rag:query", "rag:feedback", "rag:metrics", "rag:diagnostics"))
 
     query_response = await security_client.post(
         "/api/v1/query",

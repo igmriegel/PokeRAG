@@ -13,12 +13,7 @@ import yaml
 PROJECT_ROOT = Path(__file__).parents[2]
 PROMETHEUS_FILE = PROJECT_ROOT / "docker" / "prometheus" / "prometheus.yml"
 DATASOURCE_FILE = (
-    PROJECT_ROOT
-    / "docker"
-    / "grafana"
-    / "provisioning"
-    / "datasources"
-    / "datasource.yml"
+    PROJECT_ROOT / "docker" / "grafana" / "provisioning" / "datasources" / "datasource.yml"
 )
 DASHBOARD_FILE = PROJECT_ROOT / "docker" / "grafana" / "dashboards" / "pokemon_rag.json"
 

@@ -51,9 +51,7 @@ def _answer_response() -> AnswerResponse:
         rewritten_query="Pokemon TCG Rare Candy legality",
         answer="Yes.",
         citations=[metadata],
-        retrieved_chunks=[
-            RetrievedChunk(chunk=chunk, score=0.9, retrieval_method="dense")
-        ],
+        retrieved_chunks=[RetrievedChunk(chunk=chunk, score=0.9, retrieval_method="dense")],
         model_name="gpt-4o-mini",
         latency_seconds=0.42,
     )
@@ -110,13 +108,9 @@ async def guarded_client(
     monkeypatch.setattr(
         api_routes,
         "DEFAULT_REQUEST_GUARD",
-        APIRequestGuard(
-            rate_limit_per_minute=1, max_concurrent_requests=1, max_body_bytes=4096
-        ),
+        APIRequestGuard(rate_limit_per_minute=1, max_concurrent_requests=1, max_body_bytes=4096),
     )
-    monkeypatch.setattr(
-        api_runtime, "build_runtime_container", lambda: FakeRuntimeContainer()
-    )
+    monkeypatch.setattr(api_runtime, "build_runtime_container", lambda: FakeRuntimeContainer())
     set_dependencies(None, None)
     app = api_main.create_app()
     async with _client_for_app(app) as client:
