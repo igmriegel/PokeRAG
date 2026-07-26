@@ -1,5 +1,6 @@
 # Developer toolchain lock.
 pytest==9.1.1
+pip-audit==2.10.1
 pytest-cov==7.1.0
 pytest-asyncio==0.25.3
 pytest-mock==3.15.1

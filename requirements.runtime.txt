@@ -1,5 +1,5 @@
-# Runtime dependency lock for API / UI / ingestion images.
-# Generated from the pinned project dependency set used in production services.
+# Runtime dependency lock.
+# Only direct runtime dependencies belong here; transitive packages are resolved by pip.
 pydantic==2.13.4
 pydantic-settings==2.14.2
 qdrant-client==1.14.3
